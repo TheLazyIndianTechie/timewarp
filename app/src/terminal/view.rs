@@ -218,8 +218,8 @@ use crate::ai::agent::{
     AIAgentInput, AIAgentOutputStatus, AIAgentPtyWriteMode, AIAgentTextSection,
     AgentReviewCommentBatch, CancellationReason, EntrypointType, FileLocations,
     FinishedAIAgentOutput, PassiveCodeDiffEntry, PassiveSuggestionResultType,
-    PassiveSuggestionTrigger, RenderableAIError, ServerOutputId, ShellCommandCompletedTrigger,
-    StaticQueryType,
+    PassiveSuggestionTrigger, PullRequestContext, RenderableAIError, ServerOutputId,
+    ShellCommandCompletedTrigger, StaticQueryType,
 };
 #[cfg(feature = "local_fs")]
 use crate::ai::agent::{CurrentHead, DiffBase};
@@ -254,7 +254,7 @@ use crate::ai::blocklist::suggested_rule_modal::SuggestedRuleAndId;
 use crate::ai::blocklist::summarization_cancel_dialog::SummarizationCancelDialog;
 use crate::ai::blocklist::telemetry_banner::{should_collect_ai_ugc_telemetry, TelemetryBanner};
 use crate::ai::blocklist::usage::conversation_usage_view::{
-    ConversationUsageInfo, ConversationUsageView, TimingInfo,
+    ConversationUsageInfo, ConversationUsageView, DisplayMode, TimingInfo,
 };
 use crate::ai::blocklist::{
     ai_brand_color, block_context_from_terminal_model,
@@ -3973,6 +3973,29 @@ impl TerminalView {
         // changes (e.g. chips added/removed, input type toggled).
         ctx.subscribe_to_model(&Prompt::handle(ctx), |me, _, _, ctx| {
             me.update_git_status_subscription(ctx);
+        });
+
+        // Keep the AI context model's cached pull request metadata in sync with the
+        // GithubPullRequest prompt chip. The observation fires whenever any chip
+        // value changes; we parse the latest PR chip value and exclude the URL from
+        // AI context.
+        ctx.observe(&current_prompt, |me, prompt_type_handle, ctx| {
+            let pull_request = prompt_type_handle
+                .as_ref(ctx)
+                .latest_chip_value(&ContextChipKind::GithubPullRequest, ctx)
+                .and_then(|value| {
+                    crate::context_chips::github_pull_request_from_chip_value(&value).map(
+                        |pull_request| PullRequestContext {
+                            number: pull_request.number,
+                            state: pull_request.state,
+                            draft: pull_request.draft,
+                            base_branch: pull_request.base_branch,
+                        },
+                    )
+                });
+            me.ai_context_model.update(ctx, |context_model, _| {
+                context_model.set_cached_pull_request(pull_request);
+            });
         });
 
         ctx.subscribe_to_model(&AltScreenReporting::handle(ctx), move |me, _, evt, ctx| {

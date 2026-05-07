@@ -127,7 +127,7 @@ async fn get_pr_for_branch_does_not_require_origin_remote() {
     let gh_path = fake_bin.path().join("gh");
     fs::write(
         &gh_path,
-        "#!/bin/sh\nprintf '{\"number\":123,\"url\":\"https://github.com/warp/warp/pull/123\"}\\n'\n",
+        "#!/bin/sh\nprintf '{\"number\":123,\"url\":\"https://github.com/warp/warp/pull/123\",\"state\":\"OPEN\",\"isDraft\":true,\"baseRefName\":\"main\"}\\n'\n",
     )
     .expect("failed to write fake gh");
     let mut permissions = fs::metadata(&gh_path).unwrap().permissions();
@@ -144,7 +144,10 @@ async fn get_pr_for_branch_does_not_require_origin_remote() {
         get_pr_for_branch(&repo, Some(&path_env)).await.unwrap(),
         Some(PrInfo {
             number: 123,
-            url: "https://github.com/warp/warp/pull/123".to_string()
+            url: "https://github.com/warp/warp/pull/123".to_string(),
+            state: "OPEN".to_string(),
+            draft: true,
+            base_branch: "main".to_string(),
         })
     );
 }

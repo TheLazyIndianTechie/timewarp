@@ -120,6 +120,9 @@ impl From<&proto::PrInfo> for PrInfo {
         PrInfo {
             number: pr.number,
             url: pr.url.clone(),
+            state: String::new(),
+            draft: false,
+            base_branch: String::new(),
         }
     }
 }
