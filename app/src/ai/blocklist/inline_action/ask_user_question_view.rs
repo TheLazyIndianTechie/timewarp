@@ -847,7 +847,11 @@ impl AskUserQuestionView {
     }
 
     /// Creates the dropdown view for the speedbump footer. No-op if already initialized.
-    pub fn init_speedbump_dropdown(&mut self, ctx: &mut ViewContext<Self>) {
+    pub fn init_speedbump_dropdown(
+        &mut self,
+        selected_permission: AskUserQuestionPermission,
+        ctx: &mut ViewContext<Self>,
+    ) {
         if self.speedbump_dropdown.is_some() {
             return;
         }
@@ -880,27 +884,35 @@ impl AskUserQuestionView {
                     .collect(),
                 ctx,
             );
+            dropdown.set_selected_by_name(selected_permission.label(), ctx);
             dropdown
         });
         self.speedbump_dropdown = Some(view);
     }
 
+    fn set_speedbump_dropdown_selection(
+        &mut self,
+        permission: AskUserQuestionPermission,
+        ctx: &mut ViewContext<Self>,
+    ) {
+        let Some(dropdown) = self.speedbump_dropdown.clone() else {
+            return;
+        };
+        dropdown.update(ctx, |dropdown, ctx| {
+            dropdown.set_selected_by_name(permission.label(), ctx);
+        });
+    }
     /// Updates the dropdown's selected item to match the active execution profile.
     pub fn refresh_speedbump_dropdown_selection(
         &mut self,
         terminal_view_id: EntityId,
         ctx: &mut ViewContext<Self>,
     ) {
-        let Some(dropdown) = self.speedbump_dropdown.clone() else {
-            return;
-        };
         let permission = AIExecutionProfilesModel::as_ref(ctx)
             .active_profile(Some(terminal_view_id), ctx)
             .data()
             .ask_user_question;
-        dropdown.update(ctx, |dropdown, ctx| {
-            dropdown.set_selected_by_name(permission.label(), ctx);
-        });
+        self.set_speedbump_dropdown_selection(permission, ctx);
     }
 
     /// Recover completed/cancelled status even if the live action entry is gone, so restored
@@ -1704,6 +1716,7 @@ impl TypedActionView for AskUserQuestionView {
                 self.is_expanded = !self.is_expanded;
             }
             AskUserQuestionViewAction::SetPermission(permission) => {
+                self.set_speedbump_dropdown_selection(*permission, ctx);
                 ctx.emit(AskUserQuestionViewEvent::SpeedbumpPermissionChanged(
                     *permission,
                 ));
