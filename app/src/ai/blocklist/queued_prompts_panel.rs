@@ -13,8 +13,8 @@ use warpui::elements::{
     new_scrollable::{NewScrollable, ScrollableAppearance, SingleAxisConfig},
     Border, ChildView, Clipped, ClippedScrollStateHandle, ConstrainedBox, Container, CornerRadius,
     CrossAxisAlignment, DragAxis, Draggable, DraggableState, Empty, Expanded, Fill, Flex,
-    Hoverable, MouseStateHandle, ParentElement, Radius, SavePosition, ScrollbarWidth, Text,
-    DEFAULT_UI_LINE_HEIGHT_RATIO,
+    Hoverable, MinSize, MouseStateHandle, ParentElement, Radius, SavePosition, ScrollbarWidth,
+    Text, DEFAULT_UI_LINE_HEIGHT_RATIO,
 };
 use warpui::fonts::{Properties, Style, Weight};
 use warpui::platform::Cursor;
@@ -93,6 +93,7 @@ pub struct QueuedPromptsPanelView {
     /// Reusable editor for whichever row is currently in edit mode.
     /// Created once and reused across edit sessions to avoid view churn.
     edit_editor: ViewHandle<EditorView>,
+    edit_editor_is_single_logical_line: bool,
     edit_editor_scroll_state: ClippedScrollStateHandle,
     /// Mouse state for the header row, used to highlight on hover.
     header_mouse_state: MouseStateHandle,
@@ -174,6 +175,7 @@ impl QueuedPromptsPanelView {
             queued_query_model,
             ai_context_model,
             edit_editor,
+            edit_editor_is_single_logical_line: true,
             edit_editor_scroll_state: Default::default(),
             header_mouse_state: MouseStateHandle::default(),
             row_states: HashMap::new(),
@@ -212,6 +214,7 @@ impl QueuedPromptsPanelView {
                     .find(|row| row.id() == *query_id)
                     .map(|row| row.text().to_owned())
                     .unwrap_or_default();
+                self.edit_editor_is_single_logical_line = !initial_text.contains('\n');
                 self.edit_editor.update(ctx, |editor, ctx| {
                     editor.system_reset_buffer_text(&initial_text, ctx);
                     editor.select_all(ctx);
@@ -246,7 +249,20 @@ impl QueuedPromptsPanelView {
             EditorEvent::Escape => self.cancel_edit(ctx),
             // Losing focus commits the edit.
             EditorEvent::Blurred => self.commit_edit(ctx),
+            EditorEvent::Edited(_) | EditorEvent::BufferReplaced => {
+                self.update_edit_editor_line_state(ctx)
+            }
             _ => {}
+        }
+    }
+
+    fn update_edit_editor_line_state(&mut self, ctx: &mut ViewContext<Self>) {
+        let is_single_logical_line = self
+            .edit_editor
+            .read(ctx, |editor, ctx| !editor.buffer_text(ctx).contains('\n'));
+        if self.edit_editor_is_single_logical_line != is_single_logical_line {
+            self.edit_editor_is_single_logical_line = is_single_logical_line;
+            ctx.notify();
         }
     }
 
@@ -581,6 +597,7 @@ impl View for QueuedPromptsPanelView {
                     is_in_edit_mode,
                     is_being_dragged,
                     edit_editor: &self.edit_editor,
+                    edit_editor_is_single_logical_line: self.edit_editor_is_single_logical_line,
                     edit_editor_scroll_state: &self.edit_editor_scroll_state,
                     row_state,
                     appearance,
@@ -721,6 +738,7 @@ struct RenderRowProps<'a> {
     is_in_edit_mode: bool,
     is_being_dragged: bool,
     edit_editor: &'a ViewHandle<EditorView>,
+    edit_editor_is_single_logical_line: bool,
     edit_editor_scroll_state: &'a ClippedScrollStateHandle,
     row_state: QueuedPromptRowState,
     appearance: &'a Appearance,
@@ -735,6 +753,7 @@ fn render_row(props: RenderRowProps<'_>) -> Box<dyn Element> {
         is_in_edit_mode,
         is_being_dragged,
         edit_editor,
+        edit_editor_is_single_logical_line,
         edit_editor_scroll_state,
         row_state,
         appearance,
@@ -773,9 +792,15 @@ fn render_row(props: RenderRowProps<'_>) -> Box<dyn Element> {
             .with_vertical_scrollbar(ScrollableAppearance::new(ScrollbarWidth::Auto, false))
             .with_propagate_mousewheel_if_not_handled(true)
             .finish();
+            let editor_viewport = Clipped::new(editor_scrollable).finish();
+            let editor_viewport = if edit_editor_is_single_logical_line {
+                MinSize::new(editor_viewport).finish()
+            } else {
+                editor_viewport
+            };
 
             ConstrainedBox::new(
-                Container::new(Clipped::new(editor_scrollable).finish())
+                Container::new(editor_viewport)
                     .with_border(Border::all(1.).with_border_fill(theme.outline()))
                     .with_corner_radius(CornerRadius::with_all(Radius::Pixels(4.)))
                     .with_horizontal_padding(4.)
@@ -787,7 +812,6 @@ fn render_row(props: RenderRowProps<'_>) -> Box<dyn Element> {
             ConstrainedBox::new(
                 Text::new(preview_text.clone(), ui_font_family, ui_font_size)
                     .with_color(foreground_color)
-                    .soft_wrap(false)
                     .with_selectable(false)
                     .finish(),
             )
