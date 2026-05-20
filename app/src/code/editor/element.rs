@@ -94,6 +94,21 @@ fn display_line_number(
     absolute_line_number(line_count, starting_line_number)
 }
 
+fn line_is_in_active_diff_range(
+    line_count: LineCount,
+    active_line_number: LineCount,
+    cursor_diff_line_range: Option<Range<LineCount>>,
+    focused_diff_line_range: Option<&Range<LineCount>>,
+) -> bool {
+    let active_diff_line_range = cursor_diff_line_range.or_else(|| {
+        focused_diff_line_range
+            .filter(|range| range.contains(&active_line_number))
+            .cloned()
+    });
+
+    active_diff_line_range
+        .is_some_and(|range| range.contains(&active_line_number) && range.contains(&line_count))
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ChangeType {
     Add,
@@ -615,9 +630,12 @@ impl<V: EditorView> EditorWrapper<V> {
         if !line_number_config.active_cursor_is_focused {
             return false;
         }
-        self.focused_diff_line_range
-            .as_ref()
-            .is_some_and(|range| range.contains(&active_line_number) && range.contains(&line_count))
+        line_is_in_active_diff_range(
+            line_count,
+            active_line_number,
+            self.diff_status.added_diff_range(active_line_number),
+            self.focused_diff_line_range.as_ref(),
+        )
     }
 
     /// Returning **no** gutter means the gutter shouldn't be rendered at all.

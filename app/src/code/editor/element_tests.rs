@@ -48,6 +48,46 @@ fn relative_line_numbers_show_distance_above_and_below_active_line() {
 }
 
 #[test]
+fn active_diff_range_uses_cursor_derived_range_without_focused_diff_navigation() {
+    assert!(line_is_in_active_diff_range(
+        LineCount::from(4),
+        LineCount::from(5),
+        Some(LineCount::from(4)..LineCount::from(7)),
+        None,
+    ));
+}
+
+#[test]
+fn active_diff_range_keeps_lines_outside_cursor_hunk_absolute() {
+    assert!(!line_is_in_active_diff_range(
+        LineCount::from(8),
+        LineCount::from(5),
+        Some(LineCount::from(4)..LineCount::from(7)),
+        Some(&(LineCount::from(8)..LineCount::from(10))),
+    ));
+}
+
+#[test]
+fn active_diff_range_can_fall_back_to_focused_range_when_it_contains_cursor() {
+    assert!(line_is_in_active_diff_range(
+        LineCount::from(6),
+        LineCount::from(5),
+        None,
+        Some(&(LineCount::from(4)..LineCount::from(7))),
+    ));
+}
+
+#[test]
+fn active_diff_range_rejects_focused_range_that_does_not_contain_cursor() {
+    assert!(!line_is_in_active_diff_range(
+        LineCount::from(8),
+        LineCount::from(5),
+        None,
+        Some(&(LineCount::from(8)..LineCount::from(10))),
+    ));
+}
+
+#[test]
 fn relative_line_numbers_fall_back_to_absolute_without_active_line() {
     assert_eq!(
         display_line_number(
