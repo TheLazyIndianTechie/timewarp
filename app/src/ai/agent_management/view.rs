@@ -15,7 +15,7 @@ use crate::ai::agent_conversations_model::{
     AgentConversationEntry, AgentConversationEntryId, AgentConversationNavigationSubject,
     AgentConversationsModel, AgentConversationsModelEvent, AgentManagementFilters, ArtifactFilter,
     ConversationUpdateKind, CreatedOnFilter, CreatorFilter, EnvironmentFilter, HarnessFilter,
-    OwnerFilter, SessionStatus, SourceFilter, StatusFilter,
+    OwnerFilter, SessionStatus, SourceFilter, StatusFilter, SubagentsFilter,
 };
 use crate::ai::agent_management::agent_type_selector::{
     AgentType, AgentTypeSelector, AgentTypeSelectorEvent,
@@ -176,6 +176,7 @@ pub struct AgentManagementView {
     source_dropdown: ViewHandle<Dropdown<AgentManagementViewAction>>,
     created_on_dropdown: ViewHandle<Dropdown<AgentManagementViewAction>>,
     artifact_dropdown: ViewHandle<Dropdown<AgentManagementViewAction>>,
+    subagents_dropdown: ViewHandle<Dropdown<AgentManagementViewAction>>,
     harness_dropdown: ViewHandle<Dropdown<AgentManagementViewAction>>,
     environment_dropdown: ViewHandle<FilterableDropdown<AgentManagementViewAction>>,
     creator_dropdown: ViewHandle<FilterableDropdown<AgentManagementViewAction>>,
@@ -265,6 +266,7 @@ impl AgentManagementView {
         let source_dropdown = ctx.add_typed_action_view(Self::create_source_dropdown);
         let created_on_dropdown = ctx.add_typed_action_view(Self::create_created_on_dropdown);
         let artifact_dropdown = ctx.add_typed_action_view(Self::create_artifact_dropdown);
+        let subagents_dropdown = ctx.add_typed_action_view(Self::create_subagents_dropdown);
         let harness_dropdown = ctx.add_typed_action_view(Self::create_harness_dropdown);
         let environment_dropdown = ctx.add_typed_action_view(Self::create_environment_dropdown);
         let creator_dropdown = ctx.add_typed_action_view(Self::create_creator_dropdown);
@@ -359,6 +361,7 @@ impl AgentManagementView {
             source_dropdown,
             created_on_dropdown,
             artifact_dropdown,
+            subagents_dropdown,
             harness_dropdown,
             environment_dropdown,
             creator_dropdown,
@@ -444,6 +447,13 @@ impl AgentManagementView {
         self.artifact_dropdown.update(ctx, |dropdown, ctx| {
             dropdown.set_selected_by_action(
                 AgentManagementViewAction::SetArtifactFilter(self.filters.artifact),
+                ctx,
+            );
+        });
+
+        self.subagents_dropdown.update(ctx, |dropdown, ctx| {
+            dropdown.set_selected_by_action(
+                AgentManagementViewAction::SetSubagentsFilter(self.filters.subagents),
                 ctx,
             );
         });
@@ -653,6 +663,30 @@ impl AgentManagementView {
                 DropdownAction::SelectActionAndClose(AgentManagementViewAction::SetArtifactFilter(
                     ArtifactFilter::File,
                 )),
+            )),
+        ];
+
+        dropdown.set_rich_items(items, ctx);
+        dropdown.set_selected_by_index(0, ctx);
+        dropdown
+    }
+
+    fn create_subagents_dropdown(
+        ctx: &mut ViewContext<Dropdown<AgentManagementViewAction>>,
+    ) -> Dropdown<AgentManagementViewAction> {
+        let mut dropdown = Dropdown::new(ctx);
+        Self::setup_filter_menu(&mut dropdown, "Subagents", ctx);
+
+        let items = vec![
+            MenuItem::Item(MenuItemFields::new("Show").with_on_select_action(
+                DropdownAction::SelectActionAndClose(
+                    AgentManagementViewAction::SetSubagentsFilter(SubagentsFilter::All),
+                ),
+            )),
+            MenuItem::Item(MenuItemFields::new("Hide").with_on_select_action(
+                DropdownAction::SelectActionAndClose(
+                    AgentManagementViewAction::SetSubagentsFilter(SubagentsFilter::Hide),
+                ),
             )),
         ];
 
@@ -924,6 +958,9 @@ impl AgentManagementView {
             dropdown.set_selected_by_index(0, ctx);
         });
         self.artifact_dropdown.update(ctx, |dropdown, ctx| {
+            dropdown.set_selected_by_index(0, ctx);
+        });
+        self.subagents_dropdown.update(ctx, |dropdown, ctx| {
             dropdown.set_selected_by_index(0, ctx);
         });
         self.harness_dropdown.update(ctx, |dropdown, ctx| {
@@ -1940,7 +1977,8 @@ impl AgentManagementView {
                 .with_child(ChildView::new(&self.status_dropdown).finish())
                 .with_child(ChildView::new(&self.source_dropdown).finish())
                 .with_child(ChildView::new(&self.created_on_dropdown).finish())
-                .with_child(ChildView::new(&self.artifact_dropdown).finish());
+                .with_child(ChildView::new(&self.artifact_dropdown).finish())
+                .with_child(ChildView::new(&self.subagents_dropdown).finish());
 
             if HarnessAvailabilityModel::as_ref(app).should_show_harness_selector() {
                 filters_wrap.add_child(ChildView::new(&self.harness_dropdown).finish());
@@ -2212,6 +2250,7 @@ pub enum AgentManagementViewAction {
     SetSourceFilter(SourceFilter),
     SetCreatedOnFilter(CreatedOnFilter),
     SetArtifactFilter(ArtifactFilter),
+    SetSubagentsFilter(SubagentsFilter),
     SetEnvironmentFilter(EnvironmentFilter),
     SetCreatorFilter(CreatorFilter),
     SetHarnessFilter(HarnessFilter),
@@ -2278,6 +2317,11 @@ impl TypedActionView for AgentManagementView {
                 self.get_tasks_from_model(ctx);
                 ctx.dispatch_global_action("workspace:save_app", ());
             }
+            AgentManagementViewAction::SetSubagentsFilter(filter) => {
+                self.filters.subagents = *filter;
+                self.get_tasks_from_model(ctx);
+                ctx.dispatch_global_action("workspace:save_app", ());
+            }
             AgentManagementViewAction::SetEnvironmentFilter(filter) => {
                 self.filters.environment = filter.clone();
                 self.on_filter_changed(ctx);
@@ -2316,6 +2360,9 @@ impl TypedActionView for AgentManagementView {
                     dropdown.set_selected_by_index(0, ctx);
                 });
                 self.artifact_dropdown.update(ctx, |dropdown, ctx| {
+                    dropdown.set_selected_by_index(0, ctx);
+                });
+                self.subagents_dropdown.update(ctx, |dropdown, ctx| {
                     dropdown.set_selected_by_index(0, ctx);
                 });
                 self.harness_dropdown.update(ctx, |dropdown, ctx| {
