@@ -29,7 +29,8 @@ use crate::ai::llms::LLMId;
 use crate::cloud_object::{Owner, Revision, ServerMetadata, ServerPermissions};
 use crate::input_suggestions::HistoryInputSuggestion;
 use crate::persistence::model::{
-    AgentConversation, AgentConversationData, AgentConversationRecord, PersistedAutoexecuteMode,
+    AgentConversation, AgentConversationData, AgentConversationRecord, AgentConversationSummary,
+    PersistedAutoexecuteMode,
 };
 use crate::persistence::ModelEvent;
 use crate::server::ids::ServerId;
@@ -310,8 +311,13 @@ fn test_initialize_historical_conversations_resolves_parent_agent_id_children_vi
             ),
         ];
 
+        let summaries = conversations
+            .into_iter()
+            .map(AgentConversationSummary::from)
+            .collect::<Vec<_>>();
+
         let history_model =
-            app.add_singleton_model(|_| BlocklistAIHistoryModel::new(vec![], &conversations));
+            app.add_singleton_model(|_| BlocklistAIHistoryModel::new(vec![], &summaries));
 
         history_model.read(&app, |model, _| {
             assert_eq!(
@@ -1044,9 +1050,13 @@ fn test_initialize_historical_conversations_indexes_child_conversations() {
             },
             tasks: vec![],
         }];
+        let summaries = conversations
+            .into_iter()
+            .map(AgentConversationSummary::from)
+            .collect::<Vec<_>>();
 
         let history_model =
-            app.add_singleton_model(|_| BlocklistAIHistoryModel::new(vec![], &conversations));
+            app.add_singleton_model(|_| BlocklistAIHistoryModel::new(vec![], &summaries));
 
         history_model.read(&app, |model, _| {
             // The child conversation should be indexed under its parent.

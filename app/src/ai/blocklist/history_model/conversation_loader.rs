@@ -25,7 +25,9 @@ use crate::ai::agent::conversation::{
 use crate::ai::agent::task::Task;
 #[cfg(feature = "local_fs")]
 use crate::persistence::agent::read_agent_conversation_by_id;
-use crate::persistence::model::{AgentConversation, AgentConversationData};
+use crate::persistence::model::{
+    AgentConversation, AgentConversationData, AgentConversationSummary,
+};
 use crate::server::server_api::ai::AIClient;
 use crate::server::server_api::ServerApiProvider;
 use crate::terminal::model::block::SerializedBlock;
@@ -468,10 +470,10 @@ impl BlocklistAIHistoryModel {
     /// Initializes historical conversations from restored agent conversations.
     pub(super) fn initialize_historical_conversations(
         &mut self,
-        conversations: &[AgentConversation],
+        conversations: &[AgentConversationSummary],
     ) {
         struct HistoricalConversationRow<'a> {
-            agent_conversation: &'a AgentConversation,
+            agent_conversation: &'a AgentConversationSummary,
             conversation_id: AIConversationId,
             conversation_data: Option<AgentConversationData>,
         }
@@ -492,14 +494,7 @@ impl BlocklistAIHistoryModel {
                     }
                 };
 
-                if !agent_conversation.is_restorable() {
-                    return None;
-                }
-
-                let conversation_data = serde_json::from_str::<AgentConversationData>(
-                    &agent_conversation.conversation.conversation_data,
-                )
-                .ok();
+                let conversation_data = agent_conversation.conversation_data();
 
                 if let Some(data) = conversation_data.as_ref() {
                     if let Some(agent_id) = agent_id_key_from_persisted_data(data) {
@@ -541,13 +536,21 @@ impl BlocklistAIHistoryModel {
                     self.index_child_conversation(conversation_id, parent_id);
                     return None;
                 }
+                
+                if !agent_conversation.is_restorable() {
+                    return None;
+                }
+
+                if !agent_conversation.has_tasks() {
+                    return None;
+                }
 
                 // Skip conversations that contain AutoCodeDiff system queries but do not contain any UserQuery messages.
                 // These are passive, auto-initiated diffs that were never interacted with (past accepting or rejecting the diff),
                 // so we don't want to list them as historical conversations.
                 let mut has_user_query = false;
                 let mut has_autocodediff = false;
-                for task in &agent_conversation.tasks {
+                for task in agent_conversation.sampled_task.iter() {
                     for message in &task.messages {
                         match &message.message {
                             Some(warp_multi_agent_api::message::Message::UserQuery(_)) => {
@@ -569,10 +572,7 @@ impl BlocklistAIHistoryModel {
                     return None;
                 }
 
-                let root_task = agent_conversation
-                    .tasks
-                    .iter()
-                    .find(|task| task.dependencies.is_none());
+                let root_task = agent_conversation.sampled_task.as_ref();
 
                 let initial_query = root_task
                     .map(|task| {
@@ -604,7 +604,7 @@ impl BlocklistAIHistoryModel {
                     })
                     .unwrap_or_default();
 
-                if initial_query.is_empty() {
+                if initial_query.is_empty() && root_task.is_some() {
                     log::warn!(
                         "Failed to record conversation with ID {conversation_id} because it was missing an initial query"
                     );
@@ -616,14 +616,13 @@ impl BlocklistAIHistoryModel {
                 let title = root_task
                     .map(|task| task.description.clone())
                     .filter(|desc| !desc.is_empty())
-                    .unwrap_or_else(|| initial_query.clone());
+                    .or_else(|| (!initial_query.is_empty()).then_some(initial_query.clone()))
+                    .unwrap_or_else(|| "Restored Agent Conversation".to_string());
 
                 // Extract working directory from the first UserQuery message in the tasks
                 // TODO: search tasks in correct order once we've implemented task ordering.
-                let initial_working_directory = agent_conversation
-                    .tasks
-                    .iter()
-                    .find_map(Task::api_task_initial_working_directory);
+                let initial_working_directory =
+                    root_task.and_then(Task::api_task_initial_working_directory);
                 let credits_spent = conversation_data
                     .as_ref()
                     .and_then(|data| data.conversation_usage_metadata.as_ref())

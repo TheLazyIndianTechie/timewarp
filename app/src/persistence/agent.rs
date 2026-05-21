@@ -1,15 +1,19 @@
-use std::collections::{HashMap, HashSet};
-
 use diesel::associations::HasTable;
+use diesel::dsl::count_star;
 use diesel::prelude::*;
 use diesel::result::Error;
+use diesel::sql_types::BigInt;
 use diesel::SqliteConnection;
 use prost::Message;
 use warp_multi_agent_api as api;
 
 use super::model::{AgentConversation, AgentConversationData};
-use crate::persistence::model::{AgentConversationRecord, AgentTaskRecord};
+use crate::persistence::model::{
+    AgentConversationRecord, AgentConversationSummary, AgentTaskRecord,
+};
 use crate::persistence::schema::{self, agent_conversations, agent_tasks};
+
+const MAX_STARTUP_TASK_SAMPLE_BYTES: i64 = 256 * 1024;
 
 #[derive(Debug, Insertable, AsChangeset)]
 #[diesel(table_name = agent_conversations)]
@@ -101,51 +105,69 @@ pub(super) fn upsert_agent_conversation<'a>(
     Ok(())
 }
 
-pub(super) fn read_agent_conversations(
+pub(super) fn read_agent_conversation_summaries(
     conn: &mut SqliteConnection,
-) -> Result<Vec<AgentConversation>, diesel::result::Error> {
+) -> Result<Vec<AgentConversationSummary>, diesel::result::Error> {
     use schema::agent_conversations::dsl::*;
+    use schema::agent_tasks::dsl as tasks_dsl;
 
-    let mut conversations_by_id = HashMap::<String, AgentConversation>::from_iter(
-        agent_conversations
-            .select(AgentConversationRecord::as_select())
-            .load(conn)?
-            .into_iter()
-            .map(|conversation| {
-                (
-                    conversation.conversation_id.clone(),
-                    AgentConversation {
-                        conversation,
-                        tasks: vec![],
-                    },
-                )
-            }),
-    );
-
-    let task_records: Vec<AgentTaskRecord> = agent_tasks::table
-        .select(AgentTaskRecord::as_select())
+    let conversation_records: Vec<AgentConversationRecord> = agent_conversations
+        .select(AgentConversationRecord::as_select())
         .load(conn)?;
 
-    let mut invalid_conversation_ids = HashSet::new();
-    for task_record in task_records {
-        if let Some(conversation) = conversations_by_id.get_mut(&task_record.conversation_id) {
-            match api::Task::decode(&task_record.task[..]) {
-                Ok(api_task) => {
-                    conversation.tasks.push(api_task);
-                }
-                Err(e) => {
-                    log::error!("Failed to decode task protobuf: {e}");
+    let mut summaries = Vec::with_capacity(conversation_records.len());
+    for conversation_record in conversation_records {
+        let task_count: i64 = agent_tasks::table
+            .filter(tasks_dsl::conversation_id.eq(&conversation_record.conversation_id))
+            .select(count_star())
+            .first(conn)?;
 
-                    invalid_conversation_ids
-                        .insert(conversation.conversation.conversation_id.clone());
-                }
+        let sampled_task_records: Vec<AgentTaskRecord> = agent_tasks::table
+            .filter(tasks_dsl::conversation_id.eq(&conversation_record.conversation_id))
+            .filter(diesel::dsl::sql::<BigInt>("length(task)").le(MAX_STARTUP_TASK_SAMPLE_BYTES))
+            .order(tasks_dsl::id.asc())
+            .select(AgentTaskRecord::as_select())
+            .load(conn)?;
+
+        let sampled_tasks: Vec<_> = sampled_task_records
+            .into_iter()
+            .filter_map(
+                |task_record| match api::Task::decode(&task_record.task[..]) {
+                    Ok(task) => Some(task),
+                    Err(e) => {
+                        log::error!("Failed to decode sampled task protobuf: {e}");
+                        None
+                    }
+                },
+            )
+            .collect();
+
+        let task_count = task_count.try_into().unwrap_or_default();
+        let is_restorable = if sampled_tasks.len() == task_count {
+            AgentConversation {
+                conversation: conversation_record.clone(),
+                tasks: sampled_tasks.clone(),
             }
-        }
+            .is_restorable()
+        } else {
+            true
+        };
+
+        let sampled_task = sampled_tasks
+            .iter()
+            .find(|task| task.dependencies.is_none())
+            .or_else(|| sampled_tasks.first())
+            .cloned();
+
+        summaries.push(AgentConversationSummary {
+            conversation: conversation_record,
+            task_count,
+            sampled_task,
+            is_restorable,
+        });
     }
 
-    conversations_by_id.retain(|c_id, _| !invalid_conversation_ids.contains(c_id));
-
-    Ok(conversations_by_id.into_values().collect())
+    Ok(summaries)
 }
 
 /// Read a single agent conversation by its ID, including decoded tasks.
@@ -172,13 +194,19 @@ pub(crate) fn read_agent_conversation_by_id(
         .load(conn)?;
 
     let mut decoded_tasks = Vec::new();
+    let mut failed_to_decode_task = false;
     for task_record in task_records.into_iter() {
         match api::Task::decode(&task_record.task[..]) {
             Ok(task) => decoded_tasks.push(task),
             Err(e) => {
                 log::error!("Failed to decode task protobuf: {e}");
+                failed_to_decode_task = true;
             }
         }
+    }
+
+    if failed_to_decode_task {
+        return Ok(None);
     }
 
     Ok(Some(AgentConversation {

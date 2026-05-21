@@ -4,6 +4,8 @@ use std::sync::Arc;
 use ai::workspace::WorkspaceMetadata;
 use chrono::Utc;
 use diesel::connection::SimpleConnection;
+use diesel::sql_types::{Binary, Text};
+use diesel::RunQueryDsl;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::Vector2F;
 use warp_core::features::FeatureFlag;
@@ -14,6 +16,7 @@ use super::{
     encode_path, get_all_codebase_index_metadata, read_sqlite_data, save_app_state,
     save_codebase_index_metadata, setup_database, start_writer,
 };
+use crate::ai::agent::conversation::AIConversationId;
 use crate::app_state::{
     AppState, CodePaneSnapShot, CodePaneTabSnapshot, LeafContents, LeafSnapshot, PaneNodeSnapshot,
     TabSnapshot, TerminalPaneSnapshot, WindowSnapshot,
@@ -21,7 +24,7 @@ use crate::app_state::{
 use crate::cloud_object::{CloudObjectPermissions, Owner};
 use crate::code::editor_management::CodeSource;
 use crate::notebooks::{CloudNotebook, CloudNotebookModel};
-use crate::persistence::model::ObjectPermissions;
+use crate::persistence::model::{AgentConversationData, ObjectPermissions};
 use crate::persistence::{BlockCompleted, ModelEvent, PersistenceScope};
 use crate::server::ids::ClientId;
 use crate::tab::SelectedTabColor;
@@ -33,6 +36,62 @@ fn app_scope_database_path_matches_app_database_path() {
     assert_eq!(
         database_file_path_for_scope(&PersistenceScope::App),
         app_database_file_path()
+    );
+}
+
+#[test]
+fn sqlite_read_summarizes_oversized_agent_tasks_without_decoding() {
+    let tempdir = tempfile::tempdir().expect("tempdir should be created");
+    let database_path = tempdir.path().join("warp.sqlite");
+    let mut conn = setup_database(&database_path).expect("database should initialize");
+
+    let conversation_id = AIConversationId::new();
+    let conversation_data = AgentConversationData {
+        server_conversation_token: Some("server-token".to_string()),
+        conversation_usage_metadata: None,
+        reverted_action_ids: None,
+        forked_from_server_conversation_token: None,
+        artifacts_json: None,
+        parent_agent_id: None,
+        agent_name: None,
+        orchestration_harness_type: None,
+        parent_conversation_id: None,
+        is_remote_child: false,
+        root_task_is_optimistic: None,
+        run_id: None,
+        autoexecute_override: None,
+        last_event_sequence: None,
+        pinned: false,
+    };
+    let conversation_data =
+        serde_json::to_string(&conversation_data).expect("conversation data should serialize");
+    diesel::sql_query(
+        "INSERT INTO agent_conversations (conversation_id, conversation_data) VALUES (?, ?)",
+    )
+    .bind::<Text, _>(conversation_id.to_string())
+    .bind::<Text, _>(conversation_data)
+    .execute(&mut conn)
+    .expect("conversation record should insert");
+
+    let oversized_invalid_task_blob = vec![0; 256 * 1024 + 1];
+    diesel::sql_query("INSERT INTO agent_tasks (conversation_id, task_id, task) VALUES (?, ?, ?)")
+        .bind::<Text, _>(conversation_id.to_string())
+        .bind::<Text, _>("oversized-task")
+        .bind::<Binary, _>(oversized_invalid_task_blob)
+        .execute(&mut conn)
+        .expect("task record should insert");
+
+    let restored = read_sqlite_data(&mut conn, None).expect("persisted data should load");
+    assert_eq!(restored.multi_agent_conversations.len(), 1);
+    let summary = &restored.multi_agent_conversations[0];
+    assert_eq!(
+        summary.conversation.conversation_id,
+        conversation_id.to_string()
+    );
+    assert_eq!(summary.task_count, 1);
+    assert!(
+        summary.sampled_task.is_none(),
+        "oversized task blobs should not be decoded during startup summary loading",
     );
 }
 

@@ -36,7 +36,7 @@ use crate::ai::agent::{
 use crate::ai::artifacts::Artifact;
 use crate::ai::document::ai_document_model::AIDocumentModel;
 use crate::input_suggestions::HistoryOrder;
-use crate::persistence::model::{AgentConversation, AgentConversationData};
+use crate::persistence::model::{AgentConversationData, AgentConversationSummary};
 use crate::persistence::ModelEvent;
 #[cfg(feature = "local_fs")]
 use crate::persistence::{database_file_path_for_scope, establish_ro_connection, PersistenceScope};
@@ -252,7 +252,7 @@ pub struct BlocklistAIHistoryModel {
 impl BlocklistAIHistoryModel {
     pub(crate) fn new(
         persisted_queries: Vec<PersistedAIInput>,
-        multi_agent_conversations: &[AgentConversation],
+        multi_agent_conversations: &[AgentConversationSummary],
     ) -> Self {
         #[cfg(feature = "local_fs")]
         let db_connection = database_file_path_for_scope(&PersistenceScope::App)
@@ -495,6 +495,15 @@ impl BlocklistAIHistoryModel {
             .get(parent_id)
             .map(|v| v.as_slice())
             .unwrap_or_default()
+    }
+
+    pub fn parent_conversation_id_for_child(
+        &self,
+        child_id: &AIConversationId,
+    ) -> Option<AIConversationId> {
+        self.children_by_parent
+            .iter()
+            .find_map(|(parent_id, child_ids)| child_ids.contains(child_id).then_some(*parent_id))
     }
 
     fn persist_conversation_state(

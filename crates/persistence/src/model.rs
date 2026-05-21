@@ -937,6 +937,45 @@ pub struct AgentConversation {
     pub conversation: AgentConversationRecord,
     pub tasks: Vec<api::Task>,
 }
+#[derive(Debug, PartialEq, Default, Clone)]
+pub struct AgentConversationSummary {
+    pub conversation: AgentConversationRecord,
+    pub task_count: usize,
+    pub sampled_task: Option<api::Task>,
+    pub is_restorable: bool,
+}
+
+impl AgentConversationSummary {
+    pub fn conversation_data(&self) -> Option<AgentConversationData> {
+        serde_json::from_str(&self.conversation.conversation_data).ok()
+    }
+
+    pub fn has_tasks(&self) -> bool {
+        self.task_count > 0
+    }
+
+    pub fn is_restorable(&self) -> bool {
+        self.is_restorable
+    }
+}
+
+impl From<AgentConversation> for AgentConversationSummary {
+    fn from(conversation: AgentConversation) -> Self {
+        let is_restorable = conversation.is_restorable();
+        let sampled_task = conversation
+            .tasks
+            .iter()
+            .find(|task| task.dependencies.is_none())
+            .or_else(|| conversation.tasks.first())
+            .cloned();
+        Self {
+            task_count: conversation.tasks.len(),
+            conversation: conversation.conversation,
+            sampled_task,
+            is_restorable,
+        }
+    }
+}
 
 impl AgentConversation {
     /// Returns `true` if the conversation is restorable.
