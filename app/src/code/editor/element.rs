@@ -71,44 +71,6 @@ fn highlight_element(appearance: &Appearance) -> Box<dyn Element> {
         .finish()
 }
 
-fn absolute_line_number(line_count: LineCount, starting_line_number: Option<usize>) -> usize {
-    line_count.as_usize() + starting_line_number.unwrap_or(1)
-}
-
-fn display_line_number(
-    line_count: LineCount,
-    mode: CodeEditorLineNumberMode,
-    starting_line_number: Option<usize>,
-    active_line_number: Option<LineCount>,
-) -> usize {
-    if mode == CodeEditorLineNumberMode::Relative {
-        if let Some(active_line_number) = active_line_number {
-            if active_line_number != line_count {
-                return active_line_number
-                    .as_usize()
-                    .abs_diff(line_count.as_usize());
-            }
-        }
-    }
-
-    absolute_line_number(line_count, starting_line_number)
-}
-
-fn line_is_in_active_diff_range(
-    line_count: LineCount,
-    active_line_number: LineCount,
-    cursor_diff_line_range: Option<Range<LineCount>>,
-    focused_diff_line_range: Option<&Range<LineCount>>,
-) -> bool {
-    let active_diff_line_range = cursor_diff_line_range.or_else(|| {
-        focused_diff_line_range
-            .filter(|range| range.contains(&active_line_number))
-            .cloned()
-    });
-
-    active_diff_line_range
-        .is_some_and(|range| range.contains(&active_line_number) && range.contains(&line_count))
-}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ChangeType {
     Add,
@@ -410,6 +372,25 @@ pub struct LineNumberConfig {
     pub active_line_number: Option<LineCount>,
     pub active_cursor_is_focused: bool,
 }
+impl LineNumberConfig {
+    pub fn absolute_line_number(&self, line_count: LineCount) -> usize {
+        line_count.as_usize() + self.starting_line_number.unwrap_or(1)
+    }
+
+    pub fn display_line_number(&self, line_count: LineCount) -> usize {
+        if self.mode == CodeEditorLineNumberMode::Relative {
+            if let Some(active_line_number) = self.active_line_number {
+                if active_line_number != line_count {
+                    return active_line_number
+                        .as_usize()
+                        .abs_diff(line_count.as_usize());
+                }
+            }
+        }
+
+        self.absolute_line_number(line_count)
+    }
+}
 
 struct CommentBox {
     line_highlight_element: Box<dyn Element>,
@@ -609,7 +590,7 @@ impl<V: EditorView> EditorWrapper<V> {
             .cloned()
     }
 
-    fn should_display_relative_line_number(&self, line_count: LineCount) -> bool {
+    fn should_display_relative_line_number(&self) -> bool {
         let Some(line_number_config) = &self.line_number_config else {
             return false;
         };
@@ -619,23 +600,10 @@ impl<V: EditorView> EditorWrapper<V> {
             return false;
         }
 
-        let (added_lines, removed_lines) = self.diff_status.get_diff_lines();
-        if added_lines == 0 && removed_lines == 0 {
+        if self.diff_status.is_empty() {
             return true;
         }
-
-        let Some(active_line_number) = line_number_config.active_line_number else {
-            return false;
-        };
-        if !line_number_config.active_cursor_is_focused {
-            return false;
-        }
-        line_is_in_active_diff_range(
-            line_count,
-            active_line_number,
-            self.diff_status.added_diff_range(active_line_number),
-            self.focused_diff_line_range.as_ref(),
-        )
+        line_number_config.active_cursor_is_focused
     }
 
     /// Returning **no** gutter means the gutter shouldn't be rendered at all.
@@ -673,15 +641,10 @@ impl<V: EditorView> EditorWrapper<V> {
             let diff_hunk = self.diff_status.diff_hunk(line_count, appearance);
             let is_removal = matches!(diff_hunk, Some(DiffHunkDisplay::Remove(_)));
 
-            let current_line = if self.should_display_relative_line_number(line_count) {
-                display_line_number(
-                    line_count,
-                    line_number_config.mode,
-                    line_number_config.starting_line_number,
-                    line_number_config.active_line_number,
-                )
+            let current_line = if self.should_display_relative_line_number() {
+                line_number_config.display_line_number(line_count)
             } else {
-                absolute_line_number(line_count, line_number_config.starting_line_number)
+                line_number_config.absolute_line_number(line_count)
             };
 
             // If the block is temporary, don't render line number.

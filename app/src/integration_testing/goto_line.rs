@@ -56,6 +56,7 @@ pub fn set_code_editor_line_number_mode(app: &mut App, mode: CodeEditorLineNumbe
     });
 }
 
+/// Asserts code editor line numbers with `(logical_line_number, expected_displayed_line_number)` pairs.
 pub fn assert_code_editor_line_numbers(expected: Vec<(usize, usize)>) -> AssertionCallback {
     Box::new(move |app, window_id| {
         let editor = file_code_editor_view(app, window_id);

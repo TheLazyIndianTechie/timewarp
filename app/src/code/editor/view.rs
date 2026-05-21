@@ -26,7 +26,7 @@ use crate::{
     editor::InteractionState,
     features::FeatureFlag,
     notebooks::editor::rich_text_styles,
-    settings::{AppEditorSettings, FontSettings},
+    settings::{AppEditorSettings, CodeEditorLineNumberMode, FontSettings},
     view_components::find::FindDirection,
 };
 use ai::diff_validation::DiffDelta;
@@ -1264,7 +1264,14 @@ impl CodeEditorView {
                 self.reset_for_editing_change();
                 self.vim_maybe_enforce_cursor_line_cap(ctx);
                 ctx.emit(CodeEditorEvent::SelectionChanged);
-                ctx.notify();
+                if *AppEditorSettings::as_ref(ctx)
+                    .code_editor_line_number_mode
+                    .value()
+                    == CodeEditorLineNumberMode::Relative
+                {
+                    // Repaint relative line-number gutters when the cursor origin changes.
+                    ctx.notify();
+                }
             }
             CodeEditorModelEvent::ContentChanged { origin } => {
                 if origin.from_user() {
@@ -2458,19 +2465,7 @@ impl CodeEditorView {
         let line_number_config = self.line_number_config(ctx)?;
         let line_count = LineCount::from(one_based_line_number.checked_sub(1)?);
 
-        if line_number_config.mode == crate::settings::CodeEditorLineNumberMode::Relative {
-            if let Some(active_line_number) = line_number_config.active_line_number {
-                if active_line_number != line_count {
-                    return Some(
-                        active_line_number
-                            .as_usize()
-                            .abs_diff(line_count.as_usize()),
-                    );
-                }
-            }
-        }
-
-        Some(line_count.as_usize() + line_number_config.starting_line_number.unwrap_or(1))
+        Some(line_number_config.display_line_number(line_count))
     }
 }
 

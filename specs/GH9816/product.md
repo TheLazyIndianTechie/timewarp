@@ -42,9 +42,8 @@ Figma: none provided. The feature reuses the existing code editor gutter and set
 10. Code editor line numbers correspond to logical file lines, not soft-wrap rows. A long line that visually wraps still has one line number, and wrapped continuation rows do not introduce extra relative counts.
 11. Hidden/collapsed code regions keep their existing hidden-section gutter affordances. The hidden section itself does not need to display a relative count for every hidden line.
 12. Diff and review gutters keep their current affordances:
-    - Diff and review editors that do not currently have focus inside a specific diff section continue to show absolute line numbers, even when the global code editor setting is Relative.
-    - When the cursor is active within a specific diff section and Relative is selected, current-buffer lines in that active section that already display a line number use Relative mode.
-    - Other visible diff sections outside the active cursor section continue to show absolute line numbers so unfocused review context remains stable.
+    - Diff and review editors that are not currently focused continue to show absolute line numbers, even when the global code editor setting is Relative.
+    - When a diff or review editor is focused and Relative is selected, current-buffer lines across that editor that already display a line number use Relative mode from the active cursor line.
     - Removed/temporary diff lines that currently omit a line number continue to omit one unless a separate diff design changes that behavior.
     - Diff hunk buttons, comment buttons, hover hit targets, and collapse/expand interactions continue to work.
 13. The visual style of line numbers remains consistent with the existing gutter: same font family, size, colors, selection behavior, and alignment unless a small width or alignment adjustment is necessary to prevent relative values from clipping.
@@ -61,11 +60,11 @@ Figma: none provided. The feature reuses the existing code editor gutter and set
 4. The setting is visible and usable when Vim keybindings are disabled.
 5. Enabling or disabling Vim keybindings does not change the selected line numbering mode.
 6. Terminal input and AI input surfaces still do not render line-number gutters.
-7. Diff hunk controls, inline comment buttons, hidden-section controls, and find-references anchoring still work in code editors with each line numbering mode; inactive diff sections continue to show absolute line numbers until the cursor is active within that section.
+7. Diff hunk controls, inline comment buttons, hidden-section controls, and find-references anchoring still work in code editors with each line numbering mode; inactive diff/review editors continue to show absolute line numbers until that editor is focused.
 ## Validation
 1. Manually verify a multi-line file in the code editor with Absolute and Relative modes selected.
 2. In Relative mode, move the cursor above and below visible lines using mouse, arrow keys, goto-line, and Vim motions; verify displayed values update correctly.
 3. Verify the setting persists after closing and reopening Warp or reloading settings.
 4. Verify the setting remains visible when Vim mode is disabled and that toggling Vim mode does not reset it.
 5. Verify terminal command input, AI input, and rich-text notebook editors do not gain line-number gutters.
-6. Verify code review/diff editors still show diff decorations and gutter buttons correctly in both modes, show absolute line numbers while no diff section is focused, and apply Relative numbering only within the focused cursor section.
+6. Verify code review/diff editors still show diff decorations and gutter buttons correctly in both modes, show absolute line numbers while the diff/review editor is not focused, and apply Relative numbering across the focused editor.

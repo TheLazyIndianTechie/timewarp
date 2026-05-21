@@ -36,7 +36,7 @@ Add small helpers on the enum:
 In `app/src/settings_view/features_page.rs`:
 1. Import `CodeEditorLineNumberMode` and the generated setting type, likely `CodeEditorLineNumberModeSetting` or the actual generated name from `define_settings_group!`.
 2. Add `SetCodeEditorLineNumberMode(CodeEditorLineNumberMode)` to `FeaturesPageAction`.
-3. No new telemetry event is required for this setting in this iteration.
+3. No new dedicated telemetry event is required for this setting in this iteration; the settings action should use the existing `FeaturesPageAction` telemetry path like other setters.
 4. Add action handling that writes the setting:
    - `AppEditorSettings::handle(ctx).update(ctx, |settings, ctx| report_if_error!(settings.code_editor_line_number_mode.set_value(*mode, ctx)))`
    - Notify after the write so settings UI and open editors repaint.
@@ -57,7 +57,7 @@ In `CodeEditorView::line_number_config` (`app/src/code/editor/view.rs (1041-1239
    - Convert the head to a buffer point with the code editor buffer.
    - Convert that row to the same `LineCount` convention used by `model.start_line_index(&**block)`.
    - Prefer keeping this conversion in a helper on `CodeEditorView` or `CodeEditorModel`, such as `active_cursor_line_for_line_numbers(&self, ctx) -> Option<LineCount>`, to avoid duplicating offset/index assumptions in the wrapper.
-4. Also pass whether the editor is currently focused into `LineNumberConfig`. Normal code editors should not require focus to display Relative mode, but diff/review editors should still require focus inside the relevant diff section before applying relative line numbers.
+4. Also pass whether the editor is currently focused into `LineNumberConfig`. Normal code editors should not require focus to display Relative mode, but diff/review editors should still require editor focus before applying relative line numbers.
 5. Keep returning `None` when `show_line_numbers` is false.
 ### 4. Compute the displayed gutter value per line
 In `EditorWrapper::gutter_elements` (`app/src/code/editor/element.rs (500-790)`), replace the current absolute-only `current_line` computation with a helper:
@@ -79,7 +79,7 @@ Do not display relative numbers for:
 - temporary removed diff blocks, which currently pass `None` to `render_gutter_element`
 - hidden-section controls, which use `construct_expand_hidden_section_gutter_element`
 - surfaces where `line_number_config` is `None`
-For diff and review editors, preserve absolute numbering unless the cursor is focused inside a specific diff section and Relative is selected. Only numbered current-buffer lines in that active section should apply the selected Relative display; inactive sections should continue to display absolute line numbers so review context does not shift while the user is elsewhere. Normal code editor surfaces without diff status should use the retained primary selection head as the relative origin even if the editor is not currently focused. Diff hunk and comment interactions should continue to use `EditorLineLocation` and `line_range` exactly as they do today; only the text shown inside eligible numbered gutter elements changes.
+For diff and review editors, preserve absolute numbering unless the editor is focused and Relative is selected. When focused, numbered current-buffer lines across the editor should apply the selected Relative display from the active cursor line so review context outside the changed hunk uses the same relative origin. Normal code editor surfaces without diff status should use the retained primary selection head as the relative origin even if the editor is not currently focused. Diff hunk and comment interactions should continue to use `EditorLineLocation` and `line_range` exactly as they do today; only the text shown inside eligible numbered gutter elements changes.
 ### 6. Width and alignment
 The existing `GUTTER_WIDTH` is fixed and currently supports absolute numbers plus gutter controls. Do not change it unless testing shows three-digit or larger relative values clip in common cases. Relative mode still shows the active line’s absolute number, so any width calculation must account for both absolute active-line values and relative non-active-line distances. If adjustment is needed, prefer the smallest safe change within `app/src/code/editor/element.rs`, and verify diff/comment buttons still fit.
 ### 7. Do not wire terminal input or notebook editors
@@ -95,7 +95,7 @@ No changes are needed in `app/src/terminal/input/*`, `app/src/editor/view/mod.rs
 1. **Off-by-one errors between buffer rows and gutter `LineCount`.** Mitigate with focused tests for cursor on first, middle, and last lines in Relative mode, and with a code comment documenting the chosen convention.
 2. **Settings UI accidentally scopes the setting under Vim.** Mitigate by implementing a separate Text Editing widget rather than adding it to `VimModeWidget`’s conditional subgroup.
 3. **Open editors may not repaint when the setting changes.** `CodeEditorView::new` already subscribes to appearance and font settings; add or reuse an `AppEditorSettings` observation/subscription if necessary so setting changes notify code editor views.
-4. **Diff/review gutter regression.** The implementation touches the shared code editor wrapper used by code review surfaces. Mitigate with manual testing in a diff editor, keeping `EditorLineLocation` unchanged, and verifying inactive diff sections keep absolute numbering while Relative numbering is limited to the cursor-active section.
+4. **Diff/review gutter regression.** The implementation touches the shared code editor wrapper used by code review surfaces. Mitigate with manual testing in a diff editor, keeping `EditorLineLocation` unchanged, and verifying inactive diff/review editors keep absolute numbering while focused editors apply Relative numbering across numbered current-buffer lines.
 5. **Multi-cursor ambiguity.** The product spec defines the primary selection head as the relative origin. Mitigate by using `selections(ctx).first().head`, which matches existing cursor-position helpers.
 ## Testing and validation
 1. Add or update code editor view/element tests to cover the number calculation helper:
