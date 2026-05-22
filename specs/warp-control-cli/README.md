@@ -54,6 +54,37 @@ Expected failures:
 - multiple ambiguous instances: exits non-zero and asks for `--instance`;
 - unsupported app build or stale discovery record: exits non-zero with a protocol, stale-target, or transport error;
 - `tab.create` not yet implemented by the running app bridge: exits non-zero with an unsupported-action error.
+## Security model
+The local-control protocol is designed for same-user scripting, not cross-user or network access. The trust boundary is the local user account.
+- **Loopback-only listener.** Each Warp process binds its control server to `127.0.0.1` on an ephemeral port. The listener is not reachable from the network.
+- **Per-instance bearer token.** A random token is generated at startup and written into the discovery record. Every control request must present this token in the `Authorization` header; missing or invalid tokens are rejected with HTTP 401.
+- **File-permission-gated discovery.** Discovery records are stored in `~/.warp/local-control/` with `0600` permissions (owner read/write only). Any process that can read the file can authenticate, so the security boundary is the same as `~/.ssh/` or macOS Keychain — same-user process isolation.
+- **Stale-record pruning.** On each `instance list` or implicit discovery call, records whose PID is no longer alive are deleted automatically, preventing stale tokens from lingering on disk.
+- **No CORS.** The control endpoints do not set permissive CORS headers, so browser-origin JavaScript cannot read responses even if it guesses the port. The bearer token requirement provides a second layer since browsers cannot read the discovery file.
+```mermaid
+sequenceDiagram
+    participant CLI as warpctrl
+    participant FS as ~/.warp/local-control/
+    participant HTTP as Warp loopback server<br/>(127.0.0.1:ephemeral)
+    participant Bridge as App bridge
+
+    CLI->>FS: Read discovery records (0600)
+    FS-->>CLI: instance_id, endpoint, auth_token
+    CLI->>CLI: Prune stale PIDs, select instance
+    CLI->>HTTP: POST /v1/control<br/>Authorization: Bearer <token>
+    HTTP->>HTTP: Verify token matches instance
+    alt Invalid or missing token
+        HTTP-->>CLI: 401 Unauthorized
+    else Valid token
+        HTTP->>Bridge: Dispatch action to app context
+        Bridge-->>HTTP: Structured result or error
+        HTTP-->>CLI: JSON response envelope
+    end
+```
+**Known limitations and future hardening:**
+- The token is stored in plaintext in the discovery JSON file. Any compromised process running as the same user can extract it.
+- Tokens do not rotate or expire during a Warp session. A leaked token is valid until the process exits.
+- Once higher-risk handlers land (e.g. `input.insert`, command execution), the same-user boundary becomes a code-execution trust boundary. Consider separating the token from the discovery metadata, adding per-request nonces, or switching to a Unix domain socket with `SO_PEERCRED` for kernel-verified caller identity.
 ## Documentation review notes
 - Treat `warpctrl` as provisional executable naming until packaging signs off on final artifact aliases.
 - Keep examples scoped to discovery and `tab create` until additional app-side handlers are implemented.
