@@ -28,12 +28,14 @@ use warpui::{App, SingletonEntity};
 
 use super::allow_input_run_policy_for_test;
 use super::{
-    action_metadata_for_name, appearance_state_result, authenticated_user_subject_for_action,
+    action_metadata_for_name, appearance_font_size_result, appearance_set_result,
+    appearance_state_result, appearance_zoom_result, authenticated_user_subject_for_action,
     block_get_result_from_model, block_list_result_from_model, capabilities,
     ensure_feature_enabled, ensure_input_run_policy_allows, ensure_settings_allow_action,
     outside_warp_action_enabled_for_settings, rejected_setting_key, require_active_window_id,
     require_active_window_id_for_action, resolve_file_mutation_path,
-    select_window_for_app_state_target, setting_get_result, setting_list_result, theme_list_result,
+    select_window_for_app_state_target, setting_get_result, setting_list_result,
+    setting_set_result, setting_toggle_result, theme_list_result, theme_set_result,
     validate_action_params, validate_app_focus_target, validate_block_get_target,
     validate_block_list_target, validate_drive_target, validate_file_mutation_target,
     validate_instance_metadata_read_target, validate_tab_create_target,
@@ -400,9 +402,15 @@ fn capabilities_advertises_implemented_actions() {
             ActionKind::InputRun,
             ActionKind::HistoryList,
             ActionKind::ThemeList,
+            ActionKind::ThemeSet,
             ActionKind::AppearanceGet,
+            ActionKind::AppearanceSet,
+            ActionKind::AppearanceFontSize,
+            ActionKind::AppearanceZoom,
             ActionKind::SettingGet,
             ActionKind::SettingList,
+            ActionKind::SettingSet,
+            ActionKind::SettingToggle,
             ActionKind::FileList,
             ActionKind::FileWrite,
             ActionKind::FileDelete,
@@ -2535,6 +2543,175 @@ fn read_only_settings_and_appearance_handlers_return_allowlisted_metadata() {
         assert_eq!(setting.setting.value, serde_json::json!(false));
         assert_eq!(setting.setting.value_type, "bool");
     });
+}
+
+#[test]
+fn settings_and_appearance_mutation_handlers_update_allowlisted_settings() {
+    with_local_control_bridge(|_, ctx| {
+        let result = theme_set_result(
+            ThemeSetParams {
+                name: "Light".to_owned(),
+            },
+            ctx,
+        )
+        .expect("theme.set succeeds");
+        assert!(result.changed);
+        let theme =
+            setting_get_result("appearance.themes.theme", ctx).expect("theme setting is readable");
+        assert_eq!(theme.setting.value, serde_json::json!("Light"));
+        let system_theme = setting_get_result("appearance.themes.system_theme", ctx)
+            .expect("system theme setting is readable");
+        assert_eq!(system_theme.setting.value, serde_json::json!(false));
+
+        let result = appearance_set_result(
+            AppearanceSetParams {
+                theme: None,
+                follow_system_theme: Some(true),
+                light_theme: Some("Light".to_owned()),
+                dark_theme: Some("Dark".to_owned()),
+            },
+            ctx,
+        )
+        .expect("appearance.set succeeds");
+        assert!(result.changed);
+        let appearance = appearance_state_result(ctx).expect("appearance is readable");
+        assert!(appearance.follow_system_theme);
+        assert_eq!(appearance.light_theme.as_deref(), Some("Light"));
+        assert_eq!(appearance.dark_theme.as_deref(), Some("Dark"));
+
+        let result = appearance_font_size_result(
+            AppearanceFontSizeParams {
+                adjustment: SizeAdjustment::Set,
+                value: Some(14),
+            },
+            ctx,
+        )
+        .expect("font size set succeeds");
+        assert!(result.changed);
+        let font_size = setting_get_result("appearance.text.font_size", ctx)
+            .expect("font size setting is readable");
+        assert_eq!(font_size.setting.value, serde_json::json!(14.0));
+
+        let result = appearance_zoom_result(
+            AppearanceZoomParams {
+                adjustment: SizeAdjustment::Set,
+                value: Some(125),
+            },
+            ctx,
+        )
+        .expect("zoom set succeeds");
+        assert!(result.changed);
+        let zoom = setting_get_result("appearance.window.zoom_level", ctx)
+            .expect("zoom setting is readable");
+        assert_eq!(zoom.setting.value, serde_json::json!(125));
+
+        let result = setting_set_result(
+            SettingSetParams {
+                key: "appearance.text.font_name".to_owned(),
+                value: serde_json::json!("JetBrains Mono"),
+            },
+            ctx,
+        )
+        .expect("font name setting set succeeds");
+        assert_eq!(result.setting.value, serde_json::json!("JetBrains Mono"));
+
+        let before = setting_get_result("terminal.input.syntax_highlighting", ctx)
+            .expect("syntax setting is readable")
+            .setting
+            .value;
+        let Some(before) = before.as_bool() else {
+            panic!("expected boolean syntax highlighting setting");
+        };
+        let result = setting_toggle_result(
+            SettingToggleParams {
+                key: "terminal.input.syntax_highlighting".to_owned(),
+            },
+            ctx,
+        )
+        .expect("syntax highlighting toggle succeeds");
+        assert_eq!(result.setting.value, serde_json::json!(!before));
+    });
+}
+
+#[test]
+fn settings_and_appearance_mutations_reject_private_unknown_and_invalid_values() {
+    with_local_control_bridge(|_, ctx| {
+        let err = setting_set_result(
+            SettingSetParams {
+                key: "terminal.input.not_real".to_owned(),
+                value: serde_json::json!(true),
+            },
+            ctx,
+        )
+        .expect_err("unknown setting is rejected");
+        assert_eq!(err.code, ErrorCode::NotAllowlisted);
+
+        let err = setting_set_result(
+            SettingSetParams {
+                key: "local_control.allow_outside_warp_control".to_owned(),
+                value: serde_json::json!(true),
+            },
+            ctx,
+        )
+        .expect_err("private setting is rejected");
+        assert_eq!(err.code, ErrorCode::NotAllowlisted);
+
+        let err = appearance_zoom_result(
+            AppearanceZoomParams {
+                adjustment: SizeAdjustment::Set,
+                value: Some(123),
+            },
+            ctx,
+        )
+        .expect_err("unsupported zoom level is rejected");
+        assert_eq!(err.code, ErrorCode::InvalidParams);
+
+        let err = setting_set_result(
+            SettingSetParams {
+                key: "terminal.input.syntax_highlighting".to_owned(),
+                value: serde_json::json!("yes"),
+            },
+            ctx,
+        )
+        .expect_err("bool setting rejects string value");
+        assert_eq!(err.code, ErrorCode::InvalidParams);
+
+        let err = setting_toggle_result(
+            SettingToggleParams {
+                key: "appearance.text.font_name".to_owned(),
+            },
+            ctx,
+        )
+        .expect_err("non-bool setting cannot be toggled");
+        assert_eq!(err.code, ErrorCode::InvalidParams);
+    });
+}
+
+#[test]
+fn settings_mutations_require_metadata_configuration_permission() {
+    let _flag = FeatureFlag::WarpControlCli.override_enabled(true);
+    App::test((), |mut app| async move {
+        initialize_drive_app(&mut app, true);
+        let request = RequestEnvelope::new(
+            Action::with_params(
+                ActionKind::SettingSet,
+                SettingSetParams {
+                    key: "terminal.input.syntax_highlighting".to_owned(),
+                    value: serde_json::json!(false),
+                },
+            )
+            .expect("setting.set params serialize"),
+        );
+        LocalControlBridge::handle(&app).update(&mut app, |bridge, ctx| {
+            let mut grant = authenticated_grant(ActionKind::SettingSet, ctx);
+            grant.permission_category = PermissionCategory::MutateAppState;
+            let response = bridge.handle_request(request, grant, ctx);
+            assert_eq!(
+                response_error_code(response),
+                ErrorCode::InsufficientPermissions
+            );
+        });
+    })
 }
 
 #[test]

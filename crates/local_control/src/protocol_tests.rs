@@ -399,12 +399,6 @@ fn mutating_contract_actions_are_allowlisted_stubs_except_implemented_mutations(
         ActionKind::InputReplace,
         ActionKind::InputClear,
         ActionKind::InputModeSet,
-        ActionKind::ThemeSet,
-        ActionKind::AppearanceSet,
-        ActionKind::AppearanceFontSize,
-        ActionKind::AppearanceZoom,
-        ActionKind::SettingSet,
-        ActionKind::SettingToggle,
         ActionKind::FileOpen,
     ] {
         let metadata = action.metadata();
@@ -470,6 +464,41 @@ fn file_mutations_are_implemented_authenticated_underlying_data_mutations() {
         );
         assert!(metadata.requires_authenticated_user);
         assert!(metadata.authenticated_user.required);
+        assert_eq!(
+            metadata.allowed_invocation_contexts,
+            vec![
+                InvocationContext::InsideWarp,
+                InvocationContext::OutsideWarp
+            ]
+        );
+    }
+}
+
+#[test]
+fn settings_and_appearance_metadata_mutations_are_implemented_authenticated_mutations() {
+    for action in [
+        ActionKind::ThemeSet,
+        ActionKind::AppearanceSet,
+        ActionKind::AppearanceFontSize,
+        ActionKind::AppearanceZoom,
+        ActionKind::SettingSet,
+        ActionKind::SettingToggle,
+    ] {
+        let metadata = action.metadata();
+        assert_eq!(
+            metadata.implementation_status,
+            ActionImplementationStatus::Implemented
+        );
+        assert_eq!(metadata.risk_tier, RiskTier::MutatingNonDestructive);
+        assert_eq!(
+            metadata.state_data_category,
+            StateDataCategory::MetadataConfigurationMutation
+        );
+        assert_eq!(
+            metadata.permission_category,
+            PermissionCategory::MutateMetadataConfiguration
+        );
+        assert!(metadata.requires_authenticated_user);
         assert_eq!(
             metadata.allowed_invocation_contexts,
             vec![

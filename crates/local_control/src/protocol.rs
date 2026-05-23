@@ -1211,9 +1211,15 @@ impl ActionKind {
             | Self::InputRun
             | Self::HistoryList
             | Self::ThemeList
+            | Self::ThemeSet
             | Self::AppearanceGet
+            | Self::AppearanceSet
+            | Self::AppearanceFontSize
+            | Self::AppearanceZoom
             | Self::SettingGet
             | Self::SettingList
+            | Self::SettingSet
+            | Self::SettingToggle
             | Self::FileList
             | Self::FileWrite
             | Self::FileDelete
@@ -1504,6 +1510,12 @@ impl ActionKind {
                 | Self::DriveInsert
                 | Self::FileWrite
                 | Self::FileDelete
+                | Self::ThemeSet
+                | Self::AppearanceSet
+                | Self::AppearanceFontSize
+                | Self::AppearanceZoom
+                | Self::SettingSet
+                | Self::SettingToggle
         ) {
             return vec![
                 InvocationContext::InsideWarp,
