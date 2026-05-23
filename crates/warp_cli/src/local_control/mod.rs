@@ -11,8 +11,9 @@ use clap::{Args, CommandFactory, FromArgMatches, Parser, Subcommand};
 use clap_complete::aot::Shell;
 
 use commands::{
-    run_action_command, run_app_command, run_instance_command, run_pane_command,
-    run_session_command, run_tab_command, run_window_command,
+    run_action_command, run_app_command, run_block_command, run_history_command, run_input_command,
+    run_instance_command, run_pane_command, run_session_command, run_tab_command,
+    run_window_command,
 };
 use completions::generate_completions_to_stdout;
 use output::write_control_error;
@@ -91,6 +92,18 @@ pub enum ControlCommand {
     /// Inspect local Warp sessions.
     #[command(subcommand)]
     Session(SessionCommand),
+
+    /// Inspect terminal blocks.
+    #[command(subcommand)]
+    Block(BlockCommand),
+
+    /// Inspect terminal input state.
+    #[command(subcommand)]
+    Input(InputCommand),
+
+    /// Inspect terminal command history.
+    #[command(subcommand)]
+    History(HistoryCommand),
 
     /// Generate shell completions for your shell to stdout.
     ///
@@ -175,6 +188,28 @@ pub enum SessionCommand {
     /// List sessions in the selected local Warp app.
     List(TargetArgs),
 }
+/// Commands that inspect terminal blocks.
+
+#[derive(Debug, Clone, Subcommand)]
+pub enum BlockCommand {
+    /// List terminal blocks.
+    List(LimitTargetArgs),
+
+    /// Read one terminal block.
+    Get(BlockGetArgs),
+}
+
+#[derive(Debug, Clone, Subcommand)]
+pub enum InputCommand {
+    /// Read the current input buffer.
+    Get(TargetArgs),
+}
+
+#[derive(Debug, Clone, Subcommand)]
+pub enum HistoryCommand {
+    /// List command history entries.
+    List(LimitTargetArgs),
+}
 /// Common flags for selecting which running Warp instance receives a command.
 #[derive(Debug, Clone, Args, Default)]
 pub struct TargetArgs {
@@ -194,6 +229,25 @@ pub struct ActionGetArgs {
 
     /// Action name, such as tab.create or window.list.
     pub action: String,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct LimitTargetArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    /// Maximum number of items to return.
+    #[arg(long = "limit")]
+    pub limit: Option<u32>,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct BlockGetArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    /// Opaque block id returned by block list.
+    pub block_id: String,
 }
 
 pub fn run(args: ControlArgs) -> ExitCode {
@@ -222,6 +276,9 @@ fn run_inner(args: ControlArgs) -> Result<(), local_control::protocol::ControlEr
         ControlCommand::Tab(command) => run_tab_command(command, output_format),
         ControlCommand::Pane(command) => run_pane_command(command, output_format),
         ControlCommand::Session(command) => run_session_command(command, output_format),
+        ControlCommand::Block(command) => run_block_command(command, output_format),
+        ControlCommand::Input(command) => run_input_command(command, output_format),
+        ControlCommand::History(command) => run_history_command(command, output_format),
         ControlCommand::Completions { shell } => generate_completions_to_stdout(shell),
     }
 }

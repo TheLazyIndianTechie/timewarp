@@ -70,6 +70,9 @@ pub enum TargetScope {
     Tab,
     Pane,
     Session,
+    Block,
+    Input,
+    History,
     Settings,
     Appearance,
     Surface,
@@ -176,6 +179,12 @@ pub enum ActionKind {
     PaneSessionNext,
     #[serde(rename = "session.list")]
     SessionList,
+    #[serde(rename = "block.list")]
+    BlockList,
+    #[serde(rename = "block.get")]
+    BlockGet,
+    #[serde(rename = "input.get")]
+    InputGet,
     #[serde(rename = "input.insert")]
     InputInsert,
     #[serde(rename = "input.replace")]
@@ -184,6 +193,8 @@ pub enum ActionKind {
     InputClear,
     #[serde(rename = "input.mode.set")]
     InputModeSet,
+    #[serde(rename = "history.list")]
+    HistoryList,
     #[serde(rename = "theme.list")]
     ThemeList,
     #[serde(rename = "theme.set")]
@@ -245,10 +256,14 @@ impl ActionKind {
         Self::PaneSessionPrevious,
         Self::PaneSessionNext,
         Self::SessionList,
+        Self::BlockList,
+        Self::BlockGet,
+        Self::InputGet,
         Self::InputInsert,
         Self::InputReplace,
         Self::InputClear,
         Self::InputModeSet,
+        Self::HistoryList,
         Self::ThemeList,
         Self::ThemeSet,
         Self::AppearanceGet,
@@ -299,10 +314,14 @@ impl ActionKind {
             Self::PaneSessionPrevious => "pane.session.previous",
             Self::PaneSessionNext => "pane.session.next",
             Self::SessionList => "session.list",
+            Self::BlockList => "block.list",
+            Self::BlockGet => "block.get",
+            Self::InputGet => "input.get",
             Self::InputInsert => "input.insert",
             Self::InputReplace => "input.replace",
             Self::InputClear => "input.clear",
             Self::InputModeSet => "input.mode.set",
+            Self::HistoryList => "history.list",
             Self::ThemeList => "theme.list",
             Self::ThemeSet => "theme.set",
             Self::AppearanceGet => "appearance.get",
@@ -329,11 +348,14 @@ impl ActionKind {
             | Self::TabList
             | Self::TabCreate
             | Self::PaneList
-            | Self::SessionList => ActionImplementationStatus::Implemented,
+            | Self::SessionList
+            | Self::BlockList
+            | Self::BlockGet
+            | Self::InputGet
+            | Self::HistoryList => ActionImplementationStatus::Implemented,
             _ => ActionImplementationStatus::Stub,
         };
-        let requires_authenticated_user =
-            implementation_status != ActionImplementationStatus::Implemented;
+        let requires_authenticated_user = self.default_requires_authenticated_user();
         let allowed_invocation_contexts =
             if implementation_status == ActionImplementationStatus::Implemented {
                 vec![InvocationContext::OutsideWarp]
@@ -388,6 +410,9 @@ impl ActionKind {
             | Self::AppearanceGet
             | Self::SettingGet
             | Self::SettingList => RiskTier::ReadOnlyMetadata,
+            Self::BlockList | Self::BlockGet | Self::InputGet | Self::HistoryList => {
+                RiskTier::ReadOnlyTerminalData
+            }
             Self::InputInsert
             | Self::InputReplace
             | Self::InputClear
@@ -444,6 +469,9 @@ impl ActionKind {
             | Self::AppearanceGet
             | Self::SettingGet
             | Self::SettingList => StateDataCategory::MetadataRead,
+            Self::BlockList | Self::BlockGet | Self::InputGet | Self::HistoryList => {
+                StateDataCategory::UnderlyingDataRead
+            }
             Self::SettingSet
             | Self::SettingToggle
             | Self::ThemeSet
@@ -493,6 +521,25 @@ impl ActionKind {
             StateDataCategory::UnderlyingDataMutation => PermissionCategory::MutateUnderlyingData,
         }
     }
+    fn default_requires_authenticated_user(self) -> bool {
+        match self {
+            Self::BlockList | Self::BlockGet | Self::InputGet | Self::HistoryList => true,
+            Self::InstanceList
+            | Self::AppPing
+            | Self::AppInspect
+            | Self::AppVersion
+            | Self::AppActive
+            | Self::ActionList
+            | Self::ActionGet
+            | Self::WindowList
+            | Self::TabList
+            | Self::TabCreate
+            | Self::PaneList
+            | Self::SessionList => false,
+            _ => true,
+        }
+    }
+
     fn default_target_scope(self) -> TargetScope {
         match self {
             Self::WindowList | Self::WindowCreate | Self::WindowFocus | Self::WindowClose => {
@@ -514,10 +561,13 @@ impl ActionKind {
             | Self::PaneSessionPrevious
             | Self::PaneSessionNext => TargetScope::Pane,
             Self::SessionList
+            | Self::InputGet
             | Self::InputInsert
             | Self::InputReplace
             | Self::InputClear
             | Self::InputModeSet => TargetScope::Session,
+            Self::BlockList | Self::BlockGet => TargetScope::Block,
+            Self::HistoryList => TargetScope::History,
             Self::ThemeList
             | Self::ThemeSet
             | Self::AppearanceGet
