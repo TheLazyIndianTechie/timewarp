@@ -1205,7 +1205,8 @@ impl ActionKind {
             | Self::ProjectActive
             | Self::ProjectList
             | Self::DriveList
-            | Self::DriveGet => ActionImplementationStatus::Implemented,
+            | Self::DriveGet
+            | Self::AppWarpDriveOpen => ActionImplementationStatus::Implemented,
             _ => ActionImplementationStatus::Stub,
         };
         let requires_authenticated_user = self.default_requires_authenticated_user();
@@ -1460,8 +1461,10 @@ impl ActionKind {
         if matches!(
             self.default_risk_tier(),
             RiskTier::ReadOnlyMetadata | RiskTier::ReadOnlyTerminalData
-        ) || matches!(self, Self::TabCreate | Self::InputRun)
-        {
+        ) || matches!(
+            self,
+            Self::TabCreate | Self::InputRun | Self::AppWarpDriveOpen
+        ) {
             return vec![
                 InvocationContext::InsideWarp,
                 InvocationContext::OutsideWarp,

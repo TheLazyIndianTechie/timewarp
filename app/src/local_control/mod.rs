@@ -565,6 +565,20 @@ impl LocalControlBridge {
                     Err(error) => ResponseEnvelope::error(request.request_id, error),
                 }
             }
+            ActionKind::AppWarpDriveOpen => {
+                if let Err(error) = ensure_authenticated_user_matches(&grant, ctx) {
+                    return ResponseEnvelope::error(request.request_id, error);
+                }
+                if let Err(error) =
+                    ensure_action_allowed(grant.invocation_context, request.action.kind, ctx)
+                {
+                    return ResponseEnvelope::error(request.request_id, error);
+                }
+                match self.open_warp_drive_surface(&request.target, ctx) {
+                    Ok(data) => ResponseEnvelope::ok(request.request_id, data),
+                    Err(error) => ResponseEnvelope::error(request.request_id, error),
+                }
+            }
             action => ResponseEnvelope::error(
                 request.request_id,
                 ControlError::new(
@@ -646,6 +660,40 @@ impl LocalControlBridge {
                 "previous_count": previous_tab_count,
                 "count": tab_count,
                 "active_index": active_tab_index,
+            },
+        }))
+    }
+
+    fn open_warp_drive_surface(
+        &mut self,
+        target: &TargetSelector,
+        ctx: &mut ModelContext<Self>,
+    ) -> Result<serde_json::Value, ControlError> {
+        validate_app_surface_target(ActionKind::AppWarpDriveOpen, target)?;
+        let window_id = require_active_window_id_for_action(
+            ctx.windows().active_window(),
+            ActionKind::AppWarpDriveOpen,
+        )?;
+        let workspace = ctx
+            .views_of_type::<Workspace>(window_id)
+            .and_then(|workspaces| workspaces.into_iter().next())
+            .ok_or_else(|| {
+                ControlError::new(
+                    ErrorCode::MissingTarget,
+                    "app.warp_drive.open requires a workspace in the target window",
+                )
+            })?;
+        workspace.update(ctx, |workspace, ctx| {
+            workspace.handle_action(&WorkspaceAction::OpenWarpDrive, ctx);
+        });
+        Ok(json!({
+            "action": ActionKind::AppWarpDriveOpen.as_str(),
+            "opened": true,
+            "surface": "warp_drive",
+            "instance_id": self.instance_id.as_ref().map(|id| id.0.as_str()),
+            "window": {
+                "selector": "active",
+                "id": window_id.to_string(),
             },
         }))
     }
@@ -1944,6 +1992,40 @@ fn validate_instance_metadata_read_target(
             format!(
                 "{} does not accept target selectors; it only reads state already represented in Warp",
                 action.as_str()
+            ),
+        ));
+    }
+    Ok(())
+}
+
+fn validate_app_surface_target(
+    action: ActionKind,
+    target: &TargetSelector,
+) -> Result<(), ControlError> {
+    let action_name = action.as_str();
+    if matches!(target.window.as_ref(), Some(WindowTarget::Id { .. })) {
+        return Err(ControlError::new(
+            ErrorCode::StaleTarget,
+            format!("{action_name} cannot resolve the requested window id"),
+        ));
+    }
+    if !matches!(target.window.as_ref(), None | Some(WindowTarget::Active)) {
+        return Err(ControlError::new(
+            ErrorCode::InvalidSelector,
+            format!("{action_name} only supports the active window selector"),
+        ));
+    }
+    if target.tab.is_some()
+        || target.pane.is_some()
+        || target.session.is_some()
+        || target.block.is_some()
+        || target.file.is_some()
+        || target.drive.is_some()
+    {
+        return Err(ControlError::new(
+            ErrorCode::InvalidSelector,
+            format!(
+                "{action_name} does not accept tab, pane, session, block, file, or drive selectors"
             ),
         ));
     }

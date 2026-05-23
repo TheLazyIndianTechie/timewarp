@@ -4,15 +4,15 @@ use ::local_control::protocol::{
     Action, AppFocusParams, AppSurfaceParams, AppearanceFontSizeParams, AppearanceSetParams,
     AppearanceZoomParams, BlockGetParams, BlockListParams, BlockTarget, ControlResponse,
     DriveCreateParams, DriveDeleteParams, DriveGetParams, DriveGetResult, DriveInsertParams,
-    DriveListParams, DriveListResult, DriveObjectType, DriveRunParams, DriveUpdateParams,
-    FileDeleteParams, FileOpenParams, FileTarget, FileWriteParams, HorizontalDirection,
-    InputClearParams, InputInsertParams, InputMode, InputModeSetParams, InputReplaceParams,
-    InputRunParams, PaneCloseParams, PaneDirection, PaneFocusParams, PaneMaximizeParams,
-    PaneNavigateParams, PaneResizeParams, PaneSelector, PaneSplitParams, PaneTarget,
-    SessionSelector, SessionTarget, SettingSetParams, SettingToggleParams, SizeAdjustment,
-    TabActivateParams, TabActivationTarget, TabCloseParams, TabCloseScope, TabMoveParams,
-    TabRenameParams, TabSelector, TabTarget, TargetSelector, ThemeSetParams, WindowCloseParams,
-    WindowCreateParams, WindowFocusParams, WindowSelector, WindowTarget,
+    DriveListParams, DriveListResult, DriveObjectSelector, DriveObjectType, DriveRunParams,
+    DriveTarget, DriveUpdateParams, FileDeleteParams, FileOpenParams, FileTarget, FileWriteParams,
+    HorizontalDirection, InputClearParams, InputInsertParams, InputMode, InputModeSetParams,
+    InputReplaceParams, InputRunParams, PaneCloseParams, PaneDirection, PaneFocusParams,
+    PaneMaximizeParams, PaneNavigateParams, PaneResizeParams, PaneSelector, PaneSplitParams,
+    PaneTarget, SessionSelector, SessionTarget, SettingSetParams, SettingToggleParams,
+    SizeAdjustment, TabActivateParams, TabActivationTarget, TabCloseParams, TabCloseScope,
+    TabMoveParams, TabRenameParams, TabSelector, TabTarget, TargetSelector, ThemeSetParams,
+    WindowCloseParams, WindowCreateParams, WindowFocusParams, WindowSelector, WindowTarget,
 };
 use ::local_control::{
     ErrorCode, InstanceId, InvocationContext, PermissionCategory, RequestEnvelope,
@@ -30,9 +30,10 @@ use super::{
     ensure_feature_enabled, ensure_input_run_policy_allows, ensure_settings_allow_action,
     outside_warp_action_enabled_for_settings, rejected_setting_key, require_active_window_id,
     require_active_window_id_for_action, setting_get_result, setting_list_result,
-    theme_list_result, validate_action_params, validate_block_get_target,
-    validate_block_list_target, validate_drive_target, validate_instance_metadata_read_target,
-    validate_tab_create_target, validate_terminal_read_target, LocalControlBridge,
+    theme_list_result, validate_action_params, validate_app_surface_target,
+    validate_block_get_target, validate_block_list_target, validate_drive_target,
+    validate_instance_metadata_read_target, validate_tab_create_target,
+    validate_terminal_read_target, LocalControlBridge,
 };
 use crate::auth::AuthStateProvider;
 use crate::cloud_object::model::persistence::CloudModel;
@@ -310,6 +311,7 @@ fn capabilities_advertises_only_first_slice_core_actions() {
             ActionKind::AppActive,
             ActionKind::ActionList,
             ActionKind::ActionGet,
+            ActionKind::AppWarpDriveOpen,
             ActionKind::WindowList,
             ActionKind::TabList,
             ActionKind::TabCreate,
@@ -754,6 +756,16 @@ fn metadata_actions_require_metadata_permission_not_app_state_mutation_permissio
         ActionKind::TabCreate,
     )
     .expect("app-state mutation permission allows tab.create");
+    assert_eq!(
+        ActionKind::AppWarpDriveOpen.metadata().permission_category,
+        PermissionCategory::MutateAppState
+    );
+    ensure_settings_allow_action(
+        &mutation_without_metadata,
+        InvocationContext::InsideWarp,
+        ActionKind::AppWarpDriveOpen,
+    )
+    .expect("app-state mutation permission allows app.warp_drive.open");
 
     for action in [
         ActionKind::BlockList,
@@ -767,6 +779,86 @@ fn metadata_actions_require_metadata_permission_not_app_state_mutation_permissio
             PermissionCategory::ReadUnderlyingData
         );
     }
+}
+
+#[test]
+fn app_warp_drive_open_validates_active_window_target() {
+    validate_app_surface_target(
+        ActionKind::AppWarpDriveOpen,
+        &TargetSelector {
+            window: Some(WindowTarget::Active),
+            ..TargetSelector::default()
+        },
+    )
+    .expect("active window target is accepted");
+
+    let err = validate_app_surface_target(
+        ActionKind::AppWarpDriveOpen,
+        &TargetSelector {
+            window: Some(WindowTarget::Id {
+                id: WindowSelector("window".to_owned()),
+            }),
+            ..TargetSelector::default()
+        },
+    )
+    .expect_err("concrete window target is stale");
+    assert_eq!(err.code, ErrorCode::StaleTarget);
+
+    let err = validate_app_surface_target(
+        ActionKind::AppWarpDriveOpen,
+        &TargetSelector {
+            drive: Some(DriveTarget::Id {
+                object_type: DriveObjectType::Notebook,
+                id: DriveObjectSelector("notebook".to_owned()),
+            }),
+            ..TargetSelector::default()
+        },
+    )
+    .expect_err("drive object selector is not part of opening the Drive surface");
+    assert_eq!(err.code, ErrorCode::InvalidSelector);
+}
+
+#[test]
+fn app_warp_drive_open_requires_authenticated_user() {
+    let _flag = FeatureFlag::WarpControlCli.override_enabled(true);
+    App::test((), |mut app| async move {
+        initialize_drive_app(&mut app, false);
+        let request = RequestEnvelope::new(
+            Action::with_params(ActionKind::AppWarpDriveOpen, AppSurfaceParams::default())
+                .expect("app.warp_drive.open params serialize"),
+        );
+        LocalControlBridge::handle(&app).update(&mut app, |bridge, ctx| {
+            let response = bridge.handle_request(
+                request,
+                spoofed_authenticated_grant(ActionKind::AppWarpDriveOpen),
+                ctx,
+            );
+            assert_eq!(
+                response_error_code(response),
+                ErrorCode::AuthenticatedUserUnavailable
+            );
+        });
+    })
+}
+
+#[test]
+fn app_warp_drive_open_requires_active_window_after_auth_and_permissions() {
+    let _flag = FeatureFlag::WarpControlCli.override_enabled(true);
+    App::test((), |mut app| async move {
+        initialize_drive_app(&mut app, true);
+        let request = RequestEnvelope::new(
+            Action::with_params(ActionKind::AppWarpDriveOpen, AppSurfaceParams::default())
+                .expect("app.warp_drive.open params serialize"),
+        );
+        LocalControlBridge::handle(&app).update(&mut app, |bridge, ctx| {
+            let response = bridge.handle_request(
+                request,
+                authenticated_grant(ActionKind::AppWarpDriveOpen, ctx),
+                ctx,
+            );
+            assert_eq!(response_error_code(response), ErrorCode::MissingTarget);
+        });
+    })
 }
 
 #[test]

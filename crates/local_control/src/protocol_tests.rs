@@ -300,14 +300,14 @@ fn core_smoke_metadata_has_explicit_read_metadata_category() {
 
 #[test]
 fn action_metadata_serializes_security_categories() {
-    let metadata = ActionKind::TabCreate.metadata();
+    let metadata = ActionKind::AppWarpDriveOpen.metadata();
     let value = serde_json::to_value(metadata).expect("metadata serializes");
-    assert_eq!(value["name"], "tab.create");
+    assert_eq!(value["name"], "app.warp_drive.open");
     assert_eq!(value["state_data_category"], "app_state_mutation");
     assert_eq!(value["permission_category"], "mutate_app_state");
     assert_eq!(
         value["authenticated_user"]["required"],
-        serde_json::json!(false)
+        serde_json::json!(true)
     );
 }
 
@@ -315,6 +315,10 @@ fn action_metadata_serializes_security_categories() {
 fn default_permissions_preserve_security_categories() {
     assert_eq!(
         ActionKind::TabCreate.metadata().permission_category,
+        PermissionCategory::MutateAppState
+    );
+    assert_eq!(
+        ActionKind::AppWarpDriveOpen.metadata().permission_category,
         PermissionCategory::MutateAppState
     );
     assert_eq!(
