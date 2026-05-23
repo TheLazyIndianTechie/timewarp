@@ -28,14 +28,20 @@ use crate::workspace::ActiveSession;
 use crate::WindowSettings;
 use ::local_control::auth::{CredentialGrant, CredentialRequest, ScopedCredential};
 use ::local_control::protocol::{
-    ActionGetParams, ActiveTargetChain, AppearanceStateResult, BlockGetParams, BlockGetResult,
-    BlockListParams, BlockListResult, BlockSummary, DriveGetParams, DriveGetResult,
-    DriveListParams, DriveListResult, DriveObjectSummary,
-    DriveObjectType as ControlDriveObjectType, DriveTarget, FileListResult, FileSummary,
-    HistoryEntrySummary, HistoryListParams, HistoryListResult, InputStateResult, PaneTarget,
-    ProjectActiveResult, ProjectListResult, ProjectSummary, SessionTarget, SettingGetParams,
-    SettingGetResult, SettingListResult, SettingSummary, TabTarget, TargetSelector,
-    ThemeListResult, ThemeSummary, WindowTarget,
+    ActionGetParams, ActiveTargetChain, AppFocusParams, AppSurfaceParams, AppearanceFontSizeParams,
+    AppearanceSetParams, AppearanceStateResult, AppearanceZoomParams, BlockGetParams,
+    BlockGetResult, BlockListParams, BlockListResult, BlockSummary, DriveCreateParams,
+    DriveDeleteParams, DriveGetParams, DriveGetResult, DriveInsertParams, DriveListParams,
+    DriveListResult, DriveObjectSummary, DriveObjectType as ControlDriveObjectType, DriveRunParams,
+    DriveTarget, DriveUpdateParams, FileDeleteParams, FileListResult, FileOpenParams, FileSummary,
+    FileWriteParams, HistoryEntrySummary, HistoryListParams, HistoryListResult, InputClearParams,
+    InputInsertParams, InputModeSetParams, InputReplaceParams, InputRunParams, InputStateResult,
+    PaneCloseParams, PaneFocusParams, PaneMaximizeParams, PaneNavigateParams, PaneResizeParams,
+    PaneSplitParams, PaneTarget, ProjectActiveResult, ProjectListResult, ProjectSummary,
+    SessionTarget, SettingGetParams, SettingGetResult, SettingListResult, SettingSetParams,
+    SettingSummary, SettingToggleParams, TabActivateParams, TabCloseParams, TabMoveParams,
+    TabRenameParams, TabTarget, TargetSelector, ThemeListResult, ThemeSetParams, ThemeSummary,
+    WindowCloseParams, WindowCreateParams, WindowFocusParams, WindowTarget,
 };
 use ::local_control::{
     ActionKind, AuthToken, ControlEndpoint, ControlError, ControlResponse, ErrorCode,
@@ -2146,6 +2152,53 @@ fn validate_action_params(action: &::local_control::Action) -> Result<(), Contro
             }
             Ok(())
         }),
+        ActionKind::AppFocus => action.params_as::<AppFocusParams>().map(|_| ()),
+        ActionKind::AppSettingsOpen
+        | ActionKind::AppCommandPaletteOpen
+        | ActionKind::AppCommandSearchOpen
+        | ActionKind::AppWarpDriveOpen
+        | ActionKind::AppWarpDriveToggle
+        | ActionKind::AppResourceCenterToggle
+        | ActionKind::AppAiAssistantToggle
+        | ActionKind::AppCodeReviewToggle
+        | ActionKind::AppVerticalTabsToggle => action.params_as::<AppSurfaceParams>().map(|_| ()),
+        ActionKind::WindowCreate => action.params_as::<WindowCreateParams>().map(|_| ()),
+        ActionKind::WindowFocus => action.params_as::<WindowFocusParams>().map(|_| ()),
+        ActionKind::WindowClose => action.params_as::<WindowCloseParams>().map(|_| ()),
+        ActionKind::TabActivate => action.params_as::<TabActivateParams>().map(|_| ()),
+        ActionKind::TabMove => action.params_as::<TabMoveParams>().map(|_| ()),
+        ActionKind::TabRename => action.params_as::<TabRenameParams>().map(|_| ()),
+        ActionKind::TabClose => action.params_as::<TabCloseParams>().map(|_| ()),
+        ActionKind::PaneSplit => action.params_as::<PaneSplitParams>().map(|_| ()),
+        ActionKind::PaneFocus => action.params_as::<PaneFocusParams>().map(|_| ()),
+        ActionKind::PaneNavigate => action.params_as::<PaneNavigateParams>().map(|_| ()),
+        ActionKind::PaneClose => action.params_as::<PaneCloseParams>().map(|_| ()),
+        ActionKind::PaneMaximize => action.params_as::<PaneMaximizeParams>().map(|_| ()),
+        ActionKind::PaneResize => action.params_as::<PaneResizeParams>().map(|_| ()),
+        ActionKind::PaneSessionPrevious | ActionKind::PaneSessionNext => {
+            validate_empty_action_params(action)
+        }
+        ActionKind::InputInsert => action.params_as::<InputInsertParams>().map(|_| ()),
+        ActionKind::InputReplace => action.params_as::<InputReplaceParams>().map(|_| ()),
+        ActionKind::InputClear => action.params_as::<InputClearParams>().map(|_| ()),
+        ActionKind::InputModeSet => action.params_as::<InputModeSetParams>().map(|_| ()),
+        ActionKind::InputRun => action.params_as::<InputRunParams>().map(|_| ()),
+        ActionKind::ThemeSet => action.params_as::<ThemeSetParams>().map(|_| ()),
+        ActionKind::AppearanceSet => action.params_as::<AppearanceSetParams>().map(|_| ()),
+        ActionKind::AppearanceFontSize => {
+            action.params_as::<AppearanceFontSizeParams>().map(|_| ())
+        }
+        ActionKind::AppearanceZoom => action.params_as::<AppearanceZoomParams>().map(|_| ()),
+        ActionKind::SettingSet => action.params_as::<SettingSetParams>().map(|_| ()),
+        ActionKind::SettingToggle => action.params_as::<SettingToggleParams>().map(|_| ()),
+        ActionKind::FileOpen => action.params_as::<FileOpenParams>().map(|_| ()),
+        ActionKind::FileWrite => action.params_as::<FileWriteParams>().map(|_| ()),
+        ActionKind::FileDelete => action.params_as::<FileDeleteParams>().map(|_| ()),
+        ActionKind::DriveCreate => action.params_as::<DriveCreateParams>().map(|_| ()),
+        ActionKind::DriveUpdate => action.params_as::<DriveUpdateParams>().map(|_| ()),
+        ActionKind::DriveDelete => action.params_as::<DriveDeleteParams>().map(|_| ()),
+        ActionKind::DriveRun => action.params_as::<DriveRunParams>().map(|_| ()),
+        ActionKind::DriveInsert => action.params_as::<DriveInsertParams>().map(|_| ()),
         _ => Ok(()),
     }
 }

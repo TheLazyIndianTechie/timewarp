@@ -1,10 +1,18 @@
 use ::local_control::auth::CredentialGrant;
 use ::local_control::protocol::ActionKind;
 use ::local_control::protocol::{
-    Action, BlockGetParams, BlockListParams, BlockTarget, ControlResponse, DriveGetParams,
-    DriveGetResult, DriveListParams, DriveListResult, DriveObjectType, FileTarget, PaneSelector,
-    PaneTarget, SessionSelector, SessionTarget, TabSelector, TabTarget, TargetSelector,
-    WindowSelector, WindowTarget,
+    Action, AppFocusParams, AppSurfaceParams, AppearanceFontSizeParams, AppearanceSetParams,
+    AppearanceZoomParams, BlockGetParams, BlockListParams, BlockTarget, ControlResponse,
+    DriveCreateParams, DriveDeleteParams, DriveGetParams, DriveGetResult, DriveInsertParams,
+    DriveListParams, DriveListResult, DriveObjectType, DriveRunParams, DriveUpdateParams,
+    FileDeleteParams, FileOpenParams, FileTarget, FileWriteParams, HorizontalDirection,
+    InputClearParams, InputInsertParams, InputMode, InputModeSetParams, InputReplaceParams,
+    InputRunParams, PaneCloseParams, PaneDirection, PaneFocusParams, PaneMaximizeParams,
+    PaneNavigateParams, PaneResizeParams, PaneSelector, PaneSplitParams, PaneTarget,
+    SessionSelector, SessionTarget, SettingSetParams, SettingToggleParams, SizeAdjustment,
+    TabActivateParams, TabActivationTarget, TabCloseParams, TabCloseScope, TabMoveParams,
+    TabRenameParams, TabSelector, TabTarget, TargetSelector, ThemeSetParams, WindowCloseParams,
+    WindowCreateParams, WindowFocusParams, WindowSelector, WindowTarget,
 };
 use ::local_control::{
     ErrorCode, InstanceId, InvocationContext, PermissionCategory, RequestEnvelope,
@@ -800,13 +808,278 @@ fn action_metadata_lookup_reports_stub_status_for_allowlisted_future_actions() {
 }
 
 #[test]
-fn action_get_rejects_unallowlisted_action_names() {
+fn action_get_rejects_unknown_action_names() {
     let err = validate_action_params(&Action {
         kind: ActionKind::ActionGet,
-        params: serde_json::json!({ "action": "input.run" }),
+        params: serde_json::json!({ "action": "unknown.run" }),
     })
-    .expect_err("unallowlisted action is rejected");
+    .expect_err("unknown action is rejected");
     assert_eq!(err.code, ErrorCode::NotAllowlisted);
+}
+
+#[test]
+fn mutating_stub_actions_validate_typed_params() {
+    let actions = [
+        Action::with_params(ActionKind::AppFocus, AppFocusParams::default())
+            .expect("params serialize"),
+        Action::with_params(ActionKind::AppSettingsOpen, AppSurfaceParams::default())
+            .expect("params serialize"),
+        Action::with_params(
+            ActionKind::WindowCreate,
+            WindowCreateParams {
+                profile: Some("Default".to_owned()),
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(ActionKind::WindowFocus, WindowFocusParams::default())
+            .expect("params serialize"),
+        Action::with_params(ActionKind::WindowClose, WindowCloseParams { force: true })
+            .expect("params serialize"),
+        Action::with_params(
+            ActionKind::TabActivate,
+            TabActivateParams {
+                relative: Some(TabActivationTarget::Next),
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::TabMove,
+            TabMoveParams {
+                direction: HorizontalDirection::Left,
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::TabRename,
+            TabRenameParams {
+                title: Some("build".to_owned()),
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::TabClose,
+            TabCloseParams {
+                scope: TabCloseScope::Others,
+                force: true,
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::PaneSplit,
+            PaneSplitParams {
+                direction: PaneDirection::Right,
+                profile: None,
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(ActionKind::PaneFocus, PaneFocusParams::default())
+            .expect("params serialize"),
+        Action::with_params(
+            ActionKind::PaneNavigate,
+            PaneNavigateParams {
+                direction: PaneDirection::Down,
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(ActionKind::PaneClose, PaneCloseParams { force: true })
+            .expect("params serialize"),
+        Action::with_params(
+            ActionKind::PaneMaximize,
+            PaneMaximizeParams {
+                enabled: Some(true),
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::PaneResize,
+            PaneResizeParams {
+                direction: PaneDirection::Up,
+                amount: Some(8),
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::InputInsert,
+            InputInsertParams {
+                text: "cargo check".to_owned(),
+                replace: true,
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::InputReplace,
+            InputReplaceParams {
+                text: "cargo test".to_owned(),
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(ActionKind::InputClear, InputClearParams::default())
+            .expect("params serialize"),
+        Action::with_params(
+            ActionKind::InputModeSet,
+            InputModeSetParams {
+                mode: InputMode::Agent,
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::InputRun,
+            InputRunParams {
+                command: "cargo check".to_owned(),
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::ThemeSet,
+            ThemeSetParams {
+                name: "Warp Dark".to_owned(),
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::AppearanceSet,
+            AppearanceSetParams {
+                theme: Some("Warp Dark".to_owned()),
+                follow_system_theme: None,
+                light_theme: None,
+                dark_theme: None,
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::AppearanceFontSize,
+            AppearanceFontSizeParams {
+                adjustment: SizeAdjustment::Increase,
+                value: None,
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::AppearanceZoom,
+            AppearanceZoomParams {
+                adjustment: SizeAdjustment::Set,
+                value: Some(120),
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::SettingSet,
+            SettingSetParams {
+                key: "appearance.theme".to_owned(),
+                value: serde_json::json!("Warp Dark"),
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::SettingToggle,
+            SettingToggleParams {
+                key: "appearance.follow_system".to_owned(),
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::FileOpen,
+            FileOpenParams {
+                path: "src/main.rs".to_owned(),
+                line: Some(12),
+                new_window: false,
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::FileWrite,
+            FileWriteParams {
+                path: "notes.txt".to_owned(),
+                contents: "hello".to_owned(),
+                create: true,
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::FileDelete,
+            FileDeleteParams {
+                path: "notes.txt".to_owned(),
+                recursive: false,
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::DriveCreate,
+            DriveCreateParams {
+                object_type: DriveObjectType::Workflow,
+                name: "build".to_owned(),
+                content: serde_json::json!({ "command": "cargo check" }),
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::DriveUpdate,
+            DriveUpdateParams {
+                object_type: DriveObjectType::Notebook,
+                id: "notebook_123".to_owned(),
+                content: serde_json::json!({ "title": "notes" }),
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::DriveDelete,
+            DriveDeleteParams {
+                object_type: DriveObjectType::Prompt,
+                id: "prompt_123".to_owned(),
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::DriveRun,
+            DriveRunParams {
+                object_type: DriveObjectType::Workflow,
+                id: "workflow_123".to_owned(),
+            },
+        )
+        .expect("params serialize"),
+        Action::with_params(
+            ActionKind::DriveInsert,
+            DriveInsertParams {
+                object_type: DriveObjectType::Notebook,
+                id: "notebook_123".to_owned(),
+            },
+        )
+        .expect("params serialize"),
+    ];
+
+    for action in actions {
+        validate_action_params(&action).expect("mutating params are accepted");
+    }
+}
+
+#[test]
+fn mutating_permissions_keep_app_metadata_and_underlying_data_separate() {
+    assert_eq!(
+        ActionKind::TabActivate.metadata().permission_category,
+        PermissionCategory::MutateAppState
+    );
+    assert_eq!(
+        ActionKind::SettingSet.metadata().permission_category,
+        PermissionCategory::MutateMetadataConfiguration
+    );
+    assert_eq!(
+        ActionKind::InputRun.metadata().permission_category,
+        PermissionCategory::MutateUnderlyingData
+    );
+
+    let mut grant = CredentialGrant::new(
+        InstanceId("instance".to_owned()),
+        ActionKind::InputRun,
+        InvocationContext::InsideWarp,
+        Duration::minutes(5),
+    );
+    grant.permission_category = PermissionCategory::MutateAppState;
+    grant.authenticated_user.subject = Some("user".to_owned());
+
+    let err = grant
+        .verify_for_action(ActionKind::InputRun)
+        .expect_err("app-state mutation category does not satisfy command execution");
+    assert_eq!(err.code, ErrorCode::InsufficientPermissions);
 }
 
 #[test]

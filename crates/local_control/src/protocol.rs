@@ -59,6 +59,305 @@ pub struct DriveGetParams {
     pub object_type: DriveObjectType,
     pub id: String,
 }
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct WindowCreateParams {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub profile: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct WindowFocusParams {}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct WindowCloseParams {
+    #[serde(default)]
+    pub force: bool,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TabCreateParams {}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TabActivationTarget {
+    Previous,
+    Next,
+    Last,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TabActivateParams {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub relative: Option<TabActivationTarget>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum HorizontalDirection {
+    Left,
+    Right,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TabMoveParams {
+    pub direction: HorizontalDirection,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TabRenameParams {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TabCloseScope {
+    Target,
+    Others,
+    Right,
+}
+
+impl Default for TabCloseScope {
+    fn default() -> Self {
+        Self::Target
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TabCloseParams {
+    #[serde(default)]
+    pub scope: TabCloseScope,
+    #[serde(default)]
+    pub force: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PaneDirection {
+    Left,
+    Right,
+    Up,
+    Down,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PaneSplitParams {
+    pub direction: PaneDirection,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub profile: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PaneFocusParams {}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PaneNavigateParams {
+    pub direction: PaneDirection,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PaneCloseParams {
+    #[serde(default)]
+    pub force: bool,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PaneMaximizeParams {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PaneResizeParams {
+    pub direction: PaneDirection,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub amount: Option<u32>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct InputInsertParams {
+    pub text: String,
+    #[serde(default)]
+    pub replace: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct InputReplaceParams {
+    pub text: String,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct InputClearParams {}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum InputMode {
+    Terminal,
+    Agent,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct InputModeSetParams {
+    pub mode: InputMode,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct InputRunParams {
+    pub command: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ThemeSetParams {
+    pub name: String,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AppearanceSetParams {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub theme: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub follow_system_theme: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub light_theme: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dark_theme: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SizeAdjustment {
+    Increase,
+    Decrease,
+    Reset,
+    Set,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AppearanceFontSizeParams {
+    pub adjustment: SizeAdjustment,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub value: Option<u32>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AppearanceZoomParams {
+    pub adjustment: SizeAdjustment,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub value: Option<u32>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SettingSetParams {
+    pub key: String,
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SettingToggleParams {
+    pub key: String,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AppFocusParams {}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AppSurfaceParams {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub query: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub page: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FileOpenParams {
+    pub path: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub line: Option<u32>,
+    #[serde(default)]
+    pub new_window: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FileWriteParams {
+    pub path: String,
+    pub contents: String,
+    #[serde(default)]
+    pub create: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FileDeleteParams {
+    pub path: String,
+    #[serde(default)]
+    pub recursive: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DriveCreateParams {
+    pub object_type: DriveObjectType,
+    pub name: String,
+    pub content: serde_json::Value,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DriveUpdateParams {
+    pub object_type: DriveObjectType,
+    pub id: String,
+    pub content: serde_json::Value,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DriveDeleteParams {
+    pub object_type: DriveObjectType,
+    pub id: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DriveRunParams {
+    pub object_type: DriveObjectType,
+    pub id: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DriveInsertParams {
+    pub object_type: DriveObjectType,
+    pub id: String,
+}
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FileListParams {}
@@ -296,6 +595,51 @@ pub struct DriveListResult {
 pub struct DriveGetResult {
     pub object: DriveObjectSummary,
     pub content: serde_json::Value,
+}
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct WindowMutationResult {
+    pub window_id: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TabMutationResult {
+    pub tab_id: String,
+    pub window_id: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PaneMutationResult {
+    pub pane_id: String,
+    pub tab_id: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SessionMutationResult {
+    pub session_id: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AppearanceMutationResult {
+    pub changed: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SettingMutationResult {
+    pub setting: SettingSummary,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FileMutationResult {
+    pub path: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tab_id: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct DriveMutationResult {
+    pub object: DriveObjectSummary,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub execution_id: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -636,6 +980,8 @@ pub enum ActionKind {
     InputClear,
     #[serde(rename = "input.mode.set")]
     InputModeSet,
+    #[serde(rename = "input.run")]
+    InputRun,
     #[serde(rename = "history.list")]
     HistoryList,
     #[serde(rename = "theme.list")]
@@ -660,6 +1006,12 @@ pub enum ActionKind {
     SettingToggle,
     #[serde(rename = "file.list")]
     FileList,
+    #[serde(rename = "file.open")]
+    FileOpen,
+    #[serde(rename = "file.write")]
+    FileWrite,
+    #[serde(rename = "file.delete")]
+    FileDelete,
     #[serde(rename = "project.active")]
     ProjectActive,
     #[serde(rename = "project.list")]
@@ -668,6 +1020,16 @@ pub enum ActionKind {
     DriveList,
     #[serde(rename = "drive.get")]
     DriveGet,
+    #[serde(rename = "drive.create")]
+    DriveCreate,
+    #[serde(rename = "drive.update")]
+    DriveUpdate,
+    #[serde(rename = "drive.delete")]
+    DriveDelete,
+    #[serde(rename = "drive.run")]
+    DriveRun,
+    #[serde(rename = "drive.insert")]
+    DriveInsert,
 }
 
 impl ActionKind {
@@ -716,6 +1078,7 @@ impl ActionKind {
         Self::InputReplace,
         Self::InputClear,
         Self::InputModeSet,
+        Self::InputRun,
         Self::HistoryList,
         Self::ThemeList,
         Self::ThemeSet,
@@ -728,10 +1091,18 @@ impl ActionKind {
         Self::SettingSet,
         Self::SettingToggle,
         Self::FileList,
+        Self::FileOpen,
+        Self::FileWrite,
+        Self::FileDelete,
         Self::ProjectActive,
         Self::ProjectList,
         Self::DriveList,
         Self::DriveGet,
+        Self::DriveCreate,
+        Self::DriveUpdate,
+        Self::DriveDelete,
+        Self::DriveRun,
+        Self::DriveInsert,
     ];
     pub fn as_str(self) -> &'static str {
         match self {
@@ -779,6 +1150,7 @@ impl ActionKind {
             Self::InputReplace => "input.replace",
             Self::InputClear => "input.clear",
             Self::InputModeSet => "input.mode.set",
+            Self::InputRun => "input.run",
             Self::HistoryList => "history.list",
             Self::ThemeList => "theme.list",
             Self::ThemeSet => "theme.set",
@@ -791,10 +1163,18 @@ impl ActionKind {
             Self::SettingSet => "setting.set",
             Self::SettingToggle => "setting.toggle",
             Self::FileList => "file.list",
+            Self::FileOpen => "file.open",
+            Self::FileWrite => "file.write",
+            Self::FileDelete => "file.delete",
             Self::ProjectActive => "project.active",
             Self::ProjectList => "project.list",
             Self::DriveList => "drive.list",
             Self::DriveGet => "drive.get",
+            Self::DriveCreate => "drive.create",
+            Self::DriveUpdate => "drive.update",
+            Self::DriveDelete => "drive.delete",
+            Self::DriveRun => "drive.run",
+            Self::DriveInsert => "drive.insert",
         }
     }
 
@@ -889,6 +1269,14 @@ impl ActionKind {
             | Self::InputReplace
             | Self::InputClear
             | Self::InputModeSet
+            | Self::InputRun
+            | Self::FileWrite
+            | Self::FileDelete
+            | Self::DriveCreate
+            | Self::DriveUpdate
+            | Self::DriveDelete
+            | Self::DriveRun
+            | Self::DriveInsert
             | Self::WindowClose
             | Self::TabClose
             | Self::PaneClose => RiskTier::MutatingDestructiveOrExecution,
@@ -920,7 +1308,8 @@ impl ActionKind {
             | Self::AppearanceFontSize
             | Self::AppearanceZoom
             | Self::SettingSet
-            | Self::SettingToggle => RiskTier::MutatingNonDestructive,
+            | Self::SettingToggle
+            | Self::FileOpen => RiskTier::MutatingNonDestructive,
         }
     }
 
@@ -956,9 +1345,18 @@ impl ActionKind {
             | Self::AppearanceSet
             | Self::AppearanceFontSize
             | Self::AppearanceZoom => StateDataCategory::MetadataConfigurationMutation,
-            Self::InputInsert | Self::InputReplace | Self::InputClear | Self::InputModeSet => {
-                StateDataCategory::UnderlyingDataMutation
-            }
+            Self::InputInsert
+            | Self::InputReplace
+            | Self::InputClear
+            | Self::InputModeSet
+            | Self::InputRun
+            | Self::FileWrite
+            | Self::FileDelete
+            | Self::DriveCreate
+            | Self::DriveUpdate
+            | Self::DriveDelete
+            | Self::DriveRun
+            | Self::DriveInsert => StateDataCategory::UnderlyingDataMutation,
             Self::AppFocus
             | Self::AppSettingsOpen
             | Self::AppCommandPaletteOpen
@@ -984,7 +1382,8 @@ impl ActionKind {
             | Self::PaneMaximize
             | Self::PaneResize
             | Self::PaneSessionPrevious
-            | Self::PaneSessionNext => StateDataCategory::AppStateMutation,
+            | Self::PaneSessionNext
+            | Self::FileOpen => StateDataCategory::AppStateMutation,
         }
     }
 
@@ -1009,6 +1408,50 @@ impl ActionKind {
                 | Self::HistoryList
                 | Self::DriveList
                 | Self::DriveGet
+                | Self::AppFocus
+                | Self::AppSettingsOpen
+                | Self::AppCommandPaletteOpen
+                | Self::AppCommandSearchOpen
+                | Self::AppWarpDriveOpen
+                | Self::AppWarpDriveToggle
+                | Self::AppResourceCenterToggle
+                | Self::AppAiAssistantToggle
+                | Self::AppCodeReviewToggle
+                | Self::AppVerticalTabsToggle
+                | Self::WindowCreate
+                | Self::WindowFocus
+                | Self::WindowClose
+                | Self::TabActivate
+                | Self::TabMove
+                | Self::TabRename
+                | Self::TabClose
+                | Self::PaneSplit
+                | Self::PaneFocus
+                | Self::PaneNavigate
+                | Self::PaneClose
+                | Self::PaneMaximize
+                | Self::PaneResize
+                | Self::PaneSessionPrevious
+                | Self::PaneSessionNext
+                | Self::InputInsert
+                | Self::InputReplace
+                | Self::InputClear
+                | Self::InputModeSet
+                | Self::InputRun
+                | Self::ThemeSet
+                | Self::AppearanceSet
+                | Self::AppearanceFontSize
+                | Self::AppearanceZoom
+                | Self::SettingSet
+                | Self::SettingToggle
+                | Self::FileOpen
+                | Self::FileWrite
+                | Self::FileDelete
+                | Self::DriveCreate
+                | Self::DriveUpdate
+                | Self::DriveDelete
+                | Self::DriveRun
+                | Self::DriveInsert
         )
     }
 
@@ -1050,7 +1493,8 @@ impl ActionKind {
             | Self::InputInsert
             | Self::InputReplace
             | Self::InputClear
-            | Self::InputModeSet => TargetScope::Session,
+            | Self::InputModeSet
+            | Self::InputRun => TargetScope::Session,
             Self::BlockList | Self::BlockGet => TargetScope::Block,
             Self::HistoryList => TargetScope::History,
             Self::ThemeList
@@ -1063,9 +1507,17 @@ impl ActionKind {
                 TargetScope::Settings
             }
             Self::ActionList | Self::ActionGet => TargetScope::Action,
-            Self::FileList => TargetScope::File,
+            Self::FileList | Self::FileOpen | Self::FileWrite | Self::FileDelete => {
+                TargetScope::File
+            }
             Self::ProjectActive | Self::ProjectList => TargetScope::Project,
-            Self::DriveList | Self::DriveGet => TargetScope::Drive,
+            Self::DriveList
+            | Self::DriveGet
+            | Self::DriveCreate
+            | Self::DriveUpdate
+            | Self::DriveDelete
+            | Self::DriveRun
+            | Self::DriveInsert => TargetScope::Drive,
             Self::AppSettingsOpen
             | Self::AppCommandPaletteOpen
             | Self::AppCommandSearchOpen

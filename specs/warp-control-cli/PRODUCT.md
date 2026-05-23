@@ -125,11 +125,12 @@ Non-goals:
 25. File/path intent actions may be included when they already mirror existing user-visible deep-link behavior:
    - Open a path in a new tab or window.
    - Open a repository picker or repo path flow where the current app already supports it.
-   These should remain allowlisted intent actions rather than arbitrary filesystem RPCs.
+   - Write or delete files only through explicit allowlisted actions with underlying-data mutation permission and policy hooks.
+   File open should remain an allowlisted app-state intent action. File write/delete must be treated as underlying-data mutations, not app-state mutations.
 26. The following categories are explicitly excluded from the initial public allowlist even if there are internal actions for them:
    - Crash, panic, heap-dump, token-copying, debug-reset, and similar developer/debug helpers.
    - Arbitrary auth manipulation.
-   - Arbitrary cloud object mutation or broad Warp Drive CRUD.
+   - Arbitrary cloud object mutation or unvalidated broad Warp Drive CRUD outside explicit allowlisted Drive actions.
    - Arbitrary internal view dispatch by string.
    - Arbitrary setting names outside the allowlist.
 27. CLI command names should be noun-oriented and discoverable. During the provisional standalone-binary phase, the control CLI should expose a `warpctrl ...` command surface:
@@ -219,10 +220,13 @@ Warp should add a new top-level Settings pane page named **Scripting**. This pag
 - **Warp control outside Warp:** default off. Controls `warpctrl` invocations from external terminals, scripts, IDEs, launch agents, and other same-user processes.
 The Scripting page should explain that within-Warp control is scoped to commands launched from Warp-managed terminals, while outside-Warp control allows other local apps and scripts to talk to Warp's control plane. Disabling either top-level toggle should invalidate credentials for that invocation context and hide that context's child permission controls.
 ### Granular local-control permissions
-The Scripting settings page should expose two child permissions beneath each enabled parent context:
-- **Allow read-only control:** permits Warp control commands to query information.
-- **Allow read-write control:** permits Warp control commands to change Warp app state.
-When a parent context is disabled, its read-only and read-write child controls should not be shown. These settings define the maximum grants the broker may issue for that invocation context. The app bridge still enforces the action's risk tier, authenticated-user requirement, execution-context requirement, and target scope for every request.
+The Scripting settings page and protocol metadata should preserve five distinct local-control permission categories beneath each enabled parent context:
+- **Metadata reads:** permits app structure and non-sensitive configuration reads.
+- **Underlying data reads:** permits terminal content, command history, input buffer, Drive object content, and other user data reads.
+- **App-state mutations:** permits visible Warp app state changes such as focusing windows, creating or activating tabs, moving panes, and opening surfaces.
+- **Metadata/configuration mutations:** permits allowlisted settings, theme, and appearance writes.
+- **Underlying data mutations:** permits terminal input injection, command execution, file writes/deletes, Drive CRUD, Drive insertion, and workflow execution.
+App-state mutation permission must never imply underlying-data mutation permission. In particular, terminal command execution, file write/delete, and Drive CRUD/workflow execution require the underlying-data mutation category, not the app-state mutation category. When a parent context is disabled, its child permission controls should not be shown. These settings define the maximum grants the broker may issue for that invocation context. The app bridge still enforces the action's risk tier, authenticated-user requirement, execution-context requirement, and target scope for every request.
 ### Scoped credentials
 The local discovery record must not expose a reusable full-access credential. `warpctrl` should request scoped credentials from an app-owned broker or equivalent trusted path.
 Scoped credentials should include:
@@ -245,9 +249,12 @@ File selectors would use filesystem paths (absolute or relative to the working d
 **Warp Drive objects.** Warp Drive stores typed objects (workflows, notebooks, environment variable sets, prompts) that users can reference, execute, and share. A future `drive` namespace could support:
 - `warpctrl drive list --type workflow` — list Warp Drive objects by type.
 - `warpctrl drive get <id>` — retrieve a specific Drive object by its opaque ID or by name/path.
+- `warpctrl drive create --type workflow <name> <content>` — create a Drive object using validated typed content.
+- `warpctrl drive update --type workflow <id> <content>` — update a Drive object using validated typed content.
+- `warpctrl drive delete --type workflow <id>` — delete a Drive object.
 - `warpctrl drive run <workflow-id>` — execute a workflow in a target session, equivalent to invoking it from the command palette.
 - `warpctrl drive insert <notebook-id>` — insert a notebook's runnable commands into the active input.
-Drive object selectors should support both opaque IDs (for automation stability) and human-friendly name/path lookups (for interactive use). The type field (`workflow`, `notebook`, `env_var`, `prompt`) acts as a namespace filter. Drive actions that execute content in a terminal session (e.g., running a workflow) inherit the destructive/high-risk tier from the action classification model.
+Drive object selectors should support both opaque IDs (for automation stability) and human-friendly name/path lookups (for interactive use). The type field (`workflow`, `notebook`, `env_var`, `prompt`) acts as a namespace filter. Drive create/update/delete/run/insert actions are underlying-data mutations, and Drive actions that execute content in a terminal session (e.g., running a workflow) inherit the destructive/high-risk tier from the action classification model.
 **Design constraints for both:**
 - File and Drive selectors are orthogonal to the window/tab/pane hierarchy — a file open action targets an instance (which window to open in), not a specific pane. A Drive workflow execution targets a session (which pane to run in).
 - The `TargetSelector` type in the protocol should be extensible with optional fields for these new selector families without breaking existing requests that omit them.

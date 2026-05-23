@@ -98,11 +98,162 @@ fn parses_read_only_contract_commands() {
 }
 
 #[test]
-fn rejects_mutating_commands_outside_contract_scope() {
-    assert!(ControlArgs::try_parse_from(["warpctrl", "window", "create"]).is_err());
-    assert!(ControlArgs::try_parse_from(["warpctrl", "pane", "split"]).is_err());
-    assert!(ControlArgs::try_parse_from(["warpctrl", "setting", "set"]).is_err());
-    assert!(ControlArgs::try_parse_from(["warpctrl", "input", "insert", "cargo check"]).is_err());
+fn parses_mutating_contract_commands() {
+    let commands = [
+        vec!["warpctrl", "app", "focus"],
+        vec![
+            "warpctrl",
+            "app",
+            "settings-open",
+            "--query",
+            "theme",
+            "--page",
+            "appearance",
+        ],
+        vec!["warpctrl", "app", "command-palette-open", "--query", "git"],
+        vec!["warpctrl", "app", "command-search-open", "--query", "build"],
+        vec!["warpctrl", "app", "warp-drive-open"],
+        vec!["warpctrl", "app", "warp-drive-toggle"],
+        vec!["warpctrl", "app", "resource-center-toggle"],
+        vec!["warpctrl", "app", "ai-assistant-toggle"],
+        vec!["warpctrl", "app", "code-review-toggle"],
+        vec!["warpctrl", "app", "vertical-tabs-toggle"],
+        vec!["warpctrl", "window", "create", "--profile", "Default"],
+        vec!["warpctrl", "window", "focus"],
+        vec!["warpctrl", "window", "close", "--force"],
+        vec!["warpctrl", "tab", "activate"],
+        vec!["warpctrl", "tab", "previous"],
+        vec!["warpctrl", "tab", "next"],
+        vec!["warpctrl", "tab", "last"],
+        vec!["warpctrl", "tab", "move", "--direction", "left"],
+        vec!["warpctrl", "tab", "rename", "build"],
+        vec!["warpctrl", "tab", "rename", "--reset"],
+        vec!["warpctrl", "tab", "close", "--scope", "others", "--force"],
+        vec!["warpctrl", "pane", "split", "--direction", "right"],
+        vec!["warpctrl", "pane", "focus"],
+        vec!["warpctrl", "pane", "navigate", "--direction", "down"],
+        vec!["warpctrl", "pane", "close", "--force"],
+        vec!["warpctrl", "pane", "maximize", "--enabled", "true"],
+        vec![
+            "warpctrl",
+            "pane",
+            "resize",
+            "--direction",
+            "left",
+            "--amount",
+            "10",
+        ],
+        vec!["warpctrl", "pane", "previous-session"],
+        vec!["warpctrl", "pane", "next-session"],
+        vec!["warpctrl", "input", "insert", "cargo check", "--replace"],
+        vec!["warpctrl", "input", "replace", "cargo test"],
+        vec!["warpctrl", "input", "clear"],
+        vec!["warpctrl", "input", "mode", "agent"],
+        vec!["warpctrl", "input", "run", "cargo check"],
+        vec!["warpctrl", "theme", "set", "Warp Dark"],
+        vec!["warpctrl", "appearance", "set", "--theme", "Warp Dark"],
+        vec!["warpctrl", "appearance", "font-size", "increase"],
+        vec!["warpctrl", "appearance", "zoom", "set", "--value", "120"],
+        vec![
+            "warpctrl",
+            "setting",
+            "set",
+            "appearance.theme",
+            "Warp Dark",
+        ],
+        vec!["warpctrl", "setting", "toggle", "appearance.follow_system"],
+        vec!["warpctrl", "file", "open", "src/main.rs", "--line", "12"],
+        vec![
+            "warpctrl",
+            "file",
+            "write",
+            "notes.txt",
+            "hello",
+            "--create",
+        ],
+        vec!["warpctrl", "file", "delete", "notes.txt", "--recursive"],
+        vec![
+            "warpctrl",
+            "drive",
+            "create",
+            "--type",
+            "workflow",
+            "build",
+            "{\"command\":\"cargo check\"}",
+        ],
+        vec![
+            "warpctrl",
+            "drive",
+            "update",
+            "--type",
+            "notebook",
+            "notebook_123",
+            "{\"title\":\"notes\"}",
+        ],
+        vec![
+            "warpctrl",
+            "drive",
+            "delete",
+            "--type",
+            "prompt",
+            "prompt_123",
+        ],
+        vec![
+            "warpctrl",
+            "drive",
+            "run",
+            "--type",
+            "workflow",
+            "workflow_123",
+        ],
+        vec![
+            "warpctrl",
+            "drive",
+            "insert",
+            "--type",
+            "notebook",
+            "notebook_123",
+        ],
+    ];
+    for command in commands {
+        ControlArgs::try_parse_from(command).expect("mutating contract command parses");
+    }
+}
+
+#[test]
+fn parses_mutating_command_values_into_typed_args() {
+    let args = ControlArgs::try_parse_from([
+        "warpctrl",
+        "pane",
+        "resize",
+        "--direction",
+        "up",
+        "--amount",
+        "8",
+    ])
+    .expect("pane resize parses");
+    let ControlCommand::Pane(PaneCommand::Resize(resize)) = args.command else {
+        panic!("expected pane resize command");
+    };
+    assert!(matches!(resize.direction, PaneDirectionArg::Up));
+    assert_eq!(resize.amount, Some(8));
+
+    let args = ControlArgs::try_parse_from([
+        "warpctrl",
+        "drive",
+        "create",
+        "--type",
+        "workflow",
+        "build",
+        "{\"command\":\"cargo check\"}",
+    ])
+    .expect("drive create parses");
+    let ControlCommand::Drive(DriveCommand::Create(create)) = args.command else {
+        panic!("expected drive create command");
+    };
+    assert!(matches!(create.object_type, DriveObjectTypeArg::Workflow));
+    assert_eq!(create.name, "build");
+    assert_eq!(create.content, "{\"command\":\"cargo check\"}");
 }
 
 #[test]
@@ -116,6 +267,10 @@ fn generated_bash_completions_include_first_slice_commands() {
     assert!(completions.contains("project"));
     assert!(completions.contains("drive"));
     assert!(completions.contains("completions"));
+    assert!(completions.contains("insert"));
+    assert!(completions.contains("run"));
+    assert!(completions.contains("write"));
+    assert!(completions.contains("delete"));
 }
 
 #[test]

@@ -3,7 +3,17 @@ use std::process::ExitCode;
 
 use clap::{Args, CommandFactory, FromArgMatches, Parser, Subcommand, ValueEnum};
 use clap_complete::aot::{Shell, generate};
-use local_control::protocol::{Action, ActionKind, ActionMetadata, ControlError, ErrorCode};
+use local_control::protocol::{
+    Action, ActionKind, ActionMetadata, AppFocusParams, AppSurfaceParams, AppearanceFontSizeParams,
+    AppearanceSetParams, AppearanceZoomParams, ControlError, DriveCreateParams, DriveDeleteParams,
+    DriveInsertParams, DriveRunParams, DriveUpdateParams, ErrorCode, FileDeleteParams,
+    FileOpenParams, FileWriteParams, HorizontalDirection, InputClearParams, InputInsertParams,
+    InputMode, InputModeSetParams, InputReplaceParams, InputRunParams, PaneCloseParams,
+    PaneDirection, PaneFocusParams, PaneMaximizeParams, PaneNavigateParams, PaneResizeParams,
+    PaneSplitParams, SettingSetParams, SettingToggleParams, SizeAdjustment, TabActivateParams,
+    TabActivationTarget, TabCloseParams, TabCloseScope, TabMoveParams, TabRenameParams,
+    ThemeSetParams, WindowCloseParams, WindowCreateParams, WindowFocusParams,
+};
 use local_control::selection::{InstanceSelector, select_instance};
 use serde::Serialize;
 
@@ -52,6 +62,44 @@ impl ControlArgs {
 * Use <bold>{bin_name} help</bold> to learn more about each command
 "#
             ))
+    }
+}
+
+fn run_app_surface_command(
+    args: AppSurfaceArgs,
+    action: ActionKind,
+    output_format: OutputFormat,
+) -> Result<(), ControlError> {
+    run_action_with_params(
+        args.target,
+        action,
+        AppSurfaceParams {
+            query: args.query,
+            page: args.page,
+        },
+        output_format,
+    )
+}
+
+fn run_tab_activate_relative(
+    args: TargetArgs,
+    relative: TabActivationTarget,
+    output_format: OutputFormat,
+) -> Result<(), ControlError> {
+    run_action_with_params(
+        args,
+        ActionKind::TabActivate,
+        TabActivateParams {
+            relative: Some(relative),
+        },
+        output_format,
+    )
+}
+
+fn parse_json_value_or_string(value: String) -> serde_json::Value {
+    match serde_json::from_str(&value) {
+        Ok(value) => value,
+        Err(_) => serde_json::Value::String(value),
     }
 }
 
@@ -145,6 +193,26 @@ pub enum AppCommand {
     Active(TargetArgs),
     /// Print app and protocol metadata.
     Inspect(TargetArgs),
+    /// Focus the selected Warp app instance.
+    Focus(TargetArgs),
+    /// Open the Settings surface.
+    SettingsOpen(AppSurfaceArgs),
+    /// Open the Command Palette.
+    CommandPaletteOpen(AppSurfaceArgs),
+    /// Open command search.
+    CommandSearchOpen(AppSurfaceArgs),
+    /// Open Warp Drive.
+    WarpDriveOpen(AppSurfaceArgs),
+    /// Toggle Warp Drive.
+    WarpDriveToggle(AppSurfaceArgs),
+    /// Toggle the resource center.
+    ResourceCenterToggle(AppSurfaceArgs),
+    /// Toggle the AI assistant surface.
+    AiAssistantToggle(AppSurfaceArgs),
+    /// Toggle the code review surface.
+    CodeReviewToggle(AppSurfaceArgs),
+    /// Toggle the vertical tabs panel.
+    VerticalTabsToggle(AppSurfaceArgs),
 }
 
 #[derive(Debug, Clone, Subcommand)]
@@ -159,6 +227,12 @@ pub enum ActionCommand {
 pub enum WindowCommand {
     /// List windows in the selected local Warp app.
     List(TargetArgs),
+    /// Create a new Warp window.
+    Create(WindowCreateArgs),
+    /// Focus a Warp window.
+    Focus(TargetArgs),
+    /// Close a Warp window.
+    Close(WindowCloseArgs),
 }
 
 #[derive(Debug, Clone, Subcommand)]
@@ -167,12 +241,42 @@ pub enum TabCommand {
     List(TargetArgs),
     /// Create a new terminal tab in the active window.
     Create(TargetArgs),
+    /// Activate a target tab.
+    Activate(TargetArgs),
+    /// Activate the previous tab.
+    Previous(TargetArgs),
+    /// Activate the next tab.
+    Next(TargetArgs),
+    /// Activate the last tab.
+    Last(TargetArgs),
+    /// Move a target tab left or right.
+    Move(TabMoveArgs),
+    /// Rename or reset a target tab title.
+    Rename(TabRenameArgs),
+    /// Close a target tab or tab group.
+    Close(TabCloseArgs),
 }
 
 #[derive(Debug, Clone, Subcommand)]
 pub enum PaneCommand {
     /// List panes in the selected local Warp app.
     List(TargetArgs),
+    /// Split a pane.
+    Split(PaneSplitArgs),
+    /// Focus a pane.
+    Focus(TargetArgs),
+    /// Navigate pane focus.
+    Navigate(PaneNavigateArgs),
+    /// Close a pane.
+    Close(PaneCloseArgs),
+    /// Toggle or set pane maximization.
+    Maximize(PaneMaximizeArgs),
+    /// Resize a pane divider.
+    Resize(PaneResizeArgs),
+    /// Switch to the previous session in a pane.
+    PreviousSession(TargetArgs),
+    /// Switch to the next session in a pane.
+    NextSession(TargetArgs),
 }
 
 #[derive(Debug, Clone, Subcommand)]
@@ -193,6 +297,16 @@ pub enum BlockCommand {
 pub enum InputCommand {
     /// Read the current input buffer.
     Get(TargetArgs),
+    /// Insert text into the active input buffer.
+    Insert(InputInsertArgs),
+    /// Replace the active input buffer.
+    Replace(InputTextArgs),
+    /// Clear the active input buffer.
+    Clear(TargetArgs),
+    /// Set the active input mode.
+    Mode(InputModeArgs),
+    /// Run a command in the target session.
+    Run(InputRunArgs),
 }
 
 #[derive(Debug, Clone, Subcommand)]
@@ -205,12 +319,20 @@ pub enum HistoryCommand {
 pub enum ThemeCommand {
     /// List available themes.
     List(TargetArgs),
+    /// Set the current theme.
+    Set(ThemeSetArgs),
 }
 
 #[derive(Debug, Clone, Subcommand)]
 pub enum AppearanceCommand {
     /// Read appearance state.
     Get(TargetArgs),
+    /// Set theme-following appearance state.
+    Set(AppearanceSetArgs),
+    /// Adjust font size.
+    FontSize(AppearanceAdjustArgs),
+    /// Adjust UI zoom.
+    Zoom(AppearanceAdjustArgs),
 }
 
 #[derive(Debug, Clone, Subcommand)]
@@ -219,12 +341,22 @@ pub enum SettingCommand {
     List(TargetArgs),
     /// Read one allowlisted setting.
     Get(SettingGetArgs),
+    /// Set one allowlisted setting.
+    Set(SettingSetArgsCli),
+    /// Toggle one allowlisted boolean setting.
+    Toggle(SettingToggleArgsCli),
 }
 
 #[derive(Debug, Clone, Subcommand)]
 pub enum FileCommand {
     /// List files currently surfaced in Warp.
     List(TargetArgs),
+    /// Open a path in Warp.
+    Open(FileOpenArgs),
+    /// Write a file through the local-control protocol.
+    Write(FileWriteArgs),
+    /// Delete a file through the local-control protocol.
+    Delete(FileDeleteArgs),
 }
 
 #[derive(Debug, Clone, Subcommand)]
@@ -241,6 +373,16 @@ pub enum DriveCommand {
     List(DriveListArgs),
     /// Read one Warp Drive object.
     Get(DriveGetArgs),
+    /// Create a Warp Drive object.
+    Create(DriveCreateArgs),
+    /// Update a Warp Drive object.
+    Update(DriveUpdateArgs),
+    /// Delete a Warp Drive object.
+    Delete(DriveObjectMutationArgs),
+    /// Run a Warp Drive workflow.
+    Run(DriveObjectMutationArgs),
+    /// Insert a Warp Drive object into the active input.
+    Insert(DriveObjectMutationArgs),
 }
 
 #[derive(Debug, Clone, Args, Default)]
@@ -252,6 +394,249 @@ pub struct TargetArgs {
     /// Target a specific local Warp process id.
     #[arg(long = "pid", conflicts_with = "instance")]
     pub pid: Option<u32>,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct AppSurfaceArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    #[arg(long = "query")]
+    pub query: Option<String>,
+
+    #[arg(long = "page")]
+    pub page: Option<String>,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct WindowCreateArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    #[arg(long = "profile")]
+    pub profile: Option<String>,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct WindowCloseArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    #[arg(long = "force")]
+    pub force: bool,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct TabMoveArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    #[arg(long = "direction", value_enum)]
+    pub direction: HorizontalDirectionArg,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct TabRenameArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    pub title: Option<String>,
+
+    #[arg(long = "reset")]
+    pub reset: bool,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct TabCloseArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    #[arg(long = "scope", value_enum, default_value_t = TabCloseScopeArg::Target)]
+    pub scope: TabCloseScopeArg,
+
+    #[arg(long = "force")]
+    pub force: bool,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct PaneSplitArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    #[arg(long = "direction", value_enum)]
+    pub direction: PaneDirectionArg,
+
+    #[arg(long = "profile")]
+    pub profile: Option<String>,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct PaneNavigateArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    #[arg(long = "direction", value_enum)]
+    pub direction: PaneDirectionArg,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct PaneCloseArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    #[arg(long = "force")]
+    pub force: bool,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct PaneMaximizeArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    #[arg(long = "enabled")]
+    pub enabled: Option<bool>,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct PaneResizeArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    #[arg(long = "direction", value_enum)]
+    pub direction: PaneDirectionArg,
+
+    #[arg(long = "amount")]
+    pub amount: Option<u32>,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct InputInsertArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    pub text: String,
+
+    #[arg(long = "replace")]
+    pub replace: bool,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct InputTextArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    pub text: String,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct InputModeArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    #[arg(value_enum)]
+    pub mode: InputModeArg,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct InputRunArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    pub command: String,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct ThemeSetArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    pub name: String,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct AppearanceSetArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    #[arg(long = "theme")]
+    pub theme: Option<String>,
+
+    #[arg(long = "follow-system-theme")]
+    pub follow_system_theme: Option<bool>,
+
+    #[arg(long = "light-theme")]
+    pub light_theme: Option<String>,
+
+    #[arg(long = "dark-theme")]
+    pub dark_theme: Option<String>,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct AppearanceAdjustArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    #[arg(value_enum)]
+    pub adjustment: SizeAdjustmentArg,
+
+    #[arg(long = "value")]
+    pub value: Option<u32>,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct SettingSetArgsCli {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    pub key: String,
+
+    pub value: String,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct SettingToggleArgsCli {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    pub key: String,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct FileOpenArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    pub path: String,
+
+    #[arg(long = "line")]
+    pub line: Option<u32>,
+
+    #[arg(long = "new-window")]
+    pub new_window: bool,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct FileWriteArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    pub path: String,
+
+    pub contents: String,
+
+    #[arg(long = "create")]
+    pub create: bool,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct FileDeleteArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    pub path: String,
+
+    #[arg(long = "recursive")]
+    pub recursive: bool,
 }
 
 #[derive(Debug, Clone, Args)]
@@ -313,6 +698,50 @@ pub struct DriveGetArgs {
     /// Opaque Warp Drive object id.
     pub id: String,
 }
+#[derive(Debug, Clone, Args)]
+pub struct DriveCreateArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    /// Warp Drive object type.
+    #[arg(long = "type")]
+    pub object_type: DriveObjectTypeArg,
+
+    /// Name for the new Drive object.
+    pub name: String,
+
+    /// Object content, parsed as JSON when possible and otherwise treated as a string.
+    pub content: String,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct DriveUpdateArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    /// Warp Drive object type.
+    #[arg(long = "type")]
+    pub object_type: DriveObjectTypeArg,
+
+    /// Opaque Warp Drive object id.
+    pub id: String,
+
+    /// Object content, parsed as JSON when possible and otherwise treated as a string.
+    pub content: String,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct DriveObjectMutationArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    /// Warp Drive object type.
+    #[arg(long = "type")]
+    pub object_type: DriveObjectTypeArg,
+
+    /// Opaque Warp Drive object id.
+    pub id: String,
+}
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
 pub enum DriveObjectTypeArg {
@@ -329,6 +758,90 @@ impl From<DriveObjectTypeArg> for local_control::DriveObjectType {
             DriveObjectTypeArg::Notebook => Self::Notebook,
             DriveObjectTypeArg::Environment => Self::Environment,
             DriveObjectTypeArg::Prompt => Self::Prompt,
+        }
+    }
+}
+#[derive(Debug, Clone, Copy, ValueEnum)]
+pub enum HorizontalDirectionArg {
+    Left,
+    Right,
+}
+
+impl From<HorizontalDirectionArg> for HorizontalDirection {
+    fn from(value: HorizontalDirectionArg) -> Self {
+        match value {
+            HorizontalDirectionArg::Left => Self::Left,
+            HorizontalDirectionArg::Right => Self::Right,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum)]
+pub enum TabCloseScopeArg {
+    Target,
+    Others,
+    Right,
+}
+
+impl From<TabCloseScopeArg> for TabCloseScope {
+    fn from(value: TabCloseScopeArg) -> Self {
+        match value {
+            TabCloseScopeArg::Target => Self::Target,
+            TabCloseScopeArg::Others => Self::Others,
+            TabCloseScopeArg::Right => Self::Right,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum)]
+pub enum PaneDirectionArg {
+    Left,
+    Right,
+    Up,
+    Down,
+}
+
+impl From<PaneDirectionArg> for PaneDirection {
+    fn from(value: PaneDirectionArg) -> Self {
+        match value {
+            PaneDirectionArg::Left => Self::Left,
+            PaneDirectionArg::Right => Self::Right,
+            PaneDirectionArg::Up => Self::Up,
+            PaneDirectionArg::Down => Self::Down,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum)]
+pub enum InputModeArg {
+    Terminal,
+    Agent,
+}
+
+impl From<InputModeArg> for InputMode {
+    fn from(value: InputModeArg) -> Self {
+        match value {
+            InputModeArg::Terminal => Self::Terminal,
+            InputModeArg::Agent => Self::Agent,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum)]
+pub enum SizeAdjustmentArg {
+    Increase,
+    Decrease,
+    Reset,
+    Set,
+}
+
+impl From<SizeAdjustmentArg> for SizeAdjustment {
+    fn from(value: SizeAdjustmentArg) -> Self {
+        match value {
+            SizeAdjustmentArg::Increase => Self::Increase,
+            SizeAdjustmentArg::Decrease => Self::Decrease,
+            SizeAdjustmentArg::Reset => Self::Reset,
+            SizeAdjustmentArg::Set => Self::Set,
         }
     }
 }
@@ -470,6 +983,39 @@ fn run_app_command(command: AppCommand, output_format: OutputFormat) -> Result<(
             local_control::AppInspectParams::default(),
             output_format,
         ),
+        AppCommand::Focus(args) => run_action_with_params(
+            args,
+            ActionKind::AppFocus,
+            AppFocusParams::default(),
+            output_format,
+        ),
+        AppCommand::SettingsOpen(args) => {
+            run_app_surface_command(args, ActionKind::AppSettingsOpen, output_format)
+        }
+        AppCommand::CommandPaletteOpen(args) => {
+            run_app_surface_command(args, ActionKind::AppCommandPaletteOpen, output_format)
+        }
+        AppCommand::CommandSearchOpen(args) => {
+            run_app_surface_command(args, ActionKind::AppCommandSearchOpen, output_format)
+        }
+        AppCommand::WarpDriveOpen(args) => {
+            run_app_surface_command(args, ActionKind::AppWarpDriveOpen, output_format)
+        }
+        AppCommand::WarpDriveToggle(args) => {
+            run_app_surface_command(args, ActionKind::AppWarpDriveToggle, output_format)
+        }
+        AppCommand::ResourceCenterToggle(args) => {
+            run_app_surface_command(args, ActionKind::AppResourceCenterToggle, output_format)
+        }
+        AppCommand::AiAssistantToggle(args) => {
+            run_app_surface_command(args, ActionKind::AppAiAssistantToggle, output_format)
+        }
+        AppCommand::CodeReviewToggle(args) => {
+            run_app_surface_command(args, ActionKind::AppCodeReviewToggle, output_format)
+        }
+        AppCommand::VerticalTabsToggle(args) => {
+            run_app_surface_command(args, ActionKind::AppVerticalTabsToggle, output_format)
+        }
     }
 }
 
@@ -506,6 +1052,26 @@ fn run_window_command(
             local_control::EmptyParams {},
             output_format,
         ),
+        WindowCommand::Create(args) => run_action_with_params(
+            args.target,
+            ActionKind::WindowCreate,
+            WindowCreateParams {
+                profile: args.profile,
+            },
+            output_format,
+        ),
+        WindowCommand::Focus(args) => run_action_with_params(
+            args,
+            ActionKind::WindowFocus,
+            WindowFocusParams::default(),
+            output_format,
+        ),
+        WindowCommand::Close(args) => run_action_with_params(
+            args.target,
+            ActionKind::WindowClose,
+            WindowCloseParams { force: args.force },
+            output_format,
+        ),
     }
 }
 
@@ -523,6 +1089,46 @@ fn run_tab_command(command: TabCommand, output_format: OutputFormat) -> Result<(
             local_control::EmptyParams {},
             output_format,
         ),
+        TabCommand::Activate(args) => run_action_with_params(
+            args,
+            ActionKind::TabActivate,
+            TabActivateParams { relative: None },
+            output_format,
+        ),
+        TabCommand::Previous(args) => {
+            run_tab_activate_relative(args, TabActivationTarget::Previous, output_format)
+        }
+        TabCommand::Next(args) => {
+            run_tab_activate_relative(args, TabActivationTarget::Next, output_format)
+        }
+        TabCommand::Last(args) => {
+            run_tab_activate_relative(args, TabActivationTarget::Last, output_format)
+        }
+        TabCommand::Move(args) => run_action_with_params(
+            args.target,
+            ActionKind::TabMove,
+            TabMoveParams {
+                direction: args.direction.into(),
+            },
+            output_format,
+        ),
+        TabCommand::Rename(args) => run_action_with_params(
+            args.target,
+            ActionKind::TabRename,
+            TabRenameParams {
+                title: if args.reset { None } else { args.title },
+            },
+            output_format,
+        ),
+        TabCommand::Close(args) => run_action_with_params(
+            args.target,
+            ActionKind::TabClose,
+            TabCloseParams {
+                scope: args.scope.into(),
+                force: args.force,
+            },
+            output_format,
+        ),
     }
 }
 
@@ -531,6 +1137,64 @@ fn run_pane_command(command: PaneCommand, output_format: OutputFormat) -> Result
         PaneCommand::List(args) => run_action_with_params(
             args,
             ActionKind::PaneList,
+            local_control::EmptyParams {},
+            output_format,
+        ),
+        PaneCommand::Split(args) => run_action_with_params(
+            args.target,
+            ActionKind::PaneSplit,
+            PaneSplitParams {
+                direction: args.direction.into(),
+                profile: args.profile,
+            },
+            output_format,
+        ),
+        PaneCommand::Focus(args) => run_action_with_params(
+            args,
+            ActionKind::PaneFocus,
+            PaneFocusParams::default(),
+            output_format,
+        ),
+        PaneCommand::Navigate(args) => run_action_with_params(
+            args.target,
+            ActionKind::PaneNavigate,
+            PaneNavigateParams {
+                direction: args.direction.into(),
+            },
+            output_format,
+        ),
+        PaneCommand::Close(args) => run_action_with_params(
+            args.target,
+            ActionKind::PaneClose,
+            PaneCloseParams { force: args.force },
+            output_format,
+        ),
+        PaneCommand::Maximize(args) => run_action_with_params(
+            args.target,
+            ActionKind::PaneMaximize,
+            PaneMaximizeParams {
+                enabled: args.enabled,
+            },
+            output_format,
+        ),
+        PaneCommand::Resize(args) => run_action_with_params(
+            args.target,
+            ActionKind::PaneResize,
+            PaneResizeParams {
+                direction: args.direction.into(),
+                amount: args.amount,
+            },
+            output_format,
+        ),
+        PaneCommand::PreviousSession(args) => run_action_with_params(
+            args,
+            ActionKind::PaneSessionPrevious,
+            local_control::EmptyParams {},
+            output_format,
+        ),
+        PaneCommand::NextSession(args) => run_action_with_params(
+            args,
+            ActionKind::PaneSessionNext,
             local_control::EmptyParams {},
             output_format,
         ),
@@ -584,6 +1248,43 @@ fn run_input_command(
             local_control::InputGetParams::default(),
             output_format,
         ),
+        InputCommand::Insert(args) => run_action_with_params(
+            args.target,
+            ActionKind::InputInsert,
+            InputInsertParams {
+                text: args.text,
+                replace: args.replace,
+            },
+            output_format,
+        ),
+        InputCommand::Replace(args) => run_action_with_params(
+            args.target,
+            ActionKind::InputReplace,
+            InputReplaceParams { text: args.text },
+            output_format,
+        ),
+        InputCommand::Clear(args) => run_action_with_params(
+            args,
+            ActionKind::InputClear,
+            InputClearParams::default(),
+            output_format,
+        ),
+        InputCommand::Mode(args) => run_action_with_params(
+            args.target,
+            ActionKind::InputModeSet,
+            InputModeSetParams {
+                mode: args.mode.into(),
+            },
+            output_format,
+        ),
+        InputCommand::Run(args) => run_action_with_params(
+            args.target,
+            ActionKind::InputRun,
+            InputRunParams {
+                command: args.command,
+            },
+            output_format,
+        ),
     }
 }
 
@@ -612,6 +1313,12 @@ fn run_theme_command(
             local_control::EmptyParams {},
             output_format,
         ),
+        ThemeCommand::Set(args) => run_action_with_params(
+            args.target,
+            ActionKind::ThemeSet,
+            ThemeSetParams { name: args.name },
+            output_format,
+        ),
     }
 }
 
@@ -624,6 +1331,35 @@ fn run_appearance_command(
             args,
             ActionKind::AppearanceGet,
             local_control::EmptyParams {},
+            output_format,
+        ),
+        AppearanceCommand::Set(args) => run_action_with_params(
+            args.target,
+            ActionKind::AppearanceSet,
+            AppearanceSetParams {
+                theme: args.theme,
+                follow_system_theme: args.follow_system_theme,
+                light_theme: args.light_theme,
+                dark_theme: args.dark_theme,
+            },
+            output_format,
+        ),
+        AppearanceCommand::FontSize(args) => run_action_with_params(
+            args.target,
+            ActionKind::AppearanceFontSize,
+            AppearanceFontSizeParams {
+                adjustment: args.adjustment.into(),
+                value: args.value,
+            },
+            output_format,
+        ),
+        AppearanceCommand::Zoom(args) => run_action_with_params(
+            args.target,
+            ActionKind::AppearanceZoom,
+            AppearanceZoomParams {
+                adjustment: args.adjustment.into(),
+                value: args.value,
+            },
             output_format,
         ),
     }
@@ -646,6 +1382,21 @@ fn run_setting_command(
             local_control::SettingGetParams { key: args.key },
             output_format,
         ),
+        SettingCommand::Set(args) => run_action_with_params(
+            args.target,
+            ActionKind::SettingSet,
+            SettingSetParams {
+                key: args.key,
+                value: parse_json_value_or_string(args.value),
+            },
+            output_format,
+        ),
+        SettingCommand::Toggle(args) => run_action_with_params(
+            args.target,
+            ActionKind::SettingToggle,
+            SettingToggleParams { key: args.key },
+            output_format,
+        ),
     }
 }
 
@@ -655,6 +1406,35 @@ fn run_file_command(command: FileCommand, output_format: OutputFormat) -> Result
             args,
             ActionKind::FileList,
             local_control::FileListParams::default(),
+            output_format,
+        ),
+        FileCommand::Open(args) => run_action_with_params(
+            args.target,
+            ActionKind::FileOpen,
+            FileOpenParams {
+                path: args.path,
+                line: args.line,
+                new_window: args.new_window,
+            },
+            output_format,
+        ),
+        FileCommand::Write(args) => run_action_with_params(
+            args.target,
+            ActionKind::FileWrite,
+            FileWriteParams {
+                path: args.path,
+                contents: args.contents,
+                create: args.create,
+            },
+            output_format,
+        ),
+        FileCommand::Delete(args) => run_action_with_params(
+            args.target,
+            ActionKind::FileDelete,
+            FileDeleteParams {
+                path: args.path,
+                recursive: args.recursive,
+            },
             output_format,
         ),
     }
@@ -697,6 +1477,53 @@ fn run_drive_command(
             args.target,
             ActionKind::DriveGet,
             local_control::DriveGetParams {
+                object_type: args.object_type.into(),
+                id: args.id,
+            },
+            output_format,
+        ),
+        DriveCommand::Create(args) => run_action_with_params(
+            args.target,
+            ActionKind::DriveCreate,
+            DriveCreateParams {
+                object_type: args.object_type.into(),
+                name: args.name,
+                content: parse_json_value_or_string(args.content),
+            },
+            output_format,
+        ),
+        DriveCommand::Update(args) => run_action_with_params(
+            args.target,
+            ActionKind::DriveUpdate,
+            DriveUpdateParams {
+                object_type: args.object_type.into(),
+                id: args.id,
+                content: parse_json_value_or_string(args.content),
+            },
+            output_format,
+        ),
+        DriveCommand::Delete(args) => run_action_with_params(
+            args.target,
+            ActionKind::DriveDelete,
+            DriveDeleteParams {
+                object_type: args.object_type.into(),
+                id: args.id,
+            },
+            output_format,
+        ),
+        DriveCommand::Run(args) => run_action_with_params(
+            args.target,
+            ActionKind::DriveRun,
+            DriveRunParams {
+                object_type: args.object_type.into(),
+                id: args.id,
+            },
+            output_format,
+        ),
+        DriveCommand::Insert(args) => run_action_with_params(
+            args.target,
+            ActionKind::DriveInsert,
+            DriveInsertParams {
                 object_type: args.object_type.into(),
                 id: args.id,
             },

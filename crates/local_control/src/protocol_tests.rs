@@ -208,11 +208,6 @@ fn response_error_serializes_machine_code() {
 }
 
 #[test]
-fn input_run_is_not_in_the_allowlisted_catalog() {
-    let action = serde_json::from_value::<ActionKind>(serde_json::json!("input.run"));
-    assert!(action.is_err());
-}
-#[test]
 fn malformed_action_name_is_not_deserialized() {
     let action = serde_json::from_value::<ActionKind>(serde_json::json!("tab.create.extra"));
     assert!(action.is_err());
@@ -316,6 +311,126 @@ fn default_permissions_preserve_security_categories() {
         ActionKind::DriveGet.metadata().permission_category,
         PermissionCategory::ReadUnderlyingData
     );
+}
+
+#[test]
+fn mutating_contract_actions_are_allowlisted_stubs_except_tab_create() {
+    for action in [
+        ActionKind::WindowCreate,
+        ActionKind::WindowFocus,
+        ActionKind::WindowClose,
+        ActionKind::TabActivate,
+        ActionKind::TabMove,
+        ActionKind::TabRename,
+        ActionKind::TabClose,
+        ActionKind::PaneSplit,
+        ActionKind::PaneFocus,
+        ActionKind::PaneNavigate,
+        ActionKind::PaneClose,
+        ActionKind::PaneMaximize,
+        ActionKind::PaneResize,
+        ActionKind::PaneSessionPrevious,
+        ActionKind::PaneSessionNext,
+        ActionKind::InputInsert,
+        ActionKind::InputReplace,
+        ActionKind::InputClear,
+        ActionKind::InputModeSet,
+        ActionKind::InputRun,
+        ActionKind::ThemeSet,
+        ActionKind::AppearanceSet,
+        ActionKind::AppearanceFontSize,
+        ActionKind::AppearanceZoom,
+        ActionKind::SettingSet,
+        ActionKind::SettingToggle,
+        ActionKind::FileOpen,
+        ActionKind::FileWrite,
+        ActionKind::FileDelete,
+        ActionKind::DriveCreate,
+        ActionKind::DriveUpdate,
+        ActionKind::DriveDelete,
+        ActionKind::DriveRun,
+        ActionKind::DriveInsert,
+    ] {
+        let metadata = action.metadata();
+        assert_eq!(
+            metadata.implementation_status,
+            ActionImplementationStatus::Stub
+        );
+        assert!(metadata.requires_authenticated_user);
+        assert!(metadata.allowed_invocation_contexts.is_empty());
+    }
+}
+
+#[test]
+fn mutating_contract_preserves_distinct_permission_categories() {
+    for action in [
+        ActionKind::AppFocus,
+        ActionKind::AppSettingsOpen,
+        ActionKind::AppCommandPaletteOpen,
+        ActionKind::AppCommandSearchOpen,
+        ActionKind::AppWarpDriveOpen,
+        ActionKind::AppWarpDriveToggle,
+        ActionKind::AppResourceCenterToggle,
+        ActionKind::AppAiAssistantToggle,
+        ActionKind::AppCodeReviewToggle,
+        ActionKind::AppVerticalTabsToggle,
+        ActionKind::WindowCreate,
+        ActionKind::WindowFocus,
+        ActionKind::WindowClose,
+        ActionKind::TabCreate,
+        ActionKind::TabActivate,
+        ActionKind::TabMove,
+        ActionKind::TabRename,
+        ActionKind::TabClose,
+        ActionKind::PaneSplit,
+        ActionKind::PaneFocus,
+        ActionKind::PaneNavigate,
+        ActionKind::PaneClose,
+        ActionKind::PaneMaximize,
+        ActionKind::PaneResize,
+        ActionKind::PaneSessionPrevious,
+        ActionKind::PaneSessionNext,
+        ActionKind::FileOpen,
+    ] {
+        assert_eq!(
+            action.metadata().permission_category,
+            PermissionCategory::MutateAppState
+        );
+    }
+
+    for action in [
+        ActionKind::ThemeSet,
+        ActionKind::AppearanceSet,
+        ActionKind::AppearanceFontSize,
+        ActionKind::AppearanceZoom,
+        ActionKind::SettingSet,
+        ActionKind::SettingToggle,
+    ] {
+        assert_eq!(
+            action.metadata().permission_category,
+            PermissionCategory::MutateMetadataConfiguration
+        );
+    }
+
+    for action in [
+        ActionKind::InputInsert,
+        ActionKind::InputReplace,
+        ActionKind::InputClear,
+        ActionKind::InputModeSet,
+        ActionKind::InputRun,
+        ActionKind::FileWrite,
+        ActionKind::FileDelete,
+        ActionKind::DriveCreate,
+        ActionKind::DriveUpdate,
+        ActionKind::DriveDelete,
+        ActionKind::DriveRun,
+        ActionKind::DriveInsert,
+    ] {
+        assert_eq!(
+            action.metadata().permission_category,
+            PermissionCategory::MutateUnderlyingData
+        );
+    }
 }
 #[test]
 fn non_first_slice_actions_are_catalog_stubs() {
