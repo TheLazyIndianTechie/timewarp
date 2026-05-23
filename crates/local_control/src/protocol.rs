@@ -1215,6 +1215,8 @@ impl ActionKind {
             | Self::SettingGet
             | Self::SettingList
             | Self::FileList
+            | Self::FileWrite
+            | Self::FileDelete
             | Self::ProjectActive
             | Self::ProjectList
             | Self::DriveList
@@ -1500,6 +1502,8 @@ impl ActionKind {
                 | Self::DriveDelete
                 | Self::DriveRun
                 | Self::DriveInsert
+                | Self::FileWrite
+                | Self::FileDelete
         ) {
             return vec![
                 InvocationContext::InsideWarp,

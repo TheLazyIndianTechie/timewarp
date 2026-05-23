@@ -5,21 +5,23 @@ use ::local_control::protocol::{
     AppearanceZoomParams, BlockGetParams, BlockListParams, BlockTarget, ControlResponse,
     DriveCreateParams, DriveDeleteParams, DriveGetParams, DriveGetResult, DriveInsertParams,
     DriveListParams, DriveListResult, DriveMutationResult, DriveObjectSelector, DriveObjectType,
-    DriveRunParams, DriveTarget, DriveUpdateParams, FileDeleteParams, FileOpenParams, FileTarget,
-    FileWriteParams, HorizontalDirection, InputClearParams, InputInsertParams, InputMode,
-    InputModeSetParams, InputReplaceParams, InputRunParams, PaneCloseParams, PaneDirection,
-    PaneFocusParams, PaneMaximizeParams, PaneNavigateParams, PaneResizeParams, PaneSelector,
-    PaneSplitParams, PaneTarget, SessionSelector, SessionTarget, SettingSetParams,
-    SettingToggleParams, SizeAdjustment, TabActivateParams, TabActivationTarget, TabCloseParams,
-    TabCloseScope, TabMoveParams, TabRenameParams, TabSelector, TabTarget, TargetSelector,
-    ThemeSetParams, WindowCloseParams, WindowCreateParams, WindowFocusParams, WindowSelector,
-    WindowTarget,
+    DriveRunParams, DriveTarget, DriveUpdateParams, FileDeleteParams, FileMutationResult,
+    FileOpenParams, FileSelector, FileTarget, FileWriteParams, HorizontalDirection,
+    InputClearParams, InputInsertParams, InputMode, InputModeSetParams, InputReplaceParams,
+    InputRunParams, PaneCloseParams, PaneDirection, PaneFocusParams, PaneMaximizeParams,
+    PaneNavigateParams, PaneResizeParams, PaneSelector, PaneSplitParams, PaneTarget,
+    SessionSelector, SessionTarget, SettingSetParams, SettingToggleParams, SizeAdjustment,
+    TabActivateParams, TabActivationTarget, TabCloseParams, TabCloseScope, TabMoveParams,
+    TabRenameParams, TabSelector, TabTarget, TargetSelector, ThemeSetParams, WindowCloseParams,
+    WindowCreateParams, WindowFocusParams, WindowSelector, WindowTarget,
 };
 use ::local_control::{
     ErrorCode, InstanceId, InvocationContext, PermissionCategory, RequestEnvelope,
 };
 use chrono::Duration;
 use settings::Setting as _;
+use std::fs;
+use std::path::Path;
 use warp_core::features::FeatureFlag;
 use warp_core::session_id::SessionId;
 use warpui::{App, SingletonEntity};
@@ -30,9 +32,10 @@ use super::{
     block_get_result_from_model, block_list_result_from_model, capabilities,
     ensure_feature_enabled, ensure_input_run_policy_allows, ensure_settings_allow_action,
     outside_warp_action_enabled_for_settings, rejected_setting_key, require_active_window_id,
-    require_active_window_id_for_action, select_window_for_app_state_target, setting_get_result,
-    setting_list_result, theme_list_result, validate_action_params, validate_app_focus_target,
-    validate_block_get_target, validate_block_list_target, validate_drive_target,
+    require_active_window_id_for_action, resolve_file_mutation_path,
+    select_window_for_app_state_target, setting_get_result, setting_list_result, theme_list_result,
+    validate_action_params, validate_app_focus_target, validate_block_get_target,
+    validate_block_list_target, validate_drive_target, validate_file_mutation_target,
     validate_instance_metadata_read_target, validate_tab_create_target,
     validate_terminal_read_target, validate_window_create_target, workspace_action_for_surface,
     LocalControlBridge,
@@ -45,6 +48,7 @@ use crate::env_vars::{
     CloudEnvVarCollection, CloudEnvVarCollectionModel, EnvVar, EnvVarCollection,
 };
 use crate::notebooks::{CloudNotebook, CloudNotebookModel};
+use crate::projects::ProjectManagementModel;
 use crate::server::ids::{ClientId, SyncId};
 use crate::settings::{
     AllowInsideWarpControl, AllowInsideWarpReadOnly, AllowInsideWarpReadWrite,
@@ -128,6 +132,21 @@ fn initialize_drive_app(app: &mut App, logged_in: bool) {
     }
     app.add_singleton_model(CloudModel::mock);
     app.add_singleton_model(UserWorkspaces::default_mock);
+    app.add_singleton_model(LocalControlBridge::new);
+}
+fn initialize_file_mutation_app(app: &mut App, root: &Path, logged_in: bool) {
+    initialize_settings_for_tests(app);
+    if logged_in {
+        app.add_singleton_model(|_| AuthStateProvider::new_for_test());
+    } else {
+        app.add_singleton_model(|_| AuthStateProvider::new_logged_out_for_test());
+    }
+    let root = root.to_path_buf();
+    app.add_singleton_model(move |ctx| {
+        let mut model = ProjectManagementModel::new(Vec::new(), None, ctx);
+        model.upsert_project(root, ctx);
+        model
+    });
     app.add_singleton_model(LocalControlBridge::new);
 }
 
@@ -385,6 +404,8 @@ fn capabilities_advertises_implemented_actions() {
             ActionKind::SettingGet,
             ActionKind::SettingList,
             ActionKind::FileList,
+            ActionKind::FileWrite,
+            ActionKind::FileDelete,
             ActionKind::ProjectActive,
             ActionKind::ProjectList,
             ActionKind::DriveList,
@@ -1342,6 +1363,14 @@ fn mutating_permissions_keep_app_metadata_and_underlying_data_separate() {
         ActionKind::InputRun.metadata().permission_category,
         PermissionCategory::MutateUnderlyingData
     );
+    assert_eq!(
+        ActionKind::FileWrite.metadata().permission_category,
+        PermissionCategory::MutateUnderlyingData
+    );
+    assert_eq!(
+        ActionKind::FileDelete.metadata().permission_category,
+        PermissionCategory::MutateUnderlyingData
+    );
 
     let mut grant = CredentialGrant::new(
         InstanceId("instance".to_owned()),
@@ -1355,6 +1384,20 @@ fn mutating_permissions_keep_app_metadata_and_underlying_data_separate() {
     let err = grant
         .verify_for_action(ActionKind::InputRun)
         .expect_err("app-state mutation category does not satisfy command execution");
+    assert_eq!(err.code, ErrorCode::InsufficientPermissions);
+
+    let mut grant = CredentialGrant::new(
+        InstanceId("instance".to_owned()),
+        ActionKind::FileWrite,
+        InvocationContext::InsideWarp,
+        Duration::minutes(5),
+    );
+    grant.permission_category = PermissionCategory::MutateAppState;
+    grant.authenticated_user.subject = Some("user".to_owned());
+
+    let err = grant
+        .verify_for_action(ActionKind::FileWrite)
+        .expect_err("app-state mutation category does not satisfy file writes");
     assert_eq!(err.code, ErrorCode::InsufficientPermissions);
 }
 
@@ -1572,6 +1615,278 @@ fn block_reads_require_underlying_data_permission() {
     )
     .expect_err("underlying data read permission is disabled");
     assert_eq!(err.code, ErrorCode::InsufficientPermissions);
+}
+
+#[test]
+fn file_mutations_require_underlying_data_permission() {
+    let settings = settings_with_values(true, true, true, true, false, false);
+
+    for action in [ActionKind::FileWrite, ActionKind::FileDelete] {
+        assert_eq!(
+            action.metadata().permission_category,
+            PermissionCategory::MutateUnderlyingData
+        );
+        let err = ensure_settings_allow_action(&settings, InvocationContext::InsideWarp, action)
+            .expect_err("underlying data mutation permission is disabled");
+        assert_eq!(err.code, ErrorCode::InsufficientPermissions);
+    }
+}
+
+#[test]
+fn file_mutation_grant_requires_authenticated_user_subject() {
+    let grant = CredentialGrant::new(
+        InstanceId("instance".to_owned()),
+        ActionKind::FileWrite,
+        InvocationContext::OutsideWarp,
+        Duration::minutes(5),
+    );
+
+    let err = grant
+        .verify_for_action(ActionKind::FileWrite)
+        .expect_err("file.write requires authenticated user grant");
+    assert_eq!(err.code, ErrorCode::AuthenticatedUserRequired);
+}
+
+#[test]
+fn file_mutations_require_true_logged_in_user_before_path_resolution() {
+    let _flag = FeatureFlag::WarpControlCli.override_enabled(true);
+    App::test((), |mut app| async move {
+        let tempdir = tempfile::tempdir().expect("tempdir is created");
+        initialize_file_mutation_app(&mut app, tempdir.path(), false);
+        let request = RequestEnvelope::new(
+            Action::with_params(
+                ActionKind::FileWrite,
+                FileWriteParams {
+                    path: "../secret".to_owned(),
+                    contents: "secret".to_owned(),
+                    create: true,
+                },
+            )
+            .expect("file.write params serialize"),
+        );
+        LocalControlBridge::handle(&app).update(&mut app, |bridge, ctx| {
+            let response = bridge.handle_request(
+                request,
+                spoofed_authenticated_grant(ActionKind::FileWrite),
+                ctx,
+            );
+            assert_eq!(
+                response_error_code(response),
+                ErrorCode::AuthenticatedUserUnavailable
+            );
+        });
+    })
+}
+
+#[test]
+fn file_mutation_path_safety_rejects_traversal_outside_roots_and_ambiguous_relative_paths() {
+    let tempdir = tempfile::tempdir().expect("tempdir is created");
+    let root = tempdir.path().join("workspace");
+    let other_root = tempdir.path().join("other-workspace");
+    let outside = tempdir.path().join("outside.txt");
+    fs::create_dir(&root).expect("root is created");
+    fs::create_dir(&other_root).expect("other root is created");
+    fs::write(&outside, "outside").expect("outside file is written");
+    let roots = vec![root.canonicalize().expect("root canonicalizes")];
+
+    let err = resolve_file_mutation_path(ActionKind::FileWrite, "../secret", &roots, true)
+        .expect_err("parent traversal is rejected");
+    assert_eq!(err.code, ErrorCode::InvalidSelector);
+
+    let err = resolve_file_mutation_path(
+        ActionKind::FileWrite,
+        &outside.display().to_string(),
+        &roots,
+        false,
+    )
+    .expect_err("absolute path outside root is rejected");
+    assert_eq!(err.code, ErrorCode::InvalidSelector);
+
+    let multiple_roots = vec![
+        root.canonicalize().expect("root canonicalizes"),
+        other_root.canonicalize().expect("other root canonicalizes"),
+    ];
+    let err =
+        resolve_file_mutation_path(ActionKind::FileWrite, "relative.txt", &multiple_roots, true)
+            .expect_err("relative path is ambiguous with multiple roots");
+    assert_eq!(err.code, ErrorCode::InvalidSelector);
+}
+
+#[test]
+fn file_mutation_targets_reject_unsupported_and_conflicting_selectors() {
+    let err = validate_file_mutation_target(
+        ActionKind::FileWrite,
+        &TargetSelector {
+            file: Some(FileTarget::Id {
+                id: FileSelector("file-id".to_owned()),
+            }),
+            ..TargetSelector::default()
+        },
+        "notes.txt",
+    )
+    .expect_err("file id selector is unsupported");
+    assert_eq!(err.code, ErrorCode::UnsupportedAction);
+
+    let err = validate_file_mutation_target(
+        ActionKind::FileDelete,
+        &TargetSelector {
+            file: Some(FileTarget::Path {
+                path: "other.txt".to_owned(),
+            }),
+            ..TargetSelector::default()
+        },
+        "notes.txt",
+    )
+    .expect_err("mismatched file path target is rejected");
+    assert_eq!(err.code, ErrorCode::TargetStateConflict);
+}
+
+#[test]
+fn file_delete_rejects_recursive_and_directory_targets() {
+    let _flag = FeatureFlag::WarpControlCli.override_enabled(true);
+    App::test((), |mut app| async move {
+        let tempdir = tempfile::tempdir().expect("tempdir is created");
+        initialize_file_mutation_app(&mut app, tempdir.path(), true);
+        let directory = tempdir.path().join("nested");
+        fs::create_dir(&directory).expect("directory is created");
+
+        let recursive_request = RequestEnvelope::new(
+            Action::with_params(
+                ActionKind::FileDelete,
+                FileDeleteParams {
+                    path: directory.display().to_string(),
+                    recursive: true,
+                },
+            )
+            .expect("file.delete params serialize"),
+        );
+        let directory_request = RequestEnvelope::new(
+            Action::with_params(
+                ActionKind::FileDelete,
+                FileDeleteParams {
+                    path: directory.display().to_string(),
+                    recursive: false,
+                },
+            )
+            .expect("file.delete params serialize"),
+        );
+        LocalControlBridge::handle(&app).update(&mut app, |bridge, ctx| {
+            let response = bridge.handle_request(
+                recursive_request,
+                authenticated_grant(ActionKind::FileDelete, ctx),
+                ctx,
+            );
+            assert_eq!(response_error_code(response), ErrorCode::UnsupportedAction);
+
+            let response = bridge.handle_request(
+                directory_request,
+                authenticated_grant(ActionKind::FileDelete, ctx),
+                ctx,
+            );
+            assert_eq!(response_error_code(response), ErrorCode::UnsupportedAction);
+        });
+    })
+}
+
+#[test]
+fn file_write_create_and_delete_succeed_for_disposable_project_files() {
+    let _flag = FeatureFlag::WarpControlCli.override_enabled(true);
+    App::test((), |mut app| async move {
+        let tempdir = tempfile::tempdir().expect("tempdir is created");
+        initialize_file_mutation_app(&mut app, tempdir.path(), true);
+        let existing = tempdir.path().join("existing.txt");
+        fs::write(&existing, "old").expect("existing file is written");
+        let created = tempdir.path().join("created.txt");
+
+        let write_request = RequestEnvelope::new(
+            Action::with_params(
+                ActionKind::FileWrite,
+                FileWriteParams {
+                    path: existing.display().to_string(),
+                    contents: "new".to_owned(),
+                    create: false,
+                },
+            )
+            .expect("file.write params serialize"),
+        );
+        let create_request = RequestEnvelope::new(
+            Action::with_params(
+                ActionKind::FileWrite,
+                FileWriteParams {
+                    path: created.display().to_string(),
+                    contents: "created".to_owned(),
+                    create: true,
+                },
+            )
+            .expect("file.write params serialize"),
+        );
+        let delete_request = RequestEnvelope::new(
+            Action::with_params(
+                ActionKind::FileDelete,
+                FileDeleteParams {
+                    path: created.display().to_string(),
+                    recursive: false,
+                },
+            )
+            .expect("file.delete params serialize"),
+        );
+        LocalControlBridge::handle(&app).update(&mut app, |bridge, ctx| {
+            let response = bridge.handle_request(
+                write_request,
+                authenticated_grant(ActionKind::FileWrite, ctx),
+                ctx,
+            );
+            let ControlResponse::Ok { data } = response.response else {
+                panic!("expected file.write ok response");
+            };
+            let result: FileMutationResult =
+                serde_json::from_value(data).expect("file mutation result decodes");
+            let existing_path = existing
+                .canonicalize()
+                .expect("existing file canonicalizes")
+                .display()
+                .to_string();
+            assert_eq!(result.path, existing_path);
+            assert_eq!(
+                fs::read_to_string(&existing).expect("existing file is read"),
+                "new"
+            );
+
+            let response = bridge.handle_request(
+                create_request,
+                authenticated_grant(ActionKind::FileWrite, ctx),
+                ctx,
+            );
+            let ControlResponse::Ok { data } = response.response else {
+                panic!("expected file.write create ok response");
+            };
+            let result: FileMutationResult =
+                serde_json::from_value(data).expect("file mutation result decodes");
+            let created_path = created
+                .canonicalize()
+                .expect("created file canonicalizes")
+                .display()
+                .to_string();
+            assert_eq!(result.path, created_path);
+            assert_eq!(
+                fs::read_to_string(&created).expect("created file is read"),
+                "created"
+            );
+
+            let response = bridge.handle_request(
+                delete_request,
+                authenticated_grant(ActionKind::FileDelete, ctx),
+                ctx,
+            );
+            let ControlResponse::Ok { data } = response.response else {
+                panic!("expected file.delete ok response");
+            };
+            let result: FileMutationResult =
+                serde_json::from_value(data).expect("file mutation result decodes");
+            assert_eq!(result.path, created_path);
+            assert!(!created.exists());
+        });
+    })
 }
 
 #[test]
