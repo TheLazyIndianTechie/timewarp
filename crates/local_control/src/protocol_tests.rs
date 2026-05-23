@@ -71,13 +71,8 @@ fn file_and_project_metadata_reads_are_logged_out_safe_and_implemented() {
 }
 
 #[test]
-fn terminal_data_and_drive_content_reads_use_underlying_data_permission() {
-    for action in [
-        ActionKind::BlockList,
-        ActionKind::BlockGet,
-        ActionKind::InputGet,
-        ActionKind::HistoryList,
-    ] {
+fn stub_terminal_data_reads_use_underlying_data_permission() {
+    for action in [ActionKind::BlockList, ActionKind::BlockGet] {
         let metadata = action.metadata();
         assert_eq!(
             metadata.implementation_status,
@@ -94,7 +89,38 @@ fn terminal_data_and_drive_content_reads_use_underlying_data_permission() {
         );
         assert!(metadata.authenticated_user.required);
     }
+}
 
+#[test]
+fn input_and_history_reads_are_authenticated_underlying_data_implemented_actions() {
+    for action in [ActionKind::InputGet, ActionKind::HistoryList] {
+        let metadata = action.metadata();
+        assert_eq!(
+            metadata.implementation_status,
+            ActionImplementationStatus::Implemented
+        );
+        assert_eq!(metadata.risk_tier, RiskTier::ReadOnlyTerminalData);
+        assert_eq!(
+            metadata.state_data_category,
+            StateDataCategory::UnderlyingDataRead
+        );
+        assert_eq!(
+            metadata.permission_category,
+            PermissionCategory::ReadUnderlyingData
+        );
+        assert!(metadata.authenticated_user.required);
+        assert_eq!(
+            metadata.allowed_invocation_contexts,
+            vec![
+                InvocationContext::InsideWarp,
+                InvocationContext::OutsideWarp
+            ]
+        );
+    }
+}
+
+#[test]
+fn drive_content_read_is_implemented_underlying_data_permission() {
     let metadata = ActionKind::DriveGet.metadata();
     assert_eq!(
         metadata.implementation_status,

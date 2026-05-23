@@ -2,8 +2,8 @@ use ::local_control::auth::CredentialGrant;
 use ::local_control::protocol::ActionKind;
 use ::local_control::protocol::{
     Action, ControlResponse, DriveGetParams, DriveGetResult, DriveListParams, DriveListResult,
-    DriveObjectType, FileTarget, PaneSelector, PaneTarget, TabSelector, TabTarget, TargetSelector,
-    WindowSelector, WindowTarget,
+    DriveObjectType, FileTarget, PaneSelector, PaneTarget, SessionSelector, SessionTarget,
+    TabSelector, TabTarget, TargetSelector, WindowSelector, WindowTarget,
 };
 use ::local_control::{ErrorCode, InstanceId, InvocationContext, RequestEnvelope};
 use chrono::Duration;
@@ -14,8 +14,9 @@ use warpui::{App, SingletonEntity};
 use super::{
     action_metadata_for_name, authenticated_user_subject_for_action, capabilities,
     ensure_feature_enabled, ensure_settings_allow_action, outside_warp_action_enabled_for_settings,
-    require_active_window_id, validate_action_params, validate_drive_target,
-    validate_instance_metadata_read_target, validate_tab_create_target, LocalControlBridge,
+    require_active_window_id, require_active_window_id_for_action, validate_action_params,
+    validate_drive_target, validate_instance_metadata_read_target, validate_tab_create_target,
+    validate_terminal_read_target, LocalControlBridge,
 };
 use crate::auth::AuthStateProvider;
 use crate::cloud_object::model::persistence::CloudModel;
@@ -245,6 +246,8 @@ fn capabilities_advertises_only_first_slice_core_actions() {
             ActionKind::ActionList,
             ActionKind::ActionGet,
             ActionKind::TabCreate,
+            ActionKind::InputGet,
+            ActionKind::HistoryList,
             ActionKind::FileList,
             ActionKind::ProjectActive,
             ActionKind::ProjectList,
@@ -252,6 +255,90 @@ fn capabilities_advertises_only_first_slice_core_actions() {
             ActionKind::DriveGet,
         ]
     );
+}
+
+#[test]
+fn terminal_reads_accept_default_and_active_targets() {
+    for action in [ActionKind::InputGet, ActionKind::HistoryList] {
+        validate_terminal_read_target(action, &TargetSelector::default())
+            .expect("default target is accepted");
+
+        validate_terminal_read_target(
+            action,
+            &TargetSelector {
+                window: Some(WindowTarget::Active),
+                tab: Some(TabTarget::Active),
+                pane: Some(PaneTarget::Active),
+                session: Some(SessionTarget::Active),
+                ..TargetSelector::default()
+            },
+        )
+        .expect("active target is accepted");
+    }
+}
+
+#[test]
+fn terminal_reads_reject_stale_concrete_targets() {
+    let err = validate_terminal_read_target(
+        ActionKind::InputGet,
+        &TargetSelector {
+            window: Some(WindowTarget::Id {
+                id: WindowSelector("window".to_owned()),
+            }),
+            ..TargetSelector::default()
+        },
+    )
+    .expect_err("concrete window target is rejected");
+    assert_eq!(err.code, ErrorCode::StaleTarget);
+
+    let err = validate_terminal_read_target(
+        ActionKind::InputGet,
+        &TargetSelector {
+            pane: Some(PaneTarget::Id {
+                id: PaneSelector("pane".to_owned()),
+            }),
+            ..TargetSelector::default()
+        },
+    )
+    .expect_err("concrete pane target is rejected");
+    assert_eq!(err.code, ErrorCode::StaleTarget);
+
+    let err = validate_terminal_read_target(
+        ActionKind::HistoryList,
+        &TargetSelector {
+            session: Some(SessionTarget::Id {
+                id: SessionSelector("session".to_owned()),
+            }),
+            ..TargetSelector::default()
+        },
+    )
+    .expect_err("concrete session target is rejected");
+    assert_eq!(err.code, ErrorCode::StaleTarget);
+}
+
+#[test]
+fn terminal_reads_reject_unsupported_selector_forms() {
+    let err = validate_terminal_read_target(
+        ActionKind::InputGet,
+        &TargetSelector {
+            tab: Some(TabTarget::Index { index: 0 }),
+            ..TargetSelector::default()
+        },
+    )
+    .expect_err("indexed tab target is rejected");
+    assert_eq!(err.code, ErrorCode::InvalidSelector);
+
+    let err = validate_terminal_read_target(
+        ActionKind::HistoryList,
+        &TargetSelector {
+            file: Some(FileTarget::Path {
+                path: "../secret".to_owned(),
+            }),
+            ..TargetSelector::default()
+        },
+    )
+    .expect_err("file target is rejected");
+    assert_eq!(err.code, ErrorCode::InvalidSelector);
 }
 
 #[test]
@@ -311,6 +398,20 @@ fn tab_create_requires_active_window() {
 }
 
 #[test]
+fn terminal_reads_require_active_window_with_action_specific_error() {
+    let active = warpui::WindowId::from_usize(1);
+
+    assert_eq!(
+        require_active_window_id_for_action(Some(active), ActionKind::InputGet).expect("active"),
+        active
+    );
+    let err = require_active_window_id_for_action(None, ActionKind::HistoryList)
+        .expect_err("missing active window");
+    assert_eq!(err.code, ErrorCode::MissingTarget);
+    assert!(err.message.contains("history.list"));
+}
+
+#[test]
 fn feature_flag_disabled_denies_local_control() {
     let _flag = FeatureFlag::WarpControlCli.override_enabled(false);
     let err = ensure_feature_enabled().expect_err("feature flag disabled");
@@ -360,6 +461,34 @@ fn metadata_read_actions_require_read_permission() {
 }
 
 #[test]
+fn underlying_data_read_actions_require_read_permission() {
+    let settings = settings_with_values(true, true, false, true, true, true);
+
+    for action in [ActionKind::InputGet, ActionKind::HistoryList] {
+        let err = ensure_settings_allow_action(&settings, InvocationContext::InsideWarp, action)
+            .expect_err("read permission is disabled");
+        assert_eq!(err.code, ErrorCode::InsufficientPermissions);
+    }
+}
+
+#[test]
+fn metadata_scoped_credential_cannot_invoke_input_or_history_reads() {
+    let grant = CredentialGrant::new(
+        InstanceId("instance".to_owned()),
+        ActionKind::ActionList,
+        InvocationContext::OutsideWarp,
+        Duration::minutes(5),
+    );
+
+    for action in [ActionKind::InputGet, ActionKind::HistoryList] {
+        let err = grant
+            .verify_for_action(action)
+            .expect_err("metadata-scoped credential cannot read underlying data");
+        assert_eq!(err.code, ErrorCode::InsufficientPermissions);
+    }
+}
+
+#[test]
 fn action_metadata_lookup_reports_stub_status_for_allowlisted_future_actions() {
     let metadata = action_metadata_for_name("window.list").expect("allowlisted action");
 
@@ -387,6 +516,35 @@ fn action_list_rejects_malformed_params() {
         params: serde_json::json!({ "all": true }),
     })
     .expect_err("action.list params must be empty");
+    assert_eq!(err.code, ErrorCode::InvalidParams);
+}
+
+#[test]
+fn input_and_history_reject_malformed_params() {
+    let err = validate_action_params(&Action {
+        kind: ActionKind::InputGet,
+        params: serde_json::json!({ "text": true }),
+    })
+    .expect_err("input.get params must be empty");
+    assert_eq!(err.code, ErrorCode::InvalidParams);
+
+    validate_action_params(&Action {
+        kind: ActionKind::InputGet,
+        params: serde_json::json!({}),
+    })
+    .expect("empty input.get params are accepted");
+
+    validate_action_params(&Action {
+        kind: ActionKind::HistoryList,
+        params: serde_json::json!({ "limit": 5 }),
+    })
+    .expect("history.list limit is accepted");
+
+    let err = validate_action_params(&Action {
+        kind: ActionKind::HistoryList,
+        params: serde_json::json!({ "command": true }),
+    })
+    .expect_err("unexpected history.list params are rejected");
     assert_eq!(err.code, ErrorCode::InvalidParams);
 }
 

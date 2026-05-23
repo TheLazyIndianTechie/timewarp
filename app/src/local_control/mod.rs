@@ -7,6 +7,7 @@ use crate::code::view::CodeView;
 use crate::env_vars::CloudEnvVarCollection;
 use crate::features::FeatureFlag;
 use crate::notebooks::CloudNotebook;
+use crate::pane_group::{PaneGroup, PaneId};
 use crate::projects::ProjectManagementModel;
 use std::collections::{BTreeMap, HashMap};
 use std::net::SocketAddr;
@@ -16,13 +17,15 @@ use crate::settings::{
     LocalControlInvocationContext, LocalControlPermissionCategory, LocalControlSettings,
 };
 use crate::terminal::view::TerminalView;
+use crate::terminal::History;
 use crate::workflows::CloudWorkflow;
 use crate::workspace::ActiveSession;
 use ::local_control::auth::{CredentialGrant, CredentialRequest, ScopedCredential};
 use ::local_control::protocol::{
     ActionGetParams, DriveGetParams, DriveGetResult, DriveListParams, DriveListResult,
     DriveObjectSummary, DriveObjectType as ControlDriveObjectType, DriveTarget, FileListResult,
-    FileSummary, PaneTarget, ProjectActiveResult, ProjectListResult, ProjectSummary, TabTarget,
+    FileSummary, HistoryEntrySummary, HistoryListParams, HistoryListResult, InputStateResult,
+    PaneTarget, ProjectActiveResult, ProjectListResult, ProjectSummary, SessionTarget, TabTarget,
     TargetSelector, WindowTarget,
 };
 use ::local_control::{
@@ -40,9 +43,13 @@ use axum::{Json, Router};
 use chrono::Duration;
 use serde_json::json;
 use warp_core::channel::ChannelState;
-use warpui::{Entity, ModelContext, ModelSpawner, SingletonEntity, TypedActionView};
+use warpui::{Entity, ModelContext, ModelSpawner, SingletonEntity, TypedActionView, ViewHandle};
 
 use crate::workspace::{Workspace, WorkspaceAction};
+
+struct ResolvedTerminalTarget {
+    terminal_view: ViewHandle<TerminalView>,
+}
 
 #[derive(Clone)]
 struct ControlServerState {
@@ -298,6 +305,38 @@ impl LocalControlBridge {
                     Err(error) => ResponseEnvelope::error(request.request_id, error),
                 }
             }
+            ActionKind::InputGet => {
+                if let Err(error) = ensure_authenticated_user_matches(&grant, ctx) {
+                    return ResponseEnvelope::error(request.request_id, error);
+                }
+                if let Err(error) =
+                    ensure_action_allowed(grant.invocation_context, request.action.kind, ctx)
+                {
+                    return ResponseEnvelope::error(request.request_id, error);
+                }
+                match self.get_input_state(&request.target, ctx) {
+                    Ok(data) => ResponseEnvelope::ok(request.request_id, data),
+                    Err(error) => ResponseEnvelope::error(request.request_id, error),
+                }
+            }
+            ActionKind::HistoryList => {
+                if let Err(error) = ensure_authenticated_user_matches(&grant, ctx) {
+                    return ResponseEnvelope::error(request.request_id, error);
+                }
+                if let Err(error) =
+                    ensure_action_allowed(grant.invocation_context, request.action.kind, ctx)
+                {
+                    return ResponseEnvelope::error(request.request_id, error);
+                }
+                match request
+                    .action
+                    .params_as::<HistoryListParams>()
+                    .and_then(|params| self.list_history(&request.target, params, ctx))
+                {
+                    Ok(data) => ResponseEnvelope::ok(request.request_id, data),
+                    Err(error) => ResponseEnvelope::error(request.request_id, error),
+                }
+            }
             ActionKind::TabCreate => {
                 if let Err(error) =
                     ensure_action_allowed(grant.invocation_context, request.action.kind, ctx)
@@ -428,6 +467,88 @@ impl LocalControlBridge {
         to_control_data(ProjectListResult {
             projects: project_summaries(ctx),
         })
+    }
+
+    fn get_input_state(
+        &mut self,
+        target: &TargetSelector,
+        ctx: &mut ModelContext<Self>,
+    ) -> Result<serde_json::Value, ControlError> {
+        let resolved = resolve_terminal_read_target(ActionKind::InputGet, target, ctx)?;
+        let session_id = resolved
+            .terminal_view
+            .read(ctx, |terminal, _| terminal.active_block_session_id())
+            .ok_or_else(|| {
+                ControlError::new(
+                    ErrorCode::MissingTarget,
+                    "input.get requires a target terminal session",
+                )
+            })?;
+        let input = resolved
+            .terminal_view
+            .read(ctx, |terminal, _| terminal.input().clone());
+        let (text, cursor_offset) = input.read(ctx, |input, ctx| {
+            let cursor_offset = input
+                .editor()
+                .as_ref(ctx)
+                .start_byte_index_of_first_selection(ctx)
+                .as_usize();
+            (input.buffer_text(ctx), cursor_offset)
+        });
+        let cursor_offset = u32::try_from(cursor_offset).map_err(|err| {
+            ControlError::with_details(
+                ErrorCode::Internal,
+                "input cursor offset is too large to encode",
+                err.to_string(),
+            )
+        })?;
+        to_control_data(InputStateResult {
+            session_id: session_id.as_u64().to_string(),
+            text,
+            cursor_offset,
+        })
+    }
+
+    fn list_history(
+        &mut self,
+        target: &TargetSelector,
+        params: HistoryListParams,
+        ctx: &mut ModelContext<Self>,
+    ) -> Result<serde_json::Value, ControlError> {
+        let resolved = resolve_terminal_read_target(ActionKind::HistoryList, target, ctx)?;
+        let session_id = resolved
+            .terminal_view
+            .read(ctx, |terminal, _| terminal.active_block_session_id())
+            .ok_or_else(|| {
+                ControlError::new(
+                    ErrorCode::MissingTarget,
+                    "history.list requires a target terminal session",
+                )
+            })?;
+        let commands = History::as_ref(ctx)
+            .is_queryable(&session_id)
+            .then(|| {
+                History::as_ref(ctx)
+                    .commands_shared(session_id)
+                    .unwrap_or_default()
+            })
+            .unwrap_or_default();
+        let start_index = params
+            .limit
+            .and_then(|limit| usize::try_from(limit).ok())
+            .map(|limit| commands.len().saturating_sub(limit))
+            .unwrap_or_default();
+        let entries = commands
+            .iter()
+            .enumerate()
+            .skip(start_index)
+            .map(|(index, entry)| HistoryEntrySummary {
+                entry_id: format!("history:{}:{index}", session_id.as_u64()),
+                command: entry.command.clone(),
+                cwd: entry.pwd.clone(),
+            })
+            .collect();
+        to_control_data(HistoryListResult { entries })
     }
 
     fn list_drive_objects(
@@ -883,6 +1004,132 @@ fn validate_instance_metadata_read_target(
     Ok(())
 }
 
+fn validate_terminal_read_target(
+    action: ActionKind,
+    target: &TargetSelector,
+) -> Result<(), ControlError> {
+    let action_name = action.as_str();
+    if matches!(target.window.as_ref(), Some(WindowTarget::Id { .. })) {
+        return Err(ControlError::new(
+            ErrorCode::StaleTarget,
+            format!("{action_name} cannot resolve the requested window id"),
+        ));
+    }
+    if !matches!(target.window.as_ref(), None | Some(WindowTarget::Active)) {
+        return Err(ControlError::new(
+            ErrorCode::InvalidSelector,
+            format!("{action_name} only supports the active window selector"),
+        ));
+    }
+    if matches!(target.tab.as_ref(), Some(TabTarget::Id { .. })) {
+        return Err(ControlError::new(
+            ErrorCode::StaleTarget,
+            format!("{action_name} cannot resolve the requested tab id"),
+        ));
+    }
+    if !matches!(target.tab.as_ref(), None | Some(TabTarget::Active)) {
+        return Err(ControlError::new(
+            ErrorCode::InvalidSelector,
+            format!("{action_name} only supports the active tab selector"),
+        ));
+    }
+    if matches!(target.pane.as_ref(), Some(PaneTarget::Id { .. })) {
+        return Err(ControlError::new(
+            ErrorCode::StaleTarget,
+            format!("{action_name} cannot resolve the requested pane id"),
+        ));
+    }
+    if !matches!(target.pane.as_ref(), None | Some(PaneTarget::Active)) {
+        return Err(ControlError::new(
+            ErrorCode::InvalidSelector,
+            format!("{action_name} only supports the active pane selector"),
+        ));
+    }
+    if matches!(target.session.as_ref(), Some(SessionTarget::Id { .. })) {
+        return Err(ControlError::new(
+            ErrorCode::StaleTarget,
+            format!("{action_name} cannot resolve the requested session id"),
+        ));
+    }
+    if !matches!(target.session.as_ref(), None | Some(SessionTarget::Active)) {
+        return Err(ControlError::new(
+            ErrorCode::InvalidSelector,
+            format!("{action_name} only supports the active session selector"),
+        ));
+    }
+    if target.block.is_some() || target.file.is_some() || target.drive.is_some() {
+        return Err(ControlError::new(
+            ErrorCode::InvalidSelector,
+            format!("{action_name} does not accept block, file, or drive selectors"),
+        ));
+    }
+    Ok(())
+}
+
+fn resolve_terminal_read_target(
+    action: ActionKind,
+    target: &TargetSelector,
+    ctx: &mut ModelContext<LocalControlBridge>,
+) -> Result<ResolvedTerminalTarget, ControlError> {
+    validate_terminal_read_target(action, target)?;
+    let window_id = require_active_window_id_for_action(ctx.windows().active_window(), action)?;
+    if let Some(workspace) = ctx
+        .views_of_type::<Workspace>(window_id)
+        .and_then(|workspaces| workspaces.into_iter().next())
+    {
+        let pane_group = workspace.read(ctx, |workspace, _| {
+            workspace.active_tab_pane_group().clone()
+        });
+        return resolve_terminal_in_pane_group(action, target, pane_group, ctx);
+    }
+    let terminal_view = ctx
+        .views_of_type::<TerminalView>(window_id)
+        .and_then(|terminals| terminals.into_iter().next())
+        .ok_or_else(|| {
+            ControlError::new(
+                ErrorCode::MissingTarget,
+                format!("{} requires a target terminal session", action.as_str()),
+            )
+        })?;
+    Ok(ResolvedTerminalTarget { terminal_view })
+}
+
+fn resolve_terminal_in_pane_group(
+    action: ActionKind,
+    target: &TargetSelector,
+    pane_group: ViewHandle<PaneGroup>,
+    ctx: &mut ModelContext<LocalControlBridge>,
+) -> Result<ResolvedTerminalTarget, ControlError> {
+    let terminal_view = pane_group.read(ctx, |pane_group, ctx| {
+        let pane_id = if matches!(target.pane, Some(PaneTarget::Active)) {
+            pane_group.focused_pane_id(ctx)
+        } else {
+            pane_group
+                .active_session_id(ctx)
+                .map(PaneId::from)
+                .ok_or_else(|| {
+                    ControlError::new(
+                        ErrorCode::MissingTarget,
+                        format!("{} requires an active terminal session", action.as_str()),
+                    )
+                })?
+        };
+        let terminal_view = pane_group
+            .terminal_view_from_pane_id(pane_id, ctx)
+            .ok_or_else(|| {
+                ControlError::new(
+                    ErrorCode::TargetStateConflict,
+                    format!(
+                        "{} target pane does not contain a terminal session",
+                        action.as_str()
+                    ),
+                )
+            })?;
+        Ok::<_, ControlError>(terminal_view)
+    })?;
+    Ok(ResolvedTerminalTarget { terminal_view })
+}
+
 fn validate_action_params(action: &::local_control::Action) -> Result<(), ControlError> {
     match action.kind {
         ActionKind::ActionGet => {
@@ -895,7 +1142,25 @@ fn validate_action_params(action: &::local_control::Action) -> Result<(), Contro
         | ActionKind::TabCreate
         | ActionKind::FileList
         | ActionKind::ProjectActive
-        | ActionKind::ProjectList => validate_empty_action_params(action),
+        | ActionKind::ProjectList
+        | ActionKind::InputGet => validate_empty_action_params(action),
+        ActionKind::HistoryList => {
+            let params = action.params.as_object().ok_or_else(|| {
+                ControlError::new(
+                    ErrorCode::InvalidParams,
+                    "history.list parameters must be an object",
+                )
+            })?;
+            if params.keys().all(|key| key == "limit") {
+                action.params_as::<HistoryListParams>()?;
+                Ok(())
+            } else {
+                Err(ControlError::new(
+                    ErrorCode::InvalidParams,
+                    "history.list only accepts an optional limit parameter",
+                ))
+            }
+        }
         ActionKind::DriveList => action.params_as::<DriveListParams>().map(|_| ()),
         ActionKind::DriveGet => action.params_as::<DriveGetParams>().and_then(|params| {
             if params.id.is_empty() {
@@ -1049,10 +1314,17 @@ fn target_window_id(
 fn require_active_window_id(
     active_window: Option<warpui::WindowId>,
 ) -> Result<warpui::WindowId, ControlError> {
+    require_active_window_id_for_action(active_window, ActionKind::TabCreate)
+}
+
+fn require_active_window_id_for_action(
+    active_window: Option<warpui::WindowId>,
+    action: ActionKind,
+) -> Result<warpui::WindowId, ControlError> {
     active_window.ok_or_else(|| {
         ControlError::new(
             ErrorCode::MissingTarget,
-            "tab.create requires an active Warp window",
+            format!("{} requires an active Warp window", action.as_str()),
         )
     })
 }

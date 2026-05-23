@@ -807,6 +807,8 @@ impl ActionKind {
             | Self::ActionList
             | Self::ActionGet
             | Self::TabCreate
+            | Self::InputGet
+            | Self::HistoryList
             | Self::FileList
             | Self::ProjectActive
             | Self::ProjectList
