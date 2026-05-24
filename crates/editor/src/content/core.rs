@@ -354,11 +354,11 @@ impl Buffer {
 
         EditResult {
             undo_item: Some(undo_arg),
-            delta: Some(EditDelta {
+            delta: Some(EditDelta::new(
                 precise_deltas,
-                old_offset: replacement_range.old_range,
+                replacement_range.old_range,
                 new_lines,
-            }),
+            )),
             anchor_updates,
         }
     }

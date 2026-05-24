@@ -928,8 +928,8 @@ impl Buffer {
 
         EditResult {
             undo_item: None,
-            delta: Some(EditDelta {
-                precise_deltas: vec![PreciseDelta {
+            delta: Some(EditDelta::new(
+                vec![PreciseDelta {
                     replaced_range: CharOffset::from(1)..old_offset.end,
                     replaced_points,
                     resolved_range: CharOffset::from(1)..self.max_charoffset(),
@@ -938,11 +938,11 @@ impl Buffer {
                     new_end_point,
                 }],
                 old_offset,
-                new_lines: self.styled_blocks_in_range(
+                self.styled_blocks_in_range(
                     CharOffset::from(1)..self.max_charoffset(),
                     StyledBlockBoundaryBehavior::Exclusive,
                 ),
-            }),
+            )),
             anchor_updates,
         }
     }
@@ -2531,8 +2531,8 @@ impl Buffer {
         // No content change—compute a no-op byte edit.
         let old_byte_start = range.start.to_buffer_byte_offset(self);
         let old_byte_end = range.end.to_buffer_byte_offset(self);
-        EditDelta {
-            precise_deltas: vec![PreciseDelta {
+        EditDelta::new(
+            vec![PreciseDelta {
                 replaced_range: range.clone(),
                 replaced_points: full_points.clone(),
                 resolved_range: range.clone(),
@@ -2542,9 +2542,9 @@ impl Buffer {
                     .saturating_sub(old_byte_start.as_usize()),
                 new_end_point: full_points.end,
             }],
-            old_offset: range.clone(),
-            new_lines: self.styled_blocks_in_range(range, StyledBlockBoundaryBehavior::Exclusive),
-        }
+            range.clone(),
+            self.styled_blocks_in_range(range, StyledBlockBoundaryBehavior::Exclusive),
+        )
     }
 
     pub fn invalidate_layout_for_range(&self, range: Range<CharOffset>) -> EditDelta {
@@ -4795,8 +4795,8 @@ impl Buffer {
 
         EditResult {
             undo_item: None,
-            delta: Some(EditDelta {
-                precise_deltas: vec![PreciseDelta {
+            delta: Some(EditDelta::new(
+                vec![PreciseDelta {
                     replaced_range: old_range.clone(),
                     replaced_points,
                     resolved_range: old_range.clone(),
@@ -4807,10 +4807,9 @@ impl Buffer {
                 // Note that we need to shift the range to the right by one here since
                 // the offset we take as the parameter is right before the block item
                 // marker.
-                old_offset: old_range.clone(),
-                new_lines: self
-                    .styled_blocks_in_range(old_range, StyledBlockBoundaryBehavior::Exclusive),
-            }),
+                old_range.clone(),
+                self.styled_blocks_in_range(old_range, StyledBlockBoundaryBehavior::Exclusive),
+            )),
             ..Default::default()
         }
     }
@@ -4936,8 +4935,8 @@ impl Buffer {
 
         EditResult {
             undo_item: None,
-            delta: Some(EditDelta {
-                precise_deltas: vec![PreciseDelta {
+            delta: Some(EditDelta::new(
+                vec![PreciseDelta {
                     replaced_range: old_range.clone(),
                     replaced_points,
                     resolved_range: old_range.clone(),
@@ -4945,10 +4944,9 @@ impl Buffer {
                     new_byte_length,
                     new_end_point,
                 }],
-                old_offset: old_range.clone(),
-                new_lines: self
-                    .styled_blocks_in_range(old_range, StyledBlockBoundaryBehavior::Exclusive),
-            }),
+                old_range.clone(),
+                self.styled_blocks_in_range(old_range, StyledBlockBoundaryBehavior::Exclusive),
+            )),
             anchor_updates: vec![],
         }
     }
@@ -5018,8 +5016,8 @@ impl Buffer {
 
         EditResult {
             undo_item: None,
-            delta: Some(EditDelta {
-                precise_deltas: vec![PreciseDelta {
+            delta: Some(EditDelta::new(
+                vec![PreciseDelta {
                     replaced_range: at..at,
                     replaced_points,
                     resolved_range: at..at + 1,
@@ -5027,10 +5025,9 @@ impl Buffer {
                     new_byte_length,
                     new_end_point,
                 }],
-                old_offset: old_range,
-                new_lines: self
-                    .styled_blocks_in_range(new_range, StyledBlockBoundaryBehavior::Exclusive),
-            }),
+                old_range,
+                self.styled_blocks_in_range(new_range, StyledBlockBoundaryBehavior::Exclusive),
+            )),
             anchor_updates: vec![anchor_update],
         }
     }
@@ -5144,14 +5141,14 @@ impl Buffer {
 
         EditResult {
             undo_item: None,
-            delta: Some(EditDelta {
+            delta: Some(EditDelta::new(
                 precise_deltas,
-                old_offset: undo_item.replacement_range.old_range,
-                new_lines: self.styled_blocks_in_range(
+                undo_item.replacement_range.old_range,
+                self.styled_blocks_in_range(
                     undo_item.replacement_range.new_range,
                     StyledBlockBoundaryBehavior::Exclusive,
                 ),
-            }),
+            )),
             anchor_updates,
         }
     }
@@ -5193,14 +5190,14 @@ impl Buffer {
 
         EditResult {
             undo_item: None,
-            delta: Some(EditDelta {
+            delta: Some(EditDelta::new(
                 precise_deltas,
-                old_offset: undo_item.replacement_range.old_range,
-                new_lines: self.styled_blocks_in_range(
+                undo_item.replacement_range.old_range,
+                self.styled_blocks_in_range(
                     undo_item.replacement_range.new_range,
                     StyledBlockBoundaryBehavior::Exclusive,
                 ),
-            }),
+            )),
             anchor_updates,
         }
     }
