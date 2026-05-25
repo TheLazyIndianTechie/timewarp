@@ -85,6 +85,9 @@ objc2-app-kit = { workspace = true, features = [
     "NSMenuItem",
     "NSPasteboard",
     "NSResponder",
+    "NSView",
+    "NSWindow",
+    "objc2-quartz-core",
 ] }
 objc2-foundation = { workspace = true, features = [
     "NSArray",
@@ -94,6 +97,30 @@ objc2-foundation = { workspace = true, features = [
     "NSValue",
     "objc2-core-foundation",
 ] }
+objc2-metal = { workspace = true, features = [
+    "MTLDevice",
+    "MTLCommandQueue",
+    "MTLCommandBuffer",
+    "MTLCommandEncoder",
+    "MTLRenderCommandEncoder",
+    "MTLRenderPass",
+    "MTLRenderPipeline",
+    "MTLLibrary",
+    "MTLBuffer",
+    "MTLTexture",
+    "MTLResource",
+    "MTLAllocation",
+    "MTLDrawable",
+    "MTLPixelFormat",
+    "MTLTypes",
+    "dispatch2",
+] }
+objc2-quartz-core = { workspace = true, features = [
+    "CALayer",
+    "CAMetalLayer",
+    "objc2-metal",
+] }
+dispatch2 = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dev-dependencies]
 rand.workspace = true

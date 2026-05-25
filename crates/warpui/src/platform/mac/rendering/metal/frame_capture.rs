@@ -1,4 +1,11 @@
-use metal::{MTLPixelFormat, MTLStorageMode};
+//! NOTE: The Metal-touching functions here are temporary skeletons committed in
+//! the first step of the `objc2-metal` migration. Their full implementations
+//! are restored in a follow-up commit. `convert_bgra_to_rgba` and its test are
+//! pure and unchanged.
+
+use objc2::rc::Retained;
+use objc2::runtime::ProtocolObject;
+use objc2_metal::{MTLDevice, MTLPixelFormat, MTLTexture};
 use pathfinder_geometry::vector::Vector2F;
 use warpui_core::platform::CapturedFrame;
 
@@ -19,41 +26,12 @@ mod tests;
 /// # Returns
 /// * `Some(CapturedFrame)` containing the RGBA pixel data if successful
 /// * `None` if the texture dimensions are invalid
-pub fn capture_frame(texture: &metal::TextureRef, size: Vector2F) -> Option<CapturedFrame> {
-    let width = size.x() as usize;
-    let height = size.y() as usize;
-
-    if width == 0 || height == 0 {
-        log::warn!("Invalid texture dimensions: {}x{}", width, height);
-        return None;
-    }
-
-    let bytes_per_row = width * 4;
-    let buffer_size = bytes_per_row * height;
-
-    let mut pixel_data: Vec<u8> = vec![0u8; buffer_size];
-
-    let region = metal::MTLRegion {
-        origin: metal::MTLOrigin { x: 0, y: 0, z: 0 },
-        size: metal::MTLSize {
-            width: width as u64,
-            height: height as u64,
-            depth: 1,
-        },
-    };
-
-    texture.get_bytes(
-        pixel_data.as_mut_ptr() as *mut std::ffi::c_void,
-        bytes_per_row as u64,
-        region,
-        0,
-    );
-
-    Some(CapturedFrame::new_bgra(
-        width as u32,
-        height as u32,
-        pixel_data,
-    ))
+#[allow(unused_variables)]
+pub fn capture_frame(
+    texture: &ProtocolObject<dyn MTLTexture>,
+    size: Vector2F,
+) -> Option<CapturedFrame> {
+    todo!()
 }
 
 #[cfg(test)]
@@ -78,27 +56,12 @@ pub(crate) fn convert_bgra_to_rgba(data: &mut [u8]) {
 /// # Returns
 /// * A new Metal texture that can be rendered to and read back from
 #[allow(dead_code)]
+#[allow(unused_variables)]
 pub fn create_capture_texture(
-    device: &metal::Device,
-    width: u64,
-    height: u64,
+    device: &ProtocolObject<dyn MTLDevice>,
+    width: usize,
+    height: usize,
     pixel_format: MTLPixelFormat,
-) -> metal::Texture {
-    let texture_descriptor = metal::TextureDescriptor::new();
-    texture_descriptor.set_pixel_format(pixel_format);
-    texture_descriptor.set_width(width);
-    texture_descriptor.set_height(height);
-    texture_descriptor.set_depth(1);
-    texture_descriptor.set_mipmap_level_count(1);
-    texture_descriptor.set_sample_count(1);
-    texture_descriptor.set_array_length(1);
-
-    // Set usage flags for rendering and reading
-    texture_descriptor
-        .set_usage(metal::MTLTextureUsage::RenderTarget | metal::MTLTextureUsage::ShaderRead);
-
-    // Use managed storage mode so we can read it back
-    texture_descriptor.set_storage_mode(MTLStorageMode::Managed);
-
-    device.new_texture(&texture_descriptor)
+) -> Retained<ProtocolObject<dyn MTLTexture>> {
+    todo!()
 }
