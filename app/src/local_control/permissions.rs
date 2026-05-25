@@ -120,6 +120,54 @@ pub(super) fn authenticated_user_subject_for_action(
         })
 }
 
+pub(super) fn ensure_authenticated_scripting_grant(
+    grant: &CredentialGrant,
+    action: ActionKind,
+    ctx: &mut ModelContext<LocalControlBridge>,
+) -> Result<(), ControlError> {
+    let result = grant.verify_scripting_for_action(action);
+    if result.is_err() {
+        return result;
+    }
+    if action.metadata().requires_authenticated_scripting {
+        let settings = LocalControlSettings::as_ref(ctx);
+        if !settings.outside_warp_authenticated_user_actions_enabled() {
+            return Err(ControlError::new(
+                ErrorCode::AuthenticatedScriptingRequired,
+                format!(
+                    "{} requires authenticated scripting grants to be enabled in Settings > Scripting",
+                    action.as_str()
+                ),
+            ));
+        }
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+pub(crate) fn ensure_scripting_grant_for_settings(
+    settings: &LocalControlSettings,
+    action: ActionKind,
+    grant: &CredentialGrant,
+) -> Result<(), ControlError> {
+    let result = grant.verify_scripting_for_action(action);
+    if result.is_err() {
+        return result;
+    }
+    if action.metadata().requires_authenticated_scripting
+        && !settings.outside_warp_authenticated_user_actions_enabled()
+    {
+        return Err(ControlError::new(
+            ErrorCode::AuthenticatedScriptingRequired,
+            format!(
+                "{} requires authenticated scripting grants to be enabled in Settings > Scripting",
+                action.as_str()
+            ),
+        ));
+    }
+    Ok(())
+}
+
 pub(super) fn ensure_authenticated_user_matches(
     grant: &CredentialGrant,
     ctx: &mut ModelContext<LocalControlBridge>,

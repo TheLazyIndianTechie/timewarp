@@ -1,10 +1,10 @@
 use settings::{Setting, SyncToCloud};
 
 use super::{
-    AllowOutsideWarpAppStateMutations, AllowOutsideWarpControl,
-    AllowOutsideWarpMetadataConfigurationMutations, AllowOutsideWarpMetadataReads,
-    AllowOutsideWarpUnderlyingDataMutations, AllowOutsideWarpUnderlyingDataReads,
-    LocalControlPermissionCategory, LocalControlSettings,
+    AllowOutsideWarpAppStateMutations, AllowOutsideWarpAuthenticatedUserActions,
+    AllowOutsideWarpControl, AllowOutsideWarpMetadataConfigurationMutations,
+    AllowOutsideWarpMetadataReads, AllowOutsideWarpUnderlyingDataMutations,
+    AllowOutsideWarpUnderlyingDataReads, LocalControlPermissionCategory, LocalControlSettings,
 };
 
 fn settings_with_values(outside_enabled: bool) -> LocalControlSettings {
@@ -20,6 +20,8 @@ fn settings_with_values(outside_enabled: bool) -> LocalControlSettings {
         allow_outside_warp_underlying_data_mutations: AllowOutsideWarpUnderlyingDataMutations::new(
             Some(false),
         ),
+        allow_outside_warp_authenticated_user_actions:
+            AllowOutsideWarpAuthenticatedUserActions::new(Some(false)),
     }
 }
 
@@ -70,6 +72,8 @@ fn disabled_context_blocks_enabled_granular_permissions() {
         allow_outside_warp_underlying_data_mutations: AllowOutsideWarpUnderlyingDataMutations::new(
             Some(true),
         ),
+        allow_outside_warp_authenticated_user_actions:
+            AllowOutsideWarpAuthenticatedUserActions::new(Some(false)),
     };
 
     assert!(!settings.allows_outside_warp(LocalControlPermissionCategory::AppStateMutations));
@@ -90,6 +94,8 @@ fn granular_permissions_are_independent() {
         allow_outside_warp_underlying_data_mutations: AllowOutsideWarpUnderlyingDataMutations::new(
             Some(false),
         ),
+        allow_outside_warp_authenticated_user_actions:
+            AllowOutsideWarpAuthenticatedUserActions::new(Some(false)),
     };
 
     assert!(settings.allows_outside_warp(LocalControlPermissionCategory::MetadataReads));

@@ -73,6 +73,15 @@ define_settings_group!(LocalControlSettings, settings: [
         storage_key: "LocalControlOutsideWarpUnderlyingDataMutations",
         description: "Whether external local clients may receive underlying-data-mutation local control grants.",
     },
+    allow_outside_warp_authenticated_user_actions: AllowOutsideWarpAuthenticatedUserActions {
+        type: bool,
+        default: false,
+        supported_platforms: SupportedPlatforms::DESKTOP,
+        sync_to_cloud: SyncToCloud::Never,
+        private: true,
+        storage_key: "LocalControlOutsideWarpAuthenticatedUserActions",
+        description: "Whether external local clients with a valid Warp scripting API key may receive authenticated-user grants.",
+    },
 ]);
 
 impl LocalControlSettings {
@@ -105,6 +114,10 @@ impl LocalControlSettings {
 
     pub fn allows_outside_warp(&self, permission: LocalControlPermissionCategory) -> bool {
         self.outside_warp_control_enabled() && self.outside_warp_permission_enabled(permission)
+    }
+
+    pub fn outside_warp_authenticated_user_actions_enabled(&self) -> bool {
+        *self.allow_outside_warp_authenticated_user_actions
     }
 }
 

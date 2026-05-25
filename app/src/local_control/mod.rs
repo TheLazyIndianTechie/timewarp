@@ -427,7 +427,8 @@ pub(crate) use handlers::settings_surfaces::{
 };
 #[cfg(test)]
 pub(crate) use permissions::{
-    capabilities, ensure_settings_allow_action, outside_warp_action_enabled_for_settings,
+    capabilities, ensure_scripting_grant_for_settings, ensure_settings_allow_action,
+    outside_warp_action_enabled_for_settings,
 };
 #[cfg(test)]
 pub(crate) use resolver::{

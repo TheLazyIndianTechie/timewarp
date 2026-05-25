@@ -187,6 +187,82 @@ fn rejects_non_metadata_and_future_catalog_commands_not_in_this_shard() {
 }
 
 #[test]
+fn parses_auth_status_command() {
+    let args =
+        ControlArgs::try_parse_from(["warpctrl", "auth", "status"]).expect("auth status parses");
+    assert!(matches!(
+        args.command,
+        ControlCommand::Auth(AuthCommand::Status(_))
+    ));
+}
+
+#[test]
+fn parses_auth_login_command() {
+    let args =
+        ControlArgs::try_parse_from(["warpctrl", "auth", "login"]).expect("auth login parses");
+    assert!(matches!(
+        args.command,
+        ControlCommand::Auth(AuthCommand::Login(_))
+    ));
+}
+
+#[test]
+fn parses_auth_api_key_set_with_env_var() {
+    let args = ControlArgs::try_parse_from([
+        "warpctrl",
+        "auth",
+        "api-key",
+        "set",
+        "--key-env",
+        "WARPCTRL_API_KEY",
+    ])
+    .expect("auth api-key set --key-env parses");
+    let ControlCommand::Auth(AuthCommand::ApiKey(ApiKeySubcommand::Set(set_args))) = args.command
+    else {
+        panic!("expected auth api-key set command");
+    };
+    assert_eq!(set_args.source.key_env.as_deref(), Some("WARPCTRL_API_KEY"));
+    assert!(!set_args.source.key_stdin);
+}
+
+#[test]
+fn parses_auth_api_key_set_with_stdin() {
+    let args = ControlArgs::try_parse_from(["warpctrl", "auth", "api-key", "set", "--key-stdin"])
+        .expect("auth api-key set --key-stdin parses");
+    let ControlCommand::Auth(AuthCommand::ApiKey(ApiKeySubcommand::Set(set_args))) = args.command
+    else {
+        panic!("expected auth api-key set command");
+    };
+    assert!(set_args.source.key_stdin);
+    assert!(set_args.source.key_env.is_none());
+}
+
+#[test]
+fn rejects_auth_api_key_set_without_key_source() {
+    assert!(ControlArgs::try_parse_from(["warpctrl", "auth", "api-key", "set"]).is_err());
+}
+
+#[test]
+fn parses_auth_api_key_status_command() {
+    let args = ControlArgs::try_parse_from(["warpctrl", "auth", "api-key", "status"])
+        .expect("auth api-key status parses");
+    assert!(matches!(
+        args.command,
+        ControlCommand::Auth(AuthCommand::ApiKey(ApiKeySubcommand::Status(_)))
+    ));
+}
+
+#[test]
+fn parses_auth_api_key_revoke_command() {
+    let args = ControlArgs::try_parse_from(["warpctrl", "auth", "api-key", "revoke"])
+        .expect("auth api-key revoke parses");
+    assert!(matches!(
+        args.command,
+        ControlCommand::Auth(AuthCommand::ApiKey(ApiKeySubcommand::Revoke(_)))
+    ));
+}
+
+#[test]
 fn generated_bash_completions_include_metadata_commands() {
     let completions =
         generate_completion_string(Shell::Bash).expect("bash completions render to UTF-8");
@@ -203,6 +279,7 @@ fn generated_bash_completions_include_metadata_commands() {
     assert!(completions.contains("theme"));
     assert!(completions.contains("appearance"));
     assert!(completions.contains("setting"));
+    assert!(completions.contains("auth"));
     assert!(completions.contains("completions"));
 }
 

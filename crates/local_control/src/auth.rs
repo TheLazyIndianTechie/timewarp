@@ -10,6 +10,7 @@ use crate::protocol::{
     ActionKind, ControlError, ErrorCode, ExecutionContextProof, InvocationContext,
     PermissionCategory, RiskTier, StateDataCategory,
 };
+use crate::scripting::ScriptingGrant;
 
 /// Bearer token used to authorize a single scoped local-control credential.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -138,6 +139,8 @@ pub struct CredentialGrant {
     pub permission_category: PermissionCategory,
     pub invocation_context: InvocationContext,
     pub authenticated_user: AuthenticatedUserGrant,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scripting_grant: Option<ScriptingGrant>,
     pub issued_at: DateTime<Utc>,
     pub expires_at: DateTime<Utc>,
 }
@@ -170,6 +173,7 @@ impl CredentialGrant {
                 required: metadata.authenticated_user.required,
                 subject: None,
             },
+            scripting_grant: None,
             issued_at,
             expires_at: issued_at + ttl,
         }
@@ -221,6 +225,28 @@ impl CredentialGrant {
                     "{} cannot run from the credential invocation context",
                     action.as_str()
                 ),
+            ));
+        }
+        Ok(())
+    }
+
+    pub fn verify_scripting_for_action(&self, action: ActionKind) -> Result<(), ControlError> {
+        if !action.metadata().requires_authenticated_scripting {
+            return Ok(());
+        }
+        let Some(grant) = &self.scripting_grant else {
+            return Err(ControlError::new(
+                ErrorCode::AuthenticatedScriptingRequired,
+                format!(
+                    "{} requires an authenticated scripting grant",
+                    action.as_str()
+                ),
+            ));
+        };
+        if grant.is_expired() {
+            return Err(ControlError::new(
+                ErrorCode::ApiKeyExpired,
+                format!("{} scripting grant has expired", action.as_str()),
             ));
         }
         Ok(())

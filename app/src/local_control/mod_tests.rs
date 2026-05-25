@@ -14,17 +14,19 @@ use warpui::{App, SingletonEntity};
 
 use super::{
     action_metadata_for_name, appearance_state_result, capabilities, ensure_feature_enabled,
-    ensure_settings_allow_action, outside_warp_action_enabled_for_settings, rejected_setting_key,
-    require_active_window_id, setting_get_result, setting_list_result, theme_list_result,
-    validate_action_params, validate_tab_create_target, LocalControlBridge,
+    ensure_scripting_grant_for_settings, ensure_settings_allow_action,
+    outside_warp_action_enabled_for_settings, rejected_setting_key, require_active_window_id,
+    setting_get_result, setting_list_result, theme_list_result, validate_action_params,
+    validate_tab_create_target, LocalControlBridge,
 };
 use crate::settings::{
-    AllowOutsideWarpAppStateMutations, AllowOutsideWarpControl,
-    AllowOutsideWarpMetadataConfigurationMutations, AllowOutsideWarpMetadataReads,
-    AllowOutsideWarpUnderlyingDataMutations, AllowOutsideWarpUnderlyingDataReads,
-    LocalControlSettings,
+    AllowOutsideWarpAppStateMutations, AllowOutsideWarpAuthenticatedUserActions,
+    AllowOutsideWarpControl, AllowOutsideWarpMetadataConfigurationMutations,
+    AllowOutsideWarpMetadataReads, AllowOutsideWarpUnderlyingDataMutations,
+    AllowOutsideWarpUnderlyingDataReads, LocalControlSettings,
 };
 use crate::test_util::settings::initialize_settings_for_tests;
+use ::local_control::scripting::{ScriptingGrant, ScriptingIdentitySource, ScriptingScope};
 
 fn settings_with_values(
     outside_control: bool,
@@ -52,6 +54,42 @@ fn settings_with_values(
         allow_outside_warp_underlying_data_mutations: AllowOutsideWarpUnderlyingDataMutations::new(
             Some(outside_underlying_data_mutations),
         ),
+        allow_outside_warp_authenticated_user_actions:
+            AllowOutsideWarpAuthenticatedUserActions::new(Some(false)),
+    }
+}
+
+fn settings_with_authenticated_user_actions(
+    outside_control: bool,
+    outside_underlying_data_mutations: bool,
+    authenticated_user_actions: bool,
+) -> LocalControlSettings {
+    LocalControlSettings {
+        allow_outside_warp_control: AllowOutsideWarpControl::new(Some(outside_control)),
+        allow_outside_warp_metadata_reads: AllowOutsideWarpMetadataReads::new(Some(false)),
+        allow_outside_warp_underlying_data_reads: AllowOutsideWarpUnderlyingDataReads::new(Some(
+            false,
+        )),
+        allow_outside_warp_app_state_mutations: AllowOutsideWarpAppStateMutations::new(Some(false)),
+        allow_outside_warp_metadata_configuration_mutations:
+            AllowOutsideWarpMetadataConfigurationMutations::new(Some(false)),
+        allow_outside_warp_underlying_data_mutations: AllowOutsideWarpUnderlyingDataMutations::new(
+            Some(outside_underlying_data_mutations),
+        ),
+        allow_outside_warp_authenticated_user_actions:
+            AllowOutsideWarpAuthenticatedUserActions::new(Some(authenticated_user_actions)),
+    }
+}
+
+fn scripting_grant() -> ScriptingGrant {
+    ScriptingGrant {
+        source: ScriptingIdentitySource::ExternalApiKey {
+            key_id: "kid_test".to_owned(),
+        },
+        subject: "test-user".to_owned(),
+        scopes: vec![ScriptingScope::LocalControlMutateUnderlyingData],
+        issued_at: chrono::Utc::now(),
+        expires_at: chrono::Utc::now() + chrono::Duration::minutes(5),
     }
 }
 
@@ -698,4 +736,146 @@ fn data_reads_reject_malformed_params() {
     })
     .expect_err("block.get requires a block id");
     assert_eq!(err.code, ErrorCode::InvalidParams);
+}
+
+#[test]
+fn high_risk_actions_require_authenticated_scripting_grant() {
+    let settings_with_auth = settings_with_authenticated_user_actions(true, true, true);
+    let settings_without_auth = settings_with_authenticated_user_actions(true, true, false);
+
+    for action in [
+        ActionKind::InputInsert,
+        ActionKind::InputReplace,
+        ActionKind::InputClear,
+        ActionKind::InputModeSet,
+    ] {
+        let grant_without_scripting = CredentialGrant::new(
+            InstanceId("test-instance".to_owned()),
+            action,
+            InvocationContext::OutsideWarp,
+            Duration::minutes(5),
+        );
+        let err = ensure_scripting_grant_for_settings(
+            &settings_with_auth,
+            action,
+            &grant_without_scripting,
+        )
+        .expect_err("high-risk action is denied without scripting grant");
+        assert_eq!(
+            err.code,
+            ErrorCode::AuthenticatedScriptingRequired,
+            "{} should require scripting grant",
+            action.as_str()
+        );
+
+        let err = ensure_scripting_grant_for_settings(
+            &settings_without_auth,
+            action,
+            &grant_without_scripting,
+        )
+        .expect_err("high-risk action is denied when authenticated user actions are disabled");
+        assert_eq!(
+            err.code,
+            ErrorCode::AuthenticatedScriptingRequired,
+            "{} denied when authenticated actions disabled",
+            action.as_str()
+        );
+    }
+}
+
+#[test]
+fn high_risk_actions_with_scripting_grant_and_enabled_setting_pass_grant_check() {
+    let settings_with_auth = settings_with_authenticated_user_actions(true, true, true);
+
+    for action in [
+        ActionKind::InputInsert,
+        ActionKind::InputReplace,
+        ActionKind::InputClear,
+        ActionKind::InputModeSet,
+    ] {
+        let mut grant = CredentialGrant::new(
+            InstanceId("test-instance".to_owned()),
+            action,
+            InvocationContext::OutsideWarp,
+            Duration::minutes(5),
+        );
+        grant.scripting_grant = Some(scripting_grant());
+
+        ensure_scripting_grant_for_settings(&settings_with_auth, action, &grant)
+            .expect("high-risk action is allowed with scripting grant and enabled setting");
+    }
+}
+
+#[test]
+fn high_risk_actions_with_scripting_grant_but_disabled_setting_are_denied() {
+    let settings_without_auth = settings_with_authenticated_user_actions(true, true, false);
+
+    for action in [ActionKind::InputInsert, ActionKind::InputReplace] {
+        let mut grant = CredentialGrant::new(
+            InstanceId("test-instance".to_owned()),
+            action,
+            InvocationContext::OutsideWarp,
+            Duration::minutes(5),
+        );
+        grant.scripting_grant = Some(scripting_grant());
+
+        let err = ensure_scripting_grant_for_settings(&settings_without_auth, action, &grant)
+            .expect_err("scripting grant is denied when authenticated actions setting is off");
+        assert_eq!(err.code, ErrorCode::AuthenticatedScriptingRequired);
+    }
+}
+
+#[test]
+fn low_risk_actions_pass_scripting_grant_check_without_grant() {
+    let settings_without_auth = settings_with_authenticated_user_actions(true, false, false);
+
+    for action in [
+        ActionKind::TabCreate,
+        ActionKind::InstanceList,
+        ActionKind::AppPing,
+        ActionKind::WindowList,
+        ActionKind::SettingGet,
+    ] {
+        let grant = CredentialGrant::new(
+            InstanceId("test-instance".to_owned()),
+            action,
+            InvocationContext::OutsideWarp,
+            Duration::minutes(5),
+        );
+        ensure_scripting_grant_for_settings(&settings_without_auth, action, &grant)
+            .expect("low-risk action does not need scripting grant");
+    }
+}
+
+#[test]
+fn authenticated_scripting_required_error_code_serializes_stably() {
+    use ::local_control::ErrorCode;
+    let code = ErrorCode::AuthenticatedScriptingRequired;
+    let value = serde_json::to_value(code).expect("serializes");
+    assert_eq!(value, serde_json::json!("authenticated_scripting_required"));
+}
+
+#[test]
+fn api_key_error_codes_serialize_stably() {
+    use ::local_control::ErrorCode;
+    assert_eq!(
+        serde_json::to_value(ErrorCode::ApiKeyInvalid).expect("serializes"),
+        serde_json::json!("api_key_invalid")
+    );
+    assert_eq!(
+        serde_json::to_value(ErrorCode::ApiKeyExpired).expect("serializes"),
+        serde_json::json!("api_key_expired")
+    );
+    assert_eq!(
+        serde_json::to_value(ErrorCode::ApiKeyRevoked).expect("serializes"),
+        serde_json::json!("api_key_revoked")
+    );
+    assert_eq!(
+        serde_json::to_value(ErrorCode::ApiKeyInsufficientScope).expect("serializes"),
+        serde_json::json!("api_key_insufficient_scope")
+    );
+    assert_eq!(
+        serde_json::to_value(ErrorCode::ApiKeySubjectMismatch).expect("serializes"),
+        serde_json::json!("api_key_subject_mismatch")
+    );
 }

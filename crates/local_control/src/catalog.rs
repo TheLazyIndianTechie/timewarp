@@ -97,6 +97,7 @@ pub struct ActionMetadata {
     pub state_data_category: StateDataCategory,
     pub requires_authenticated_user: bool,
     pub authenticated_user: AuthenticatedUserRequirement,
+    pub requires_authenticated_scripting: bool,
     pub allowed_invocation_contexts: Vec<InvocationContext>,
     pub permission_category: PermissionCategory,
     pub target_scope: TargetScope,
@@ -360,6 +361,7 @@ impl ActionKind {
             _ => ActionImplementationStatus::Stub,
         };
         let requires_authenticated_user = self.default_requires_authenticated_user();
+        let requires_authenticated_scripting = self.default_requires_authenticated_scripting();
         let allowed_invocation_contexts =
             if implementation_status == ActionImplementationStatus::Implemented {
                 vec![InvocationContext::OutsideWarp]
@@ -376,6 +378,7 @@ impl ActionKind {
             authenticated_user: AuthenticatedUserRequirement {
                 required: requires_authenticated_user,
             },
+            requires_authenticated_scripting,
             allowed_invocation_contexts,
             permission_category: self.default_permission_category(),
             target_scope: self.default_target_scope(),
@@ -545,6 +548,16 @@ impl ActionKind {
             | Self::SettingGet
             | Self::SettingList => false,
             _ => true,
+        }
+    }
+
+    fn default_requires_authenticated_scripting(self) -> bool {
+        match self.default_state_data_category() {
+            StateDataCategory::UnderlyingDataMutation => true,
+            StateDataCategory::MetadataRead
+            | StateDataCategory::UnderlyingDataRead
+            | StateDataCategory::AppStateMutation
+            | StateDataCategory::MetadataConfigurationMutation => false,
         }
     }
 

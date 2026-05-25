@@ -8,6 +8,7 @@ pub mod catalog;
 pub mod client;
 pub mod discovery;
 pub mod protocol;
+pub mod scripting;
 pub mod selection;
 pub mod selectors;
 
@@ -32,5 +33,9 @@ pub use protocol::{
     RequestEnvelope, ResponseEnvelope, SessionListResult, SessionSummary, SettingGetParams,
     SettingGetResult, SettingListParams, SettingListResult, SettingSummary, TabListResult,
     TabSummary, ThemeListResult, ThemeSummary, WindowListResult, WindowSummary,
+};
+pub use scripting::{
+    ApiKeyStatus, ApiKeyStorageRef, AuthStatusSummary, ScriptingGrant, ScriptingIdentitySource,
+    ScriptingScope,
 };
 pub use selectors::{PaneSelector, SessionSelector, TabSelector, TargetSelector, WindowSelector};

@@ -8,6 +8,7 @@ use serde::Serialize;
 use serde_json::json;
 
 use crate::agent::OutputFormat;
+use crate::local_control::auth_commands::{ApiKeySubcommand, AuthCommand};
 use crate::local_control::output::{write_json, write_json_line};
 use crate::local_control::selectors::instance_selector;
 use crate::local_control::{
@@ -266,6 +267,62 @@ pub(super) fn run_setting_command(
             local_control::SettingGetParams { key: args.key },
             output_format,
         ),
+    }
+}
+
+pub(super) fn run_auth_command(
+    command: AuthCommand,
+    output_format: OutputFormat,
+) -> Result<(), ControlError> {
+    match command {
+        AuthCommand::Status(args) => {
+            let records = local_control::discovery::list_instances();
+            let selector = instance_selector(args);
+            let instance = select_instance(&records, &selector)?;
+            let request = RequestEnvelope::new(Action::new(ActionKind::AppVersion));
+            let response = local_control::client::send_request(&instance, &request)?;
+            let local_control::protocol::ControlResponse::Ok { data } = response.response else {
+                return Err(ControlError::new(
+                    ErrorCode::Internal,
+                    "auth status request failed",
+                ));
+            };
+            match output_format {
+                OutputFormat::Json => write_json(&data),
+                OutputFormat::Ndjson => write_json_line(&data),
+                OutputFormat::Pretty | OutputFormat::Text => write_json(&data),
+            }
+        }
+        AuthCommand::Login(args) => {
+            let records = local_control::discovery::list_instances();
+            let selector = instance_selector(args);
+            select_instance(&records, &selector)?;
+            Err(ControlError::new(
+                ErrorCode::UnsupportedAction,
+                "warpctrl auth login is not yet implemented; open Settings > Account in Warp to log in",
+            ))
+        }
+        AuthCommand::ApiKey(subcommand) => run_api_key_command(subcommand, output_format),
+    }
+}
+
+fn run_api_key_command(
+    command: ApiKeySubcommand,
+    _output_format: OutputFormat,
+) -> Result<(), ControlError> {
+    match command {
+        ApiKeySubcommand::Set(_args) => Err(ControlError::new(
+            ErrorCode::UnsupportedAction,
+            "warpctrl auth api-key set is not yet implemented; external API-key exchange requires authenticated scripting support",
+        )),
+        ApiKeySubcommand::Status(_args) => Err(ControlError::new(
+            ErrorCode::UnsupportedAction,
+            "warpctrl auth api-key status is not yet implemented",
+        )),
+        ApiKeySubcommand::Revoke(_args) => Err(ControlError::new(
+            ErrorCode::UnsupportedAction,
+            "warpctrl auth api-key revoke is not yet implemented",
+        )),
     }
 }
 

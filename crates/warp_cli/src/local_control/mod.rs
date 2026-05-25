@@ -1,4 +1,5 @@
 //! Command-line interface for controlling a running local Warp app.
+mod auth_commands;
 mod commands;
 mod completions;
 mod output;
@@ -10,10 +11,11 @@ use crate::agent::OutputFormat;
 use clap::{Args, CommandFactory, FromArgMatches, Parser, Subcommand};
 use clap_complete::aot::Shell;
 
+pub use auth_commands::{ApiKeySetArgs, ApiKeySourceArgs, ApiKeySubcommand, AuthCommand};
 use commands::{
-    run_action_command, run_app_command, run_appearance_command, run_block_command,
-    run_history_command, run_input_command, run_instance_command, run_pane_command,
-    run_session_command, run_setting_command, run_tab_command, run_theme_command,
+    run_action_command, run_app_command, run_appearance_command, run_auth_command,
+    run_block_command, run_history_command, run_input_command, run_instance_command,
+    run_pane_command, run_session_command, run_setting_command, run_tab_command, run_theme_command,
     run_window_command,
 };
 use completions::generate_completions_to_stdout;
@@ -116,6 +118,10 @@ pub enum ControlCommand {
     /// Inspect allowlisted settings.
     #[command(subcommand)]
     Setting(SettingCommand),
+
+    /// Manage authenticated scripting identity and API keys.
+    #[command(subcommand)]
+    Auth(AuthCommand),
 
     /// Generate shell completions for your shell to stdout.
     ///
@@ -327,6 +333,7 @@ fn run_inner(args: ControlArgs) -> Result<(), local_control::protocol::ControlEr
         ControlCommand::Theme(command) => run_theme_command(command, output_format),
         ControlCommand::Appearance(command) => run_appearance_command(command, output_format),
         ControlCommand::Setting(command) => run_setting_command(command, output_format),
+        ControlCommand::Auth(command) => run_auth_command(command, output_format),
         ControlCommand::Completions { shell } => generate_completions_to_stdout(shell),
     }
 }
