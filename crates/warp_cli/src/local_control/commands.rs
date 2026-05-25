@@ -450,11 +450,50 @@ pub(super) fn run_drive_command(
             json!({ "id": args.id }),
             output_format,
         ),
-        DriveCommand::Open(_) => unsupported_action("drive.open"),
-        DriveCommand::Notebook(_) => unsupported_action("drive.notebook.open"),
-        DriveCommand::EnvVarCollection(_) => unsupported_action("drive.env-var-collection.open"),
-        DriveCommand::Object(_) => unsupported_action("drive.object"),
+        DriveCommand::Open(args) => run_action(
+            args.target,
+            ActionKind::DriveOpen,
+            json!({ "id": args.id }),
+            output_format,
+        ),
+        DriveCommand::Notebook(command) => match command {
+            crate::local_control::DriveObjectOpenCommand::Open(args) => run_action(
+                args.target,
+                ActionKind::DriveNotebookOpen,
+                json!({ "id": args.id }),
+                output_format,
+            ),
+        },
+        DriveCommand::EnvVarCollection(command) => match command {
+            crate::local_control::DriveObjectOpenCommand::Open(args) => run_action(
+                args.target,
+                ActionKind::DriveEnvVarCollectionOpen,
+                json!({ "id": args.id }),
+                output_format,
+            ),
+        },
+        DriveCommand::Object(command) => run_drive_object_command(command, output_format),
         DriveCommand::Workflow(_) => unsupported_action("drive.workflow"),
+    }
+}
+
+fn run_drive_object_command(
+    command: crate::local_control::DriveObjectCommand,
+    output_format: OutputFormat,
+) -> Result<(), ControlError> {
+    use crate::local_control::{DriveObjectCommand, DriveObjectShareCommand};
+    match command {
+        DriveObjectCommand::Share(DriveObjectShareCommand::Open(args)) => run_action(
+            args.target,
+            ActionKind::DriveObjectShareOpen,
+            json!({ "id": args.id }),
+            output_format,
+        ),
+        DriveObjectCommand::Create(_) => unsupported_action("drive.object.create"),
+        DriveObjectCommand::Update(_) => unsupported_action("drive.object.update"),
+        DriveObjectCommand::Delete(_) => unsupported_action("drive.object.delete"),
+        DriveObjectCommand::Insert(_) => unsupported_action("drive.object.insert"),
+        DriveObjectCommand::ShareToTeam(_) => unsupported_action("drive.object.share_to_team"),
     }
 }
 

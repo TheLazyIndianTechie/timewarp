@@ -623,7 +623,11 @@ impl ActionKind {
             | Self::SurfaceRightPanelToggle
             | Self::SurfaceVerticalTabsToggle
             | Self::FileOpen
-            | Self::ProjectOpen => ActionImplementationStatus::Implemented,
+            | Self::ProjectOpen
+            | Self::DriveOpen
+            | Self::DriveNotebookOpen
+            | Self::DriveEnvVarCollectionOpen
+            | Self::DriveObjectShareOpen => ActionImplementationStatus::Implemented,
             Self::AuthStatus
             | Self::AuthLogin
             | Self::AuthApiKeySet
@@ -650,10 +654,6 @@ impl ActionKind {
             | Self::AppearanceZoomReset
             | Self::KeybindingList
             | Self::KeybindingGet
-            | Self::DriveOpen
-            | Self::DriveNotebookOpen
-            | Self::DriveEnvVarCollectionOpen
-            | Self::DriveObjectShareOpen
             | Self::DriveObjectCreate
             | Self::DriveObjectUpdate
             | Self::DriveObjectDelete

@@ -1,8 +1,8 @@
 //! Target and parameter validation for the first local-control action slice.
 use crate::local_control::handlers::metadata::action_metadata_for_name;
 use ::local_control::protocol::{
-    ActionGetParams, ActionParams, BlockListParams, BlockOutputParams, FileOpenParams,
-    HistoryListParams, InputInsertParams, InputModeSetParams, InputReplaceParams,
+    ActionGetParams, ActionParams, BlockListParams, BlockOutputParams, DriveInspectParams,
+    FileOpenParams, HistoryListParams, InputInsertParams, InputModeSetParams, InputReplaceParams,
     PaneMaximizeParams, PaneNavigateParams, PaneResizeParams, PaneSplitParams, PaneTarget,
     SessionTarget, SettingGetParams, SettingSetParams, SettingToggleParams, TabActivateParams,
     TabCloseParams, TabMoveParams, TabTarget, TargetSelector, WindowCloseParams,
@@ -135,6 +135,23 @@ pub(crate) fn validate_action_params(action: &::local_control::Action) -> Result
                         "project.open requires a path payload",
                     )),
                 })
+        }
+        ActionKind::DriveOpen
+        | ActionKind::DriveNotebookOpen
+        | ActionKind::DriveEnvVarCollectionOpen
+        | ActionKind::DriveObjectShareOpen => {
+            action.params_as::<DriveInspectParams>().and_then(|params| {
+                if params.id.trim().is_empty() {
+                    return Err(ControlError::new(
+                        ErrorCode::InvalidParams,
+                        format!(
+                            "{} requires a non-empty Drive object id",
+                            action.kind.as_str()
+                        ),
+                    ));
+                }
+                Ok(())
+            })
         }
         ActionKind::InstanceList
         | ActionKind::InstanceInspect
