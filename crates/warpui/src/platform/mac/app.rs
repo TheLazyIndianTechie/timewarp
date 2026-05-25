@@ -134,7 +134,9 @@ impl App {
             let app = unsafe { &*app_ptr.cast::<NSApplication>() };
 
             // When running without an application bundle (dev builds), install the
-            // provided dev icon as the app icon.
+            // provided dev icon as the app icon. This is a dev-only path: if the icon
+            // bytes fail to decode we skip the call below and leave the default icon,
+            // which is equivalent to the prior behavior.
             let running_app = NSRunningApplication::currentApplication();
             let dev_icon: Option<Retained<NSImage>> = if running_app.bundleIdentifier().is_none() {
                 self.dev_icon.as_ref().and_then(|dev_icon| {
