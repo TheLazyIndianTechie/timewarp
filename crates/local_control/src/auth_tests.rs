@@ -77,6 +77,39 @@ fn scoped_credential_carries_permission_and_authenticated_user_metadata() {
 }
 
 #[test]
+fn stub_action_grants_require_authenticated_user_subject() {
+    let grant = CredentialGrant::new(
+        InstanceId("inst_test".to_owned()),
+        ActionKind::SettingSet,
+        InvocationContext::OutsideWarp,
+        Duration::minutes(5),
+    );
+    assert!(grant.authenticated_user.required);
+    assert!(grant.authenticated_user.subject.is_none());
+
+    let err = grant
+        .verify_for_action(ActionKind::SettingSet)
+        .expect_err("authenticated user subject is required");
+    assert_eq!(err.code, ErrorCode::AuthenticatedUserRequired);
+}
+
+#[test]
+fn authenticated_user_subject_does_not_bypass_unsupported_context() {
+    let mut grant = CredentialGrant::new(
+        InstanceId("inst_test".to_owned()),
+        ActionKind::SettingSet,
+        InvocationContext::OutsideWarp,
+        Duration::minutes(5),
+    );
+    grant.authenticated_user.subject = Some("user_123".to_owned());
+
+    let err = grant
+        .verify_for_action(ActionKind::SettingSet)
+        .expect_err("stub action has no allowed invocation contexts");
+    assert_eq!(err.code, ErrorCode::ExecutionContextNotAllowed);
+}
+
+#[test]
 fn mismatched_permission_metadata_is_rejected() {
     let mut grant = CredentialGrant::new(
         InstanceId("inst_test".to_owned()),

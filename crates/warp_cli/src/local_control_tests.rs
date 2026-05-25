@@ -9,6 +9,13 @@ use serial_test::serial;
 use super::*;
 
 const DISCOVERY_DIR_ENV: &str = "WARP_LOCAL_CONTROL_DISCOVERY_DIR";
+fn parse_ok<const N: usize>(args: [&str; N]) -> ControlArgs {
+    ControlArgs::try_parse_from(args).expect("command parses")
+}
+
+fn parse_err<const N: usize>(args: [&str; N]) -> clap::Error {
+    ControlArgs::try_parse_from(args).expect_err("command is rejected")
+}
 
 fn set_discovery_dir(path: &std::path::Path) -> Option<OsString> {
     let previous = std::env::var_os(DISCOVERY_DIR_ENV);
@@ -24,8 +31,7 @@ fn restore_discovery_dir(previous: Option<OsString>) {
 }
 #[test]
 fn parses_first_slice_tab_create() {
-    let args = ControlArgs::try_parse_from(["warpctrl", "tab", "create", "--instance", "inst_123"])
-        .expect("tab create parses");
+    let args = parse_ok(["warpctrl", "tab", "create", "--instance", "inst_123"]);
     let ControlCommand::Tab(TabCommand::Create(target)) = args.command else {
         panic!("expected tab create command");
     };
@@ -34,8 +40,7 @@ fn parses_first_slice_tab_create() {
 
 #[test]
 fn parses_first_slice_instance_list() {
-    let args = ControlArgs::try_parse_from(["warpctrl", "instance", "list"])
-        .expect("instance list parses");
+    let args = parse_ok(["warpctrl", "instance", "list"]);
     assert!(matches!(
         args.command,
         ControlCommand::Instance(InstanceCommand::List)
@@ -44,14 +49,13 @@ fn parses_first_slice_instance_list() {
 
 #[test]
 fn parses_first_slice_app_smoke_metadata_commands() {
-    assert!(ControlArgs::try_parse_from(["warpctrl", "app", "ping"]).is_ok());
-    assert!(ControlArgs::try_parse_from(["warpctrl", "app", "version"]).is_ok());
+    parse_ok(["warpctrl", "app", "ping"]);
+    parse_ok(["warpctrl", "app", "version"]);
 }
 
 #[test]
 fn parses_completion_generation_command() {
-    let args = ControlArgs::try_parse_from(["warpctrl", "completions", "bash"])
-        .expect("completions parses");
+    let args = parse_ok(["warpctrl", "completions", "bash"]);
     assert!(matches!(
         args.command,
         ControlCommand::Completions {
@@ -62,9 +66,52 @@ fn parses_completion_generation_command() {
 
 #[test]
 fn rejects_future_catalog_commands_not_in_first_slice() {
-    assert!(ControlArgs::try_parse_from(["warpctrl", "window", "list"]).is_err());
-    assert!(ControlArgs::try_parse_from(["warpctrl", "tab", "list"]).is_err());
-    assert!(ControlArgs::try_parse_from(["warpctrl", "setting", "list"]).is_err());
+    parse_err(["warpctrl", "window", "list"]);
+    parse_err(["warpctrl", "tab", "list"]);
+    parse_err(["warpctrl", "setting", "list"]);
+}
+
+#[test]
+fn rejects_file_content_crud_commands() {
+    for args in [
+        ["warpctrl", "file", "read"],
+        ["warpctrl", "file", "write"],
+        ["warpctrl", "file", "append"],
+        ["warpctrl", "file", "delete"],
+    ] {
+        parse_err(args);
+    }
+}
+
+#[test]
+fn parser_accepts_all_implemented_protocol_commands() {
+    for args in [
+        ["warpctrl", "instance", "list"],
+        ["warpctrl", "app", "ping"],
+        ["warpctrl", "app", "version"],
+        ["warpctrl", "tab", "create"],
+    ] {
+        parse_ok(args);
+    }
+}
+
+#[test]
+fn instance_selector_flags_are_available_on_control_requests() {
+    let args = parse_ok(["warpctrl", "app", "ping", "--pid", "1234"]);
+    let ControlCommand::App(AppCommand::Ping(target)) = args.command else {
+        panic!("expected app ping command");
+    };
+    assert_eq!(target.pid, Some(1234));
+
+    parse_err([
+        "warpctrl",
+        "app",
+        "ping",
+        "--pid",
+        "1234",
+        "--instance",
+        "inst_123",
+    ]);
 }
 
 #[test]

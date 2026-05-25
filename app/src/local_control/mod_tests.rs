@@ -43,6 +43,32 @@ fn settings_with_values(
     }
 }
 
+fn settings_with_permissions(
+    outside_enabled: bool,
+    metadata_reads: bool,
+    underlying_data_reads: bool,
+    app_state_mutations: bool,
+    metadata_configuration_mutations: bool,
+    underlying_data_mutations: bool,
+) -> LocalControlSettings {
+    LocalControlSettings {
+        allow_outside_warp_control: AllowOutsideWarpControl::new(Some(outside_enabled)),
+        allow_outside_warp_metadata_reads: AllowOutsideWarpMetadataReads::new(Some(metadata_reads)),
+        allow_outside_warp_underlying_data_reads: AllowOutsideWarpUnderlyingDataReads::new(Some(
+            underlying_data_reads,
+        )),
+        allow_outside_warp_app_state_mutations: AllowOutsideWarpAppStateMutations::new(Some(
+            app_state_mutations,
+        )),
+        allow_outside_warp_metadata_configuration_mutations:
+            AllowOutsideWarpMetadataConfigurationMutations::new(Some(
+                metadata_configuration_mutations,
+            )),
+        allow_outside_warp_underlying_data_mutations: AllowOutsideWarpUnderlyingDataMutations::new(
+            Some(underlying_data_mutations),
+        ),
+    }
+}
 fn settings_with_outside_warp(
     outside_control: bool,
     outside_app_state_mutations: bool,
@@ -199,6 +225,70 @@ fn disabled_granular_permission_denies_with_insufficient_permissions() {
     )
     .expect_err("read-write permission is disabled");
     assert_eq!(err.code, ErrorCode::InsufficientPermissions);
+}
+
+#[test]
+fn implemented_permission_categories_map_to_the_corresponding_setting() {
+    let settings = settings_with_permissions(true, true, false, true, false, true);
+
+    ensure_settings_allow_action(
+        &settings,
+        InvocationContext::OutsideWarp,
+        ActionKind::AppPing,
+    )
+    .expect("metadata reads are enabled");
+    ensure_settings_allow_action(
+        &settings,
+        InvocationContext::OutsideWarp,
+        ActionKind::TabCreate,
+    )
+    .expect("app-state mutations are enabled");
+    ensure_settings_allow_action(
+        &settings,
+        InvocationContext::OutsideWarp,
+        ActionKind::InputInsert,
+    )
+    .expect("underlying data mutations are enabled");
+
+    let err = ensure_settings_allow_action(
+        &settings,
+        InvocationContext::OutsideWarp,
+        ActionKind::SettingSet,
+    )
+    .expect_err("metadata configuration mutations are disabled");
+    assert_eq!(err.code, ErrorCode::InsufficientPermissions);
+
+    let disabled_metadata = settings_with_permissions(true, false, true, true, true, true);
+    let err = ensure_settings_allow_action(
+        &disabled_metadata,
+        InvocationContext::OutsideWarp,
+        ActionKind::AppPing,
+    )
+    .expect_err("metadata reads are disabled");
+    assert_eq!(err.code, ErrorCode::InsufficientPermissions);
+}
+
+#[test]
+fn permission_denial_is_checked_before_selector_resolution() {
+    let settings = settings_with_values(true, true, false);
+    let target = TargetSelector {
+        window: Some(WindowTarget::Id {
+            id: WindowSelector("stale_window".to_owned()),
+        }),
+        tab: None,
+        pane: None,
+    };
+
+    let permission_error = ensure_settings_allow_action(
+        &settings,
+        InvocationContext::OutsideWarp,
+        ActionKind::TabCreate,
+    )
+    .expect_err("permission is denied before target validation");
+    assert_eq!(permission_error.code, ErrorCode::InsufficientPermissions);
+
+    let selector_error = validate_tab_create_target(&target).expect_err("selector is stale");
+    assert_eq!(selector_error.code, ErrorCode::StaleTarget);
 }
 
 #[test]
