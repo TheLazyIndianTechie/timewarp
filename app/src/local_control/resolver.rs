@@ -1,10 +1,11 @@
 //! Target and parameter validation for the first local-control action slice.
 use crate::local_control::handlers::metadata::action_metadata_for_name;
 use ::local_control::protocol::{
-    ActionGetParams, BlockGetParams, BlockListParams, HistoryListParams, PaneMaximizeParams,
-    PaneNavigateParams, PaneResizeParams, PaneSplitParams, PaneTarget, SessionTarget,
-    SettingGetParams, TabActivateParams, TabCloseParams, TabMoveParams, TabTarget, TargetSelector,
-    WindowCloseParams, WindowCreateParams, WindowTarget,
+    ActionGetParams, BlockGetParams, BlockListParams, DriveObjectShareOpenParams, DriveOpenParams,
+    FileOpenParams, HistoryListParams, PaneMaximizeParams, PaneNavigateParams, PaneResizeParams,
+    PaneSplitParams, PaneTarget, ProjectOpenParams, SessionTarget, SettingGetParams,
+    TabActivateParams, TabCloseParams, TabMoveParams, TabTarget, TargetSelector, WindowCloseParams,
+    WindowCreateParams, WindowTarget,
 };
 use ::local_control::{ActionKind, ControlError, ErrorCode};
 use warpui::ModelContext;
@@ -122,6 +123,50 @@ pub(crate) fn validate_action_params(action: &::local_control::Action) -> Result
             Ok(())
         }),
         ActionKind::HistoryList => action.params_as::<HistoryListParams>().map(|_| ()),
+        ActionKind::FileOpen => action.params_as::<FileOpenParams>().and_then(|params| {
+            if params.path.is_empty() {
+                return Err(ControlError::new(
+                    ErrorCode::InvalidParams,
+                    "file.open requires a non-empty path",
+                ));
+            }
+            if params.line == Some(0) || params.column == Some(0) {
+                return Err(ControlError::new(
+                    ErrorCode::InvalidParams,
+                    "file.open line and column must be greater than zero",
+                ));
+            }
+            Ok(())
+        }),
+        ActionKind::ProjectOpen => action.params_as::<ProjectOpenParams>().and_then(|params| {
+            if params.path.is_empty() {
+                return Err(ControlError::new(
+                    ErrorCode::InvalidParams,
+                    "project.open requires a non-empty path",
+                ));
+            }
+            Ok(())
+        }),
+        ActionKind::DriveOpen => action.params_as::<DriveOpenParams>().and_then(|params| {
+            if params.id.is_empty() {
+                return Err(ControlError::new(
+                    ErrorCode::InvalidParams,
+                    "drive.open requires a non-empty object id",
+                ));
+            }
+            Ok(())
+        }),
+        ActionKind::DriveObjectShareOpen => action
+            .params_as::<DriveObjectShareOpenParams>()
+            .and_then(|params| {
+                if params.id.is_empty() {
+                    return Err(ControlError::new(
+                        ErrorCode::InvalidParams,
+                        "drive.object.share.open requires a non-empty object id",
+                    ));
+                }
+                Ok(())
+            }),
         _ => Ok(()),
     }
 }

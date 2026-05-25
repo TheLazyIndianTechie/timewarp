@@ -362,10 +362,6 @@ pub enum FileCommand {
     List(TargetArgs),
     /// Open a path in Warp.
     Open(FileOpenArgs),
-    /// Write a file through the local-control protocol.
-    Write(FileWriteArgs),
-    /// Delete a file through the local-control protocol.
-    Delete(FileDeleteArgs),
 }
 
 #[derive(Debug, Clone, Subcommand)]
@@ -374,6 +370,8 @@ pub enum ProjectCommand {
     Active(TargetArgs),
     /// List projects currently known to Warp.
     List(TargetArgs),
+    /// Open a project path in Warp.
+    Open(ProjectOpenArgs),
 }
 
 #[derive(Debug, Clone, Subcommand)]
@@ -382,6 +380,11 @@ pub enum DriveCommand {
     List(DriveListArgs),
     /// Read a Warp Drive object.
     Get(DriveGetArgs),
+    /// Open a Warp Drive object surface.
+    Open(DriveGetArgs),
+    /// Operate on Warp Drive objects.
+    #[command(subcommand)]
+    Object(DriveObjectCommand),
     /// Create a Warp Drive object.
     Create(DriveCreateArgs),
     /// Update a Warp Drive object.
@@ -658,32 +661,19 @@ pub struct FileOpenArgs {
     #[arg(long = "line")]
     pub line: Option<u32>,
 
+    #[arg(long = "column")]
+    pub column: Option<u32>,
+
     #[arg(long = "new-window")]
     pub new_window: bool,
 }
 
 #[derive(Debug, Clone, Args)]
-pub struct FileWriteArgs {
+pub struct ProjectOpenArgs {
     #[command(flatten)]
     pub target: TargetArgs,
 
     pub path: String,
-
-    pub contents: String,
-
-    #[arg(long = "create")]
-    pub create: bool,
-}
-
-#[derive(Debug, Clone, Args)]
-pub struct FileDeleteArgs {
-    #[command(flatten)]
-    pub target: TargetArgs,
-
-    pub path: String,
-
-    #[arg(long = "recursive")]
-    pub recursive: bool,
 }
 
 #[derive(Debug, Clone, Args)]
@@ -739,6 +729,28 @@ pub struct DriveUpdateArgs {
 
     /// Object content, parsed as JSON when possible and otherwise treated as a string.
     pub content: String,
+}
+
+#[derive(Debug, Clone, Subcommand)]
+pub enum DriveObjectCommand {
+    /// Open or mutate sharing surfaces for a Drive object.
+    #[command(subcommand)]
+    Share(DriveObjectShareCommand),
+}
+
+#[derive(Debug, Clone, Subcommand)]
+pub enum DriveObjectShareCommand {
+    /// Open the sharing dialog for a Drive object.
+    Open(DriveObjectShareOpenArgs),
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct DriveObjectShareOpenArgs {
+    #[command(flatten)]
+    pub target: TargetArgs,
+
+    /// Opaque Warp Drive object id.
+    pub id: String,
 }
 
 #[derive(Debug, Clone, Args)]

@@ -1270,6 +1270,68 @@ fn app_surface_actions_use_app_state_mutation_permission() {
 }
 
 #[test]
+fn file_project_and_drive_actions_use_app_state_permission_and_validation() {
+    let caps = capabilities();
+    for action in [
+        ActionKind::FileOpen,
+        ActionKind::ProjectOpen,
+        ActionKind::DriveOpen,
+        ActionKind::DriveObjectShareOpen,
+    ] {
+        assert!(
+            caps.contains(&action),
+            "{} should be advertised",
+            action.as_str()
+        );
+        assert_eq!(
+            action.metadata().permission_category,
+            PermissionCategory::MutateAppState,
+            "{} should use MutateAppState permission",
+            action.as_str()
+        );
+        ensure_settings_allow_action(
+            &settings_with_values(true, false, false, true, false, false),
+            InvocationContext::OutsideWarp,
+            action,
+        )
+        .unwrap_or_else(|_| panic!("app-state mutation permission allows {}", action.as_str()));
+    }
+
+    validate_action_params(&Action {
+        kind: ActionKind::FileOpen,
+        params: serde_json::json!({ "path": "src/main.rs", "line": 1, "column": 1, "new_window": false }),
+    })
+    .expect("file.open accepts valid params");
+    let err = validate_action_params(&Action {
+        kind: ActionKind::FileOpen,
+        params: serde_json::json!({ "path": "src/main.rs", "line": 0 }),
+    })
+    .expect_err("file.open rejects zero line");
+    assert_eq!(err.code, ErrorCode::InvalidParams);
+
+    let err = validate_action_params(&Action {
+        kind: ActionKind::ProjectOpen,
+        params: serde_json::json!({ "path": "" }),
+    })
+    .expect_err("project.open rejects empty path");
+    assert_eq!(err.code, ErrorCode::InvalidParams);
+
+    let err = validate_action_params(&Action {
+        kind: ActionKind::DriveOpen,
+        params: serde_json::json!({ "object_type": "notebook", "id": "" }),
+    })
+    .expect_err("drive.open rejects empty id");
+    assert_eq!(err.code, ErrorCode::InvalidParams);
+
+    let err = validate_action_params(&Action {
+        kind: ActionKind::DriveObjectShareOpen,
+        params: serde_json::json!({ "id": "" }),
+    })
+    .expect_err("drive.object.share.open rejects empty id");
+    assert_eq!(err.code, ErrorCode::InvalidParams);
+}
+
+#[test]
 fn settings_mutations_require_authenticated_user() {
     for action in [
         ActionKind::ThemeSet,

@@ -235,10 +235,16 @@ pub enum ActionKind {
     ProjectActive,
     #[serde(rename = "project.list")]
     ProjectList,
+    #[serde(rename = "project.open")]
+    ProjectOpen,
     #[serde(rename = "drive.list")]
     DriveList,
     #[serde(rename = "drive.get")]
     DriveGet,
+    #[serde(rename = "drive.open")]
+    DriveOpen,
+    #[serde(rename = "drive.object.share.open")]
+    DriveObjectShareOpen,
     #[serde(rename = "drive.create")]
     DriveCreate,
     #[serde(rename = "drive.update")]
@@ -316,8 +322,11 @@ impl ActionKind {
         Self::FileDelete,
         Self::ProjectActive,
         Self::ProjectList,
+        Self::ProjectOpen,
         Self::DriveList,
         Self::DriveGet,
+        Self::DriveOpen,
+        Self::DriveObjectShareOpen,
         Self::DriveCreate,
         Self::DriveUpdate,
         Self::DriveDelete,
@@ -389,8 +398,11 @@ impl ActionKind {
             Self::FileDelete => "file.delete",
             Self::ProjectActive => "project.active",
             Self::ProjectList => "project.list",
+            Self::ProjectOpen => "project.open",
             Self::DriveList => "drive.list",
             Self::DriveGet => "drive.get",
+            Self::DriveOpen => "drive.open",
+            Self::DriveObjectShareOpen => "drive.object.share.open",
             Self::DriveCreate => "drive.create",
             Self::DriveUpdate => "drive.update",
             Self::DriveDelete => "drive.delete",
@@ -455,7 +467,11 @@ impl ActionKind {
             | Self::AppResourceCenterToggle
             | Self::AppAiAssistantToggle
             | Self::AppCodeReviewToggle
-            | Self::AppVerticalTabsToggle => ActionImplementationStatus::Implemented,
+            | Self::AppVerticalTabsToggle
+            | Self::FileOpen
+            | Self::ProjectOpen
+            | Self::DriveOpen
+            | Self::DriveObjectShareOpen => ActionImplementationStatus::Implemented,
             _ => ActionImplementationStatus::Stub,
         };
         let requires_authenticated_user = self.default_requires_authenticated_user();
@@ -564,7 +580,10 @@ impl ActionKind {
             | Self::AppearanceZoom
             | Self::SettingSet
             | Self::SettingToggle
-            | Self::FileOpen => RiskTier::MutatingNonDestructive,
+            | Self::FileOpen
+            | Self::ProjectOpen
+            | Self::DriveOpen
+            | Self::DriveObjectShareOpen => RiskTier::MutatingNonDestructive,
         }
     }
 
@@ -639,7 +658,10 @@ impl ActionKind {
             | Self::PaneSessionPrevious
             | Self::PaneSessionNext
             | Self::PaneSessionReopen
-            | Self::FileOpen => StateDataCategory::AppStateMutation,
+            | Self::FileOpen
+            | Self::ProjectOpen
+            | Self::DriveOpen
+            | Self::DriveObjectShareOpen => StateDataCategory::AppStateMutation,
         }
     }
 
@@ -702,6 +724,9 @@ impl ActionKind {
                 | Self::SettingSet
                 | Self::SettingToggle
                 | Self::FileOpen
+                | Self::ProjectOpen
+                | Self::DriveOpen
+                | Self::DriveObjectShareOpen
                 | Self::FileWrite
                 | Self::FileDelete
                 | Self::DriveCreate
@@ -761,7 +786,11 @@ impl ActionKind {
             | Self::AppResourceCenterToggle
             | Self::AppAiAssistantToggle
             | Self::AppCodeReviewToggle
-            | Self::AppVerticalTabsToggle => {
+            | Self::AppVerticalTabsToggle
+            | Self::FileOpen
+            | Self::ProjectOpen
+            | Self::DriveOpen
+            | Self::DriveObjectShareOpen => {
                 return vec![InvocationContext::OutsideWarp];
             }
             Self::PaneSessionPrevious
@@ -835,9 +864,11 @@ impl ActionKind {
             Self::FileList | Self::FileOpen | Self::FileWrite | Self::FileDelete => {
                 TargetScope::File
             }
-            Self::ProjectActive | Self::ProjectList => TargetScope::Project,
+            Self::ProjectActive | Self::ProjectList | Self::ProjectOpen => TargetScope::Project,
             Self::DriveList
             | Self::DriveGet
+            | Self::DriveOpen
+            | Self::DriveObjectShareOpen
             | Self::DriveCreate
             | Self::DriveUpdate
             | Self::DriveDelete

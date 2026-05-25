@@ -432,6 +432,37 @@ fn file_open_is_app_state_mutation_not_underlying_data() {
 }
 
 #[test]
+fn file_project_and_drive_open_are_app_state_mutations() {
+    for (action, target_scope) in [
+        (ActionKind::FileOpen, TargetScope::File),
+        (ActionKind::ProjectOpen, TargetScope::Project),
+        (ActionKind::DriveOpen, TargetScope::Drive),
+        (ActionKind::DriveObjectShareOpen, TargetScope::Drive),
+    ] {
+        let metadata = action.metadata();
+        assert_eq!(
+            metadata.implementation_status,
+            ActionImplementationStatus::Implemented
+        );
+        assert_eq!(metadata.risk_tier, RiskTier::MutatingNonDestructive);
+        assert_eq!(
+            metadata.state_data_category,
+            StateDataCategory::AppStateMutation
+        );
+        assert_eq!(
+            metadata.permission_category,
+            PermissionCategory::MutateAppState
+        );
+        assert!(metadata.authenticated_user.required);
+        assert_eq!(
+            metadata.allowed_invocation_contexts,
+            vec![InvocationContext::OutsideWarp]
+        );
+        assert_eq!(metadata.target_scope, target_scope);
+    }
+}
+
+#[test]
 fn mutating_contract_preserves_distinct_permission_categories() {
     for action in [
         ActionKind::AppFocus,

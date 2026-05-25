@@ -331,6 +331,8 @@ pub struct FileOpenParams {
     pub path: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub line: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub column: Option<u32>,
     #[serde(default)]
     pub new_window: bool,
 }
@@ -358,6 +360,12 @@ pub struct ProjectActiveParams {}
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ProjectListParams {}
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ProjectOpenParams {
+    pub path: String,
+}
+
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DriveListParams {
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -368,6 +376,19 @@ pub struct DriveListParams {
 #[serde(deny_unknown_fields)]
 pub struct DriveGetParams {
     pub object_type: DriveObjectType,
+    pub id: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DriveOpenParams {
+    pub object_type: DriveObjectType,
+    pub id: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DriveObjectShareOpenParams {
     pub id: String,
 }
 

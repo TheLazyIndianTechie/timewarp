@@ -170,6 +170,63 @@ fn parses_underlying_data_read_commands() {
 }
 
 #[test]
+fn parses_file_project_and_drive_app_state_commands() {
+    let args = ControlArgs::try_parse_from([
+        "warpctrl",
+        "file",
+        "open",
+        "--line",
+        "12",
+        "--column",
+        "4",
+        "src/main.rs",
+    ])
+    .expect("file open parses");
+    let ControlCommand::File(FileCommand::Open(file)) = args.command else {
+        panic!("expected file open command");
+    };
+    assert_eq!(file.path, "src/main.rs");
+    assert_eq!(file.line, Some(12));
+    assert_eq!(file.column, Some(4));
+
+    let args = ControlArgs::try_parse_from(["warpctrl", "project", "open", "/tmp/repo"])
+        .expect("project open parses");
+    let ControlCommand::Project(ProjectCommand::Open(project)) = args.command else {
+        panic!("expected project open command");
+    };
+    assert_eq!(project.path, "/tmp/repo");
+
+    let args = ControlArgs::try_parse_from([
+        "warpctrl",
+        "drive",
+        "open",
+        "--type",
+        "notebook",
+        "notebook_123",
+    ])
+    .expect("drive open parses");
+    let ControlCommand::Drive(DriveCommand::Open(drive)) = args.command else {
+        panic!("expected drive open command");
+    };
+    assert!(matches!(drive.object_type, DriveObjectTypeArg::Notebook));
+    assert_eq!(drive.id, "notebook_123");
+
+    let args =
+        ControlArgs::try_parse_from(["warpctrl", "drive", "object", "share", "open", "object_123"])
+            .expect("drive object share open parses");
+    let ControlCommand::Drive(DriveCommand::Object(DriveObjectCommand::Share(
+        DriveObjectShareCommand::Open(share),
+    ))) = args.command
+    else {
+        panic!("expected drive object share open command");
+    };
+    assert_eq!(share.id, "object_123");
+
+    assert!(ControlArgs::try_parse_from(["warpctrl", "file", "write", "a.txt", "body"]).is_err());
+    assert!(ControlArgs::try_parse_from(["warpctrl", "file", "delete", "a.txt"]).is_err());
+}
+
+#[test]
 fn parses_completion_generation_command() {
     let args = ControlArgs::try_parse_from(["warpctrl", "completions", "bash"])
         .expect("completions parses");

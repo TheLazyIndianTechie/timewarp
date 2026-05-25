@@ -3,14 +3,15 @@ use local_control::protocol::{
     Action, ActionGetParams, ActionKind, ActionMetadata, AppFocusParams, AppSurfaceParams,
     AppearanceFontSizeParams, AppearanceSetParams, AppearanceZoomParams, ControlError,
     DriveCreateParams, DriveDeleteParams, DriveGetParams, DriveInsertParams, DriveListParams,
-    DriveRunParams, DriveUpdateParams, EmptyParams, ErrorCode, FileDeleteParams, FileListParams,
-    FileOpenParams, FileWriteParams, HorizontalDirection, InputClearParams, InputInsertParams,
-    InputMode, InputModeSetParams, InputReplaceParams, InputRunParams, PaneCloseParams,
-    PaneDirection, PaneFocusParams, PaneMaximizeParams, PaneNavigateParams, PaneResizeParams,
-    PaneSplitParams, ProjectActiveParams, ProjectListParams, RequestEnvelope, SettingGetParams,
-    SettingListParams, SettingSetParams, SettingToggleParams, SizeAdjustment, TabActivateParams,
-    TabActivationTarget, TabCloseParams, TabCloseScope, TabMoveParams, TabRenameParams,
-    ThemeSetParams, WindowCloseParams, WindowCreateParams, WindowFocusParams,
+    DriveObjectShareOpenParams, DriveOpenParams, DriveRunParams, DriveUpdateParams, EmptyParams,
+    ErrorCode, FileListParams, FileOpenParams, HorizontalDirection, InputClearParams,
+    InputInsertParams, InputMode, InputModeSetParams, InputReplaceParams, InputRunParams,
+    PaneCloseParams, PaneDirection, PaneFocusParams, PaneMaximizeParams, PaneNavigateParams,
+    PaneResizeParams, PaneSplitParams, ProjectActiveParams, ProjectListParams, ProjectOpenParams,
+    RequestEnvelope, SettingGetParams, SettingListParams, SettingSetParams, SettingToggleParams,
+    SizeAdjustment, TabActivateParams, TabActivationTarget, TabCloseParams, TabCloseScope,
+    TabMoveParams, TabRenameParams, ThemeSetParams, WindowCloseParams, WindowCreateParams,
+    WindowFocusParams,
 };
 use local_control::selection::select_instance;
 use serde::Serialize;
@@ -566,26 +567,8 @@ pub(super) fn run_file_command(
             FileOpenParams {
                 path: args.path,
                 line: args.line,
+                column: args.column,
                 new_window: args.new_window,
-            },
-            output_format,
-        ),
-        FileCommand::Write(args) => run_action_with_params(
-            args.target,
-            ActionKind::FileWrite,
-            FileWriteParams {
-                path: args.path,
-                contents: args.contents,
-                create: args.create,
-            },
-            output_format,
-        ),
-        FileCommand::Delete(args) => run_action_with_params(
-            args.target,
-            ActionKind::FileDelete,
-            FileDeleteParams {
-                path: args.path,
-                recursive: args.recursive,
             },
             output_format,
         ),
@@ -607,6 +590,12 @@ pub(super) fn run_project_command(
             args,
             ActionKind::ProjectList,
             ProjectListParams::default(),
+            output_format,
+        ),
+        ProjectCommand::Open(args) => run_action_with_params(
+            args.target,
+            ActionKind::ProjectOpen,
+            ProjectOpenParams { path: args.path },
             output_format,
         ),
     }
@@ -634,6 +623,16 @@ pub(super) fn run_drive_command(
             },
             output_format,
         ),
+        DriveCommand::Open(args) => run_action_with_params(
+            args.target,
+            ActionKind::DriveOpen,
+            DriveOpenParams {
+                object_type: args.object_type.into(),
+                id: args.id,
+            },
+            output_format,
+        ),
+        DriveCommand::Object(command) => run_drive_object_command(command, output_format),
         DriveCommand::Create(args) => run_action_with_params(
             args.target,
             ActionKind::DriveCreate,
@@ -681,6 +680,22 @@ pub(super) fn run_drive_command(
             },
             output_format,
         ),
+    }
+}
+
+fn run_drive_object_command(
+    command: crate::local_control::DriveObjectCommand,
+    output_format: OutputFormat,
+) -> Result<(), ControlError> {
+    match command {
+        crate::local_control::DriveObjectCommand::Share(share) => match share {
+            crate::local_control::DriveObjectShareCommand::Open(args) => run_action_with_params(
+                args.target,
+                ActionKind::DriveObjectShareOpen,
+                DriveObjectShareOpenParams { id: args.id },
+                output_format,
+            ),
+        },
     }
 }
 
