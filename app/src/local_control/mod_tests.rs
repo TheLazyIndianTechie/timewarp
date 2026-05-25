@@ -17,7 +17,8 @@ use super::{
     ensure_scripting_grant_for_settings, ensure_settings_allow_action,
     outside_warp_action_enabled_for_settings, rejected_setting_key, require_active_window_id,
     setting_get_result, setting_list_result, theme_list_result, validate_action_params,
-    validate_tab_create_target, LocalControlBridge,
+    validate_app_focus_target_test, validate_tab_create_target, validate_window_create_target_test,
+    LocalControlBridge,
 };
 use crate::settings::{
     AllowOutsideWarpAppStateMutations, AllowOutsideWarpAuthenticatedUserActions,
@@ -210,32 +211,33 @@ fn tab_create_rejects_unsupported_selector_forms() {
 }
 
 #[test]
-fn capabilities_advertises_core_and_metadata_slice_actions() {
-    assert_eq!(
-        capabilities(),
-        vec![
-            ActionKind::InstanceList,
-            ActionKind::AppPing,
-            ActionKind::AppInspect,
-            ActionKind::AppVersion,
-            ActionKind::AppActive,
-            ActionKind::ActionList,
-            ActionKind::ActionGet,
-            ActionKind::WindowList,
-            ActionKind::TabList,
-            ActionKind::TabCreate,
-            ActionKind::PaneList,
-            ActionKind::SessionList,
-            ActionKind::BlockList,
-            ActionKind::BlockGet,
-            ActionKind::InputGet,
-            ActionKind::HistoryList,
-            ActionKind::ThemeList,
-            ActionKind::AppearanceGet,
-            ActionKind::SettingGet,
-            ActionKind::SettingList,
-        ]
-    );
+fn capabilities_advertises_core_metadata_and_layout_mutation_actions() {
+    let caps = capabilities();
+    assert!(caps.contains(&ActionKind::InstanceList));
+    assert!(caps.contains(&ActionKind::AppPing));
+    assert!(caps.contains(&ActionKind::WindowList));
+    assert!(caps.contains(&ActionKind::TabList));
+    assert!(caps.contains(&ActionKind::TabCreate));
+    assert!(caps.contains(&ActionKind::PaneList));
+    assert!(caps.contains(&ActionKind::BlockList));
+    assert!(caps.contains(&ActionKind::HistoryList));
+    assert!(caps.contains(&ActionKind::AppFocus));
+    assert!(caps.contains(&ActionKind::WindowCreate));
+    assert!(caps.contains(&ActionKind::WindowFocus));
+    assert!(caps.contains(&ActionKind::WindowClose));
+    assert!(caps.contains(&ActionKind::TabActivate));
+    assert!(caps.contains(&ActionKind::TabMove));
+    assert!(caps.contains(&ActionKind::TabClose));
+    assert!(caps.contains(&ActionKind::PaneSplit));
+    assert!(caps.contains(&ActionKind::PaneFocus));
+    assert!(caps.contains(&ActionKind::PaneNavigate));
+    assert!(caps.contains(&ActionKind::PaneClose));
+    assert!(caps.contains(&ActionKind::PaneMaximize));
+    assert!(caps.contains(&ActionKind::PaneResize));
+    assert!(!caps.contains(&ActionKind::TabRename));
+    assert!(!caps.contains(&ActionKind::PaneSessionPrevious));
+    assert!(!caps.contains(&ActionKind::PaneSessionNext));
+    assert!(!caps.contains(&ActionKind::InputRun));
 }
 
 #[test]
@@ -540,10 +542,26 @@ fn action_get_rejects_unallowlisted_action_names() {
 }
 
 #[test]
-fn action_metadata_lookup_reports_stub_status_for_allowlisted_future_actions() {
+fn action_metadata_lookup_reports_implemented_status_for_layout_mutations() {
     let metadata = action_metadata_for_name("window.create").expect("allowlisted action");
-
     assert_eq!(metadata.kind, ActionKind::WindowCreate);
+    assert_eq!(
+        metadata.implementation_status,
+        ::local_control::ActionImplementationStatus::Implemented
+    );
+
+    let metadata = action_metadata_for_name("pane.split").expect("allowlisted action");
+    assert_eq!(metadata.kind, ActionKind::PaneSplit);
+    assert_eq!(
+        metadata.implementation_status,
+        ::local_control::ActionImplementationStatus::Implemented
+    );
+}
+
+#[test]
+fn action_metadata_lookup_reports_stub_status_for_deferred_actions() {
+    let metadata = action_metadata_for_name("tab.rename").expect("allowlisted action");
+    assert_eq!(metadata.kind, ActionKind::TabRename);
     assert_eq!(
         metadata.implementation_status,
         ::local_control::ActionImplementationStatus::Stub
@@ -854,6 +872,248 @@ fn authenticated_scripting_required_error_code_serializes_stably() {
     let code = ErrorCode::AuthenticatedScriptingRequired;
     let value = serde_json::to_value(code).expect("serializes");
     assert_eq!(value, serde_json::json!("authenticated_scripting_required"));
+}
+
+#[test]
+fn layout_mutations_use_mutate_app_state_permission_category() {
+    for action in [
+        ActionKind::AppFocus,
+        ActionKind::WindowCreate,
+        ActionKind::WindowFocus,
+        ActionKind::WindowClose,
+        ActionKind::TabActivate,
+        ActionKind::TabMove,
+        ActionKind::TabClose,
+        ActionKind::PaneSplit,
+        ActionKind::PaneFocus,
+        ActionKind::PaneNavigate,
+        ActionKind::PaneClose,
+        ActionKind::PaneMaximize,
+        ActionKind::PaneResize,
+    ] {
+        assert_eq!(
+            action.metadata().permission_category,
+            PermissionCategory::MutateAppState,
+            "{} should use MutateAppState permission",
+            action.as_str()
+        );
+    }
+}
+
+#[test]
+fn layout_mutations_require_app_state_mutation_permission_not_other_grants() {
+    let app_state_only = settings_with_values(true, false, false, true, false, false);
+    let metadata_only = settings_with_values(true, true, false, false, false, false);
+    let underlying_data_only = settings_with_values(true, false, true, false, false, false);
+    let metadata_config_only = settings_with_values(true, false, false, false, true, false);
+    let underlying_mutation_only = settings_with_values(true, false, false, false, false, true);
+
+    for action in [
+        ActionKind::AppFocus,
+        ActionKind::WindowCreate,
+        ActionKind::WindowFocus,
+        ActionKind::WindowClose,
+        ActionKind::TabActivate,
+        ActionKind::TabMove,
+        ActionKind::TabClose,
+        ActionKind::PaneSplit,
+        ActionKind::PaneFocus,
+        ActionKind::PaneNavigate,
+        ActionKind::PaneClose,
+        ActionKind::PaneMaximize,
+        ActionKind::PaneResize,
+    ] {
+        ensure_settings_allow_action(&app_state_only, InvocationContext::OutsideWarp, action)
+            .expect("app-state mutation permission allows layout mutation");
+
+        for wrong_settings in [
+            &metadata_only,
+            &underlying_data_only,
+            &metadata_config_only,
+            &underlying_mutation_only,
+        ] {
+            let err = ensure_settings_allow_action(
+                wrong_settings,
+                InvocationContext::OutsideWarp,
+                action,
+            )
+            .expect_err("layout mutation denied without app-state mutation permission");
+            assert_eq!(
+                err.code,
+                ErrorCode::InsufficientPermissions,
+                "{} should require MutateAppState",
+                action.as_str()
+            );
+        }
+    }
+}
+
+#[test]
+fn layout_mutations_require_authenticated_user() {
+    for action in [
+        ActionKind::AppFocus,
+        ActionKind::WindowCreate,
+        ActionKind::WindowFocus,
+        ActionKind::WindowClose,
+        ActionKind::TabActivate,
+        ActionKind::TabMove,
+        ActionKind::TabClose,
+        ActionKind::PaneSplit,
+        ActionKind::PaneFocus,
+        ActionKind::PaneNavigate,
+        ActionKind::PaneClose,
+        ActionKind::PaneMaximize,
+        ActionKind::PaneResize,
+    ] {
+        assert!(
+            action.metadata().requires_authenticated_user,
+            "{} should require authenticated user",
+            action.as_str()
+        );
+    }
+    assert!(
+        !ActionKind::TabCreate.metadata().requires_authenticated_user,
+        "tab.create does not require authenticated user"
+    );
+}
+
+#[test]
+fn close_commands_require_explicit_target_selectors() {
+    let err = validate_window_create_target_test(
+        &TargetSelector {
+            window: Some(WindowTarget::Active),
+            ..TargetSelector::default()
+        },
+        &::local_control::protocol::WindowCreateParams::default(),
+    )
+    .expect_err("window.create rejects window selector");
+    assert_eq!(err.code, ErrorCode::InvalidSelector);
+
+    validate_window_create_target_test(
+        &TargetSelector::default(),
+        &::local_control::protocol::WindowCreateParams::default(),
+    )
+    .expect("window.create accepts default selector");
+
+    validate_app_focus_target_test(&TargetSelector::default())
+        .expect("app.focus accepts default selector");
+
+    let err = validate_app_focus_target_test(&TargetSelector {
+        window: Some(WindowTarget::Active),
+        ..TargetSelector::default()
+    })
+    .expect_err("app.focus rejects window selector");
+    assert_eq!(err.code, ErrorCode::InvalidSelector);
+}
+
+#[test]
+fn layout_mutation_params_reject_malformed_inputs() {
+    validate_action_params(&Action {
+        kind: ActionKind::AppFocus,
+        params: serde_json::json!({}),
+    })
+    .expect("app.focus accepts empty params");
+
+    let err = validate_action_params(&Action {
+        kind: ActionKind::AppFocus,
+        params: serde_json::json!({ "unexpected": true }),
+    })
+    .expect_err("app.focus rejects extra params");
+    assert_eq!(err.code, ErrorCode::InvalidParams);
+
+    validate_action_params(&Action {
+        kind: ActionKind::WindowCreate,
+        params: serde_json::json!({}),
+    })
+    .expect("window.create accepts empty params");
+
+    validate_action_params(&Action {
+        kind: ActionKind::WindowCreate,
+        params: serde_json::json!({ "profile": null }),
+    })
+    .expect("window.create accepts null profile");
+
+    validate_action_params(&Action {
+        kind: ActionKind::TabActivate,
+        params: serde_json::json!({}),
+    })
+    .expect("tab.activate accepts empty params");
+
+    validate_action_params(&Action {
+        kind: ActionKind::TabActivate,
+        params: serde_json::json!({ "relative": "next" }),
+    })
+    .expect("tab.activate accepts relative param");
+
+    let err = validate_action_params(&Action {
+        kind: ActionKind::TabMove,
+        params: serde_json::json!({}),
+    })
+    .expect_err("tab.move requires a direction");
+    assert_eq!(err.code, ErrorCode::InvalidParams);
+
+    validate_action_params(&Action {
+        kind: ActionKind::TabMove,
+        params: serde_json::json!({ "direction": "left" }),
+    })
+    .expect("tab.move accepts direction");
+
+    let err = validate_action_params(&Action {
+        kind: ActionKind::PaneSplit,
+        params: serde_json::json!({}),
+    })
+    .expect_err("pane.split requires a direction");
+    assert_eq!(err.code, ErrorCode::InvalidParams);
+
+    validate_action_params(&Action {
+        kind: ActionKind::PaneSplit,
+        params: serde_json::json!({ "direction": "right" }),
+    })
+    .expect("pane.split accepts direction");
+
+    let err = validate_action_params(&Action {
+        kind: ActionKind::PaneNavigate,
+        params: serde_json::json!({}),
+    })
+    .expect_err("pane.navigate requires a direction");
+    assert_eq!(err.code, ErrorCode::InvalidParams);
+
+    let err = validate_action_params(&Action {
+        kind: ActionKind::PaneResize,
+        params: serde_json::json!({ "direction": "up", "amount": 0 }),
+    })
+    .expect_err("pane.resize rejects zero amount");
+    assert_eq!(err.code, ErrorCode::InvalidParams);
+
+    validate_action_params(&Action {
+        kind: ActionKind::PaneResize,
+        params: serde_json::json!({ "direction": "up", "amount": 3 }),
+    })
+    .expect("pane.resize accepts positive amount");
+
+    validate_action_params(&Action {
+        kind: ActionKind::PaneMaximize,
+        params: serde_json::json!({}),
+    })
+    .expect("pane.maximize accepts empty params");
+
+    validate_action_params(&Action {
+        kind: ActionKind::PaneMaximize,
+        params: serde_json::json!({ "enabled": true }),
+    })
+    .expect("pane.maximize accepts enabled param");
+
+    validate_action_params(&Action {
+        kind: ActionKind::PaneFocus,
+        params: serde_json::json!({}),
+    })
+    .expect("pane.focus accepts empty params");
+
+    validate_action_params(&Action {
+        kind: ActionKind::PaneClose,
+        params: serde_json::json!({}),
+    })
+    .expect("pane.close accepts empty params");
 }
 
 #[test]

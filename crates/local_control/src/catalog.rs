@@ -416,7 +416,20 @@ impl ActionKind {
             | Self::ThemeList
             | Self::AppearanceGet
             | Self::SettingGet
-            | Self::SettingList => ActionImplementationStatus::Implemented,
+            | Self::SettingList
+            | Self::AppFocus
+            | Self::WindowCreate
+            | Self::WindowFocus
+            | Self::WindowClose
+            | Self::TabActivate
+            | Self::TabMove
+            | Self::TabClose
+            | Self::PaneSplit
+            | Self::PaneFocus
+            | Self::PaneNavigate
+            | Self::PaneClose
+            | Self::PaneMaximize
+            | Self::PaneResize => ActionImplementationStatus::Implemented,
             _ => ActionImplementationStatus::Stub,
         };
         let requires_authenticated_user = self.default_requires_authenticated_user();

@@ -1,8 +1,10 @@
 //! Target and parameter validation for the first local-control action slice.
 use crate::local_control::handlers::metadata::action_metadata_for_name;
 use ::local_control::protocol::{
-    ActionGetParams, BlockGetParams, BlockListParams, HistoryListParams, PaneTarget, SessionTarget,
-    SettingGetParams, TabTarget, TargetSelector, WindowTarget,
+    ActionGetParams, BlockGetParams, BlockListParams, HistoryListParams, PaneMaximizeParams,
+    PaneNavigateParams, PaneResizeParams, PaneSplitParams, PaneTarget, SessionTarget,
+    SettingGetParams, TabActivateParams, TabCloseParams, TabMoveParams, TabTarget, TargetSelector,
+    WindowCloseParams, WindowCreateParams, WindowTarget,
 };
 use ::local_control::{ActionKind, ControlError, ErrorCode};
 use warpui::ModelContext;
@@ -87,7 +89,28 @@ pub(crate) fn validate_action_params(action: &::local_control::Action) -> Result
         | ActionKind::InputGet
         | ActionKind::ThemeList
         | ActionKind::AppearanceGet
-        | ActionKind::SettingList => validate_empty_action_params(action),
+        | ActionKind::SettingList
+        | ActionKind::AppFocus
+        | ActionKind::WindowFocus
+        | ActionKind::PaneFocus
+        | ActionKind::PaneClose => validate_empty_action_params(action),
+        ActionKind::WindowCreate => action.params_as::<WindowCreateParams>().map(|_| ()),
+        ActionKind::WindowClose => action.params_as::<WindowCloseParams>().map(|_| ()),
+        ActionKind::TabActivate => action.params_as::<TabActivateParams>().map(|_| ()),
+        ActionKind::TabMove => action.params_as::<TabMoveParams>().map(|_| ()),
+        ActionKind::TabClose => action.params_as::<TabCloseParams>().map(|_| ()),
+        ActionKind::PaneSplit => action.params_as::<PaneSplitParams>().map(|_| ()),
+        ActionKind::PaneNavigate => action.params_as::<PaneNavigateParams>().map(|_| ()),
+        ActionKind::PaneMaximize => action.params_as::<PaneMaximizeParams>().map(|_| ()),
+        ActionKind::PaneResize => action.params_as::<PaneResizeParams>().and_then(|params| {
+            if params.amount == Some(0) {
+                return Err(ControlError::new(
+                    ErrorCode::InvalidParams,
+                    "pane.resize amount must be greater than zero",
+                ));
+            }
+            Ok(())
+        }),
         ActionKind::BlockList => action.params_as::<BlockListParams>().map(|_| ()),
         ActionKind::BlockGet => action.params_as::<BlockGetParams>().and_then(|params| {
             if params.block_id.is_empty() {
