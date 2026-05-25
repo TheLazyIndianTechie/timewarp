@@ -29,9 +29,23 @@ fn ambiguous_target_error_code_is_stable() {
 }
 
 #[test]
-fn input_run_is_not_in_the_allowlisted_catalog() {
-    let action = serde_json::from_value::<ActionKind>(serde_json::json!("input.run"));
-    assert!(action.is_err());
+fn input_run_is_cataloged_as_authenticated_underlying_mutation_stub() {
+    let action = serde_json::from_value::<ActionKind>(serde_json::json!("input.run"))
+        .expect("input.run is cataloged");
+    let metadata = action.metadata();
+    assert_eq!(
+        metadata.implementation_status,
+        ActionImplementationStatus::Stub
+    );
+    assert_eq!(
+        metadata.permission_category,
+        PermissionCategory::MutateUnderlyingData
+    );
+    assert_eq!(
+        metadata.state_data_category,
+        StateDataCategory::UnderlyingDataMutation
+    );
+    assert!(metadata.requires_authenticated_user);
 }
 #[test]
 fn malformed_action_name_is_not_deserialized() {
@@ -110,7 +124,7 @@ fn default_permissions_preserve_security_categories() {
     );
     assert_eq!(
         ActionKind::InputInsert.metadata().permission_category,
-        PermissionCategory::MutateUnderlyingData
+        PermissionCategory::MutateAppState
     );
     assert_eq!(
         ActionKind::SettingSet.metadata().permission_category,
@@ -129,8 +143,86 @@ fn non_first_slice_actions_are_catalog_stubs() {
         ActionImplementationStatus::Stub
     );
     assert!(
-        !metadata
+        metadata
             .allowed_invocation_contexts
             .contains(&InvocationContext::OutsideWarp)
     );
+}
+
+#[test]
+fn file_content_actions_are_explicitly_excluded() {
+    for action_name in EXCLUDED_FILE_CONTENT_ACTION_NAMES {
+        let action = serde_json::from_str::<ActionKind>(&format!("\"{action_name}\""));
+        assert!(action.is_err(), "{action_name} must not be allowlisted");
+    }
+    assert_eq!(
+        ActionKind::FileOpen.metadata().permission_category,
+        PermissionCategory::MutateAppState
+    );
+    assert_eq!(
+        ActionKind::FileList.metadata().permission_category,
+        PermissionCategory::ReadMetadata
+    );
+}
+
+#[test]
+fn drive_sharing_contract_distinguishes_dialog_from_team_mutation() {
+    let share_open = ActionKind::DriveObjectShareOpen.metadata();
+    assert_eq!(share_open.name, "drive.object.share.open");
+    assert_eq!(
+        share_open.state_data_category,
+        StateDataCategory::AppStateMutation
+    );
+    assert_eq!(
+        share_open.permission_category,
+        PermissionCategory::MutateAppState
+    );
+    assert!(share_open.requires_authenticated_user);
+
+    let share_to_team = ActionKind::DriveObjectShareToTeam.metadata();
+    assert_eq!(share_to_team.name, "drive.object.share_to_team");
+    assert_eq!(
+        share_to_team.state_data_category,
+        StateDataCategory::UnderlyingDataMutation
+    );
+    assert_eq!(
+        share_to_team.permission_category,
+        PermissionCategory::MutateUnderlyingData
+    );
+    assert!(share_to_team.requires_authenticated_user);
+}
+
+#[test]
+fn action_catalog_has_unique_stable_names() {
+    let mut names = std::collections::BTreeSet::new();
+    for action in ActionKind::ALL {
+        assert!(
+            names.insert(action.as_str()),
+            "duplicate action name {}",
+            action.as_str()
+        );
+        let serialized = serde_json::to_value(action).expect("action serializes");
+        assert_eq!(serialized, serde_json::json!(action.as_str()));
+    }
+}
+
+#[test]
+fn drive_selector_and_typed_params_serialize_stably() {
+    let target = TargetSelector {
+        drive_object: Some(DriveObjectTarget::Lookup {
+            object_type: DriveObjectType::Notebook,
+            name_or_path: "Team/Runbook".to_owned(),
+        }),
+        ..TargetSelector::default()
+    };
+    let value = serde_json::to_value(target).expect("target serializes");
+    assert_eq!(value["drive_object"]["type"], "lookup");
+    assert_eq!(value["drive_object"]["object_type"], "notebook");
+
+    let params = ActionParams::DriveObjectId {
+        id: DriveObjectId("drive_123".to_owned()),
+    };
+    let value = serde_json::to_value(params).expect("params serialize");
+    assert_eq!(value["type"], "drive_object_id");
+    assert_eq!(value["id"], "drive_123");
 }

@@ -58,6 +58,7 @@ fn tab_create_accepts_default_and_active_targets() {
         window: Some(WindowTarget::Active),
         tab: Some(TabTarget::Active),
         pane: Some(PaneTarget::Active),
+        ..TargetSelector::default()
     })
     .expect("active target is accepted");
 }
@@ -68,28 +69,25 @@ fn tab_create_rejects_concrete_targets() {
         window: Some(WindowTarget::Id {
             id: WindowSelector("window".to_owned()),
         }),
-        tab: None,
-        pane: None,
+        ..TargetSelector::default()
     })
     .expect_err("concrete window target is rejected");
     assert_eq!(err.code, ErrorCode::StaleTarget);
 
     let err = validate_tab_create_target(&TargetSelector {
-        window: None,
         tab: Some(TabTarget::Id {
             id: TabSelector("tab".to_owned()),
         }),
-        pane: None,
+        ..TargetSelector::default()
     })
     .expect_err("concrete tab target is rejected");
     assert_eq!(err.code, ErrorCode::StaleTarget);
 
     let err = validate_tab_create_target(&TargetSelector {
-        window: None,
-        tab: None,
         pane: Some(PaneTarget::Id {
             id: PaneSelector("pane".to_owned()),
         }),
+        ..TargetSelector::default()
     })
     .expect_err("concrete pane target is rejected");
     assert_eq!(err.code, ErrorCode::StaleTarget);
@@ -99,16 +97,14 @@ fn tab_create_rejects_concrete_targets() {
 fn tab_create_rejects_unsupported_selector_forms() {
     let err = validate_tab_create_target(&TargetSelector {
         window: Some(WindowTarget::Index { index: 0 }),
-        tab: None,
-        pane: None,
+        ..TargetSelector::default()
     })
     .expect_err("indexed window target is rejected");
     assert_eq!(err.code, ErrorCode::InvalidSelector);
 
     let err = validate_tab_create_target(&TargetSelector {
-        window: None,
         tab: Some(TabTarget::Index { index: 0 }),
-        pane: None,
+        ..TargetSelector::default()
     })
     .expect_err("indexed tab target is rejected");
     assert_eq!(err.code, ErrorCode::InvalidSelector);

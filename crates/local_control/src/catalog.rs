@@ -3,6 +3,16 @@ use serde::{Deserialize, Serialize};
 
 pub const PROTOCOL_VERSION: u32 = 1;
 
+pub const EXCLUDED_FILE_CONTENT_ACTION_NAMES: &[&str] = &[
+    "file.read",
+    "file.write",
+    "file.append",
+    "file.delete",
+    "file.copy",
+    "file.move",
+    "file.mkdir",
+];
+
 /// Runtime context from which a control request was initiated.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -61,7 +71,7 @@ pub struct AuthenticatedUserRequirement {
     pub required: bool,
 }
 
-/// Level of Warp hierarchy an action targets.
+/// Level of Warp hierarchy or orthogonal product noun an action targets.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum TargetScope {
@@ -70,9 +80,19 @@ pub enum TargetScope {
     Tab,
     Pane,
     Session,
+    Block,
+    Input,
+    History,
     Settings,
     Appearance,
     Surface,
+    File,
+    Project,
+    DriveObject,
+    Auth,
+    Keybinding,
+    Action,
+    Capability,
 }
 
 /// Whether an action has an app-side implementation in this stack layer.
@@ -81,6 +101,68 @@ pub enum TargetScope {
 pub enum ActionImplementationStatus {
     Implemented,
     Stub,
+}
+
+/// Typed parameter contract for a catalog action.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ActionParameterSpec {
+    None,
+    ActionName,
+    AuthApiKeySet,
+    BindingName,
+    BooleanValue,
+    ColorValue,
+    Direction,
+    DriveObjectCreate,
+    DriveObjectId,
+    DriveObjectInsert,
+    DriveObjectList,
+    DriveObjectUpdate,
+    FileOpen,
+    InputMode,
+    Key,
+    KeyValue,
+    Limit,
+    Namespace,
+    PageQuery,
+    Path,
+    Query,
+    Rename,
+    Resize,
+    TabActivate,
+    TabClose,
+    TabCreate,
+    Text,
+    ThemeName,
+    WorkflowRun,
+}
+
+/// Typed result contract for a catalog action.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ActionResultSpec {
+    Acknowledgement,
+    ActiveTarget,
+    AppearanceState,
+    AuthStatus,
+    CapabilityList,
+    CapabilityMetadata,
+    Content,
+    DriveObjectList,
+    DriveObjectMetadata,
+    FileList,
+    InstanceList,
+    InstanceMetadata,
+    KeybindingList,
+    KeybindingMetadata,
+    ProjectList,
+    SettingList,
+    SettingValue,
+    TargetList,
+    TargetMetadata,
+    ThemeList,
+    ThemeState,
 }
 
 /// Discoverable metadata describing one local-control action.
@@ -96,43 +178,43 @@ pub struct ActionMetadata {
     pub allowed_invocation_contexts: Vec<InvocationContext>,
     pub permission_category: PermissionCategory,
     pub target_scope: TargetScope,
+    pub parameter_spec: ActionParameterSpec,
+    pub result_spec: ActionResultSpec,
 }
 
-/// Stable protocol name for every planned `warpctrl` action.
+/// Stable protocol name for every approved `warpctrl` action.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ActionKind {
     #[serde(rename = "instance.list")]
     InstanceList,
+    #[serde(rename = "instance.inspect")]
+    InstanceInspect,
     #[serde(rename = "app.ping")]
     AppPing,
-    #[serde(rename = "app.inspect")]
-    AppInspect,
     #[serde(rename = "app.version")]
     AppVersion,
     #[serde(rename = "app.active")]
     AppActive,
     #[serde(rename = "app.focus")]
     AppFocus,
-    #[serde(rename = "app.settings.open")]
-    AppSettingsOpen,
-    #[serde(rename = "app.command_palette.open")]
-    AppCommandPaletteOpen,
-    #[serde(rename = "app.command_search.open")]
-    AppCommandSearchOpen,
-    #[serde(rename = "app.warp_drive.open")]
-    AppWarpDriveOpen,
-    #[serde(rename = "app.warp_drive.toggle")]
-    AppWarpDriveToggle,
-    #[serde(rename = "app.resource_center.toggle")]
-    AppResourceCenterToggle,
-    #[serde(rename = "app.ai_assistant.toggle")]
-    AppAiAssistantToggle,
-    #[serde(rename = "app.code_review.toggle")]
-    AppCodeReviewToggle,
-    #[serde(rename = "app.vertical_tabs.toggle")]
-    AppVerticalTabsToggle,
+    #[serde(rename = "auth.status")]
+    AuthStatus,
+    #[serde(rename = "auth.login")]
+    AuthLogin,
+    #[serde(rename = "auth.api_key.set")]
+    AuthApiKeySet,
+    #[serde(rename = "auth.api_key.status")]
+    AuthApiKeyStatus,
+    #[serde(rename = "auth.api_key.revoke")]
+    AuthApiKeyRevoke,
+    #[serde(rename = "capability.list")]
+    CapabilityList,
+    #[serde(rename = "capability.inspect")]
+    CapabilityInspect,
     #[serde(rename = "window.list")]
     WindowList,
+    #[serde(rename = "window.inspect")]
+    WindowInspect,
     #[serde(rename = "window.create")]
     WindowCreate,
     #[serde(rename = "window.focus")]
@@ -141,36 +223,66 @@ pub enum ActionKind {
     WindowClose,
     #[serde(rename = "tab.list")]
     TabList,
+    #[serde(rename = "tab.inspect")]
+    TabInspect,
     #[serde(rename = "tab.create")]
     TabCreate,
     #[serde(rename = "tab.activate")]
     TabActivate,
     #[serde(rename = "tab.move")]
     TabMove,
-    #[serde(rename = "tab.rename")]
-    TabRename,
     #[serde(rename = "tab.close")]
     TabClose,
+    #[serde(rename = "tab.rename")]
+    TabRename,
+    #[serde(rename = "tab.reset_name")]
+    TabResetName,
+    #[serde(rename = "tab.color.set")]
+    TabColorSet,
+    #[serde(rename = "tab.color.clear")]
+    TabColorClear,
     #[serde(rename = "pane.list")]
     PaneList,
+    #[serde(rename = "pane.inspect")]
+    PaneInspect,
     #[serde(rename = "pane.split")]
     PaneSplit,
     #[serde(rename = "pane.focus")]
     PaneFocus,
     #[serde(rename = "pane.navigate")]
     PaneNavigate,
-    #[serde(rename = "pane.close")]
-    PaneClose,
-    #[serde(rename = "pane.maximize")]
-    PaneMaximize,
     #[serde(rename = "pane.resize")]
     PaneResize,
-    #[serde(rename = "pane.session.previous")]
-    PaneSessionPrevious,
-    #[serde(rename = "pane.session.next")]
-    PaneSessionNext,
+    #[serde(rename = "pane.maximize")]
+    PaneMaximize,
+    #[serde(rename = "pane.unmaximize")]
+    PaneUnmaximize,
+    #[serde(rename = "pane.close")]
+    PaneClose,
+    #[serde(rename = "pane.rename")]
+    PaneRename,
+    #[serde(rename = "pane.reset_name")]
+    PaneResetName,
     #[serde(rename = "session.list")]
     SessionList,
+    #[serde(rename = "session.inspect")]
+    SessionInspect,
+    #[serde(rename = "session.activate")]
+    SessionActivate,
+    #[serde(rename = "session.previous")]
+    SessionPrevious,
+    #[serde(rename = "session.next")]
+    SessionNext,
+    #[serde(rename = "session.reopen_closed")]
+    SessionReopenClosed,
+    #[serde(rename = "block.list")]
+    BlockList,
+    #[serde(rename = "block.inspect")]
+    BlockInspect,
+    #[serde(rename = "block.output")]
+    BlockOutput,
+    #[serde(rename = "input.get")]
+    InputGet,
     #[serde(rename = "input.insert")]
     InputInsert,
     #[serde(rename = "input.replace")]
@@ -179,144 +291,225 @@ pub enum ActionKind {
     InputClear,
     #[serde(rename = "input.mode.set")]
     InputModeSet,
+    #[serde(rename = "input.run")]
+    InputRun,
+    #[serde(rename = "history.list")]
+    HistoryList,
     #[serde(rename = "theme.list")]
     ThemeList,
+    #[serde(rename = "theme.get")]
+    ThemeGet,
     #[serde(rename = "theme.set")]
     ThemeSet,
+    #[serde(rename = "theme.system.set")]
+    ThemeSystemSet,
+    #[serde(rename = "theme.light.set")]
+    ThemeLightSet,
+    #[serde(rename = "theme.dark.set")]
+    ThemeDarkSet,
     #[serde(rename = "appearance.get")]
     AppearanceGet,
-    #[serde(rename = "appearance.set")]
-    AppearanceSet,
-    #[serde(rename = "appearance.font_size")]
-    AppearanceFontSize,
-    #[serde(rename = "appearance.zoom")]
-    AppearanceZoom,
-    #[serde(rename = "setting.get")]
-    SettingGet,
+    #[serde(rename = "appearance.font_size.increase")]
+    AppearanceFontSizeIncrease,
+    #[serde(rename = "appearance.font_size.decrease")]
+    AppearanceFontSizeDecrease,
+    #[serde(rename = "appearance.font_size.reset")]
+    AppearanceFontSizeReset,
+    #[serde(rename = "appearance.zoom.increase")]
+    AppearanceZoomIncrease,
+    #[serde(rename = "appearance.zoom.decrease")]
+    AppearanceZoomDecrease,
+    #[serde(rename = "appearance.zoom.reset")]
+    AppearanceZoomReset,
     #[serde(rename = "setting.list")]
     SettingList,
+    #[serde(rename = "setting.get")]
+    SettingGet,
     #[serde(rename = "setting.set")]
     SettingSet,
     #[serde(rename = "setting.toggle")]
     SettingToggle,
+    #[serde(rename = "keybinding.list")]
+    KeybindingList,
+    #[serde(rename = "keybinding.get")]
+    KeybindingGet,
+    #[serde(rename = "action.list")]
+    ActionList,
+    #[serde(rename = "action.inspect")]
+    ActionInspect,
+    #[serde(rename = "surface.settings.open")]
+    SurfaceSettingsOpen,
+    #[serde(rename = "surface.command_palette.open")]
+    SurfaceCommandPaletteOpen,
+    #[serde(rename = "surface.command_search.open")]
+    SurfaceCommandSearchOpen,
+    #[serde(rename = "surface.warp_drive.open")]
+    SurfaceWarpDriveOpen,
+    #[serde(rename = "surface.warp_drive.toggle")]
+    SurfaceWarpDriveToggle,
+    #[serde(rename = "surface.resource_center.toggle")]
+    SurfaceResourceCenterToggle,
+    #[serde(rename = "surface.ai_assistant.toggle")]
+    SurfaceAiAssistantToggle,
+    #[serde(rename = "surface.code_review.toggle")]
+    SurfaceCodeReviewToggle,
+    #[serde(rename = "surface.left_panel.toggle")]
+    SurfaceLeftPanelToggle,
+    #[serde(rename = "surface.right_panel.toggle")]
+    SurfaceRightPanelToggle,
+    #[serde(rename = "surface.vertical_tabs.toggle")]
+    SurfaceVerticalTabsToggle,
+    #[serde(rename = "file.list")]
+    FileList,
+    #[serde(rename = "file.open")]
+    FileOpen,
+    #[serde(rename = "project.active")]
+    ProjectActive,
+    #[serde(rename = "project.list")]
+    ProjectList,
+    #[serde(rename = "project.open")]
+    ProjectOpen,
+    #[serde(rename = "drive.list")]
+    DriveList,
+    #[serde(rename = "drive.inspect")]
+    DriveInspect,
+    #[serde(rename = "drive.open")]
+    DriveOpen,
+    #[serde(rename = "drive.notebook.open")]
+    DriveNotebookOpen,
+    #[serde(rename = "drive.env_var_collection.open")]
+    DriveEnvVarCollectionOpen,
+    #[serde(rename = "drive.object.share.open")]
+    DriveObjectShareOpen,
+    #[serde(rename = "drive.object.create")]
+    DriveObjectCreate,
+    #[serde(rename = "drive.object.update")]
+    DriveObjectUpdate,
+    #[serde(rename = "drive.object.delete")]
+    DriveObjectDelete,
+    #[serde(rename = "drive.object.insert")]
+    DriveObjectInsert,
+    #[serde(rename = "drive.object.share_to_team")]
+    DriveObjectShareToTeam,
+    #[serde(rename = "drive.workflow.run")]
+    DriveWorkflowRun,
 }
 
 impl ActionKind {
     pub const ALL: &[Self] = &[
         Self::InstanceList,
+        Self::InstanceInspect,
         Self::AppPing,
-        Self::AppInspect,
         Self::AppVersion,
         Self::AppActive,
         Self::AppFocus,
-        Self::AppSettingsOpen,
-        Self::AppCommandPaletteOpen,
-        Self::AppCommandSearchOpen,
-        Self::AppWarpDriveOpen,
-        Self::AppWarpDriveToggle,
-        Self::AppResourceCenterToggle,
-        Self::AppAiAssistantToggle,
-        Self::AppCodeReviewToggle,
-        Self::AppVerticalTabsToggle,
+        Self::AuthStatus,
+        Self::AuthLogin,
+        Self::AuthApiKeySet,
+        Self::AuthApiKeyStatus,
+        Self::AuthApiKeyRevoke,
+        Self::CapabilityList,
+        Self::CapabilityInspect,
         Self::WindowList,
+        Self::WindowInspect,
         Self::WindowCreate,
         Self::WindowFocus,
         Self::WindowClose,
         Self::TabList,
+        Self::TabInspect,
         Self::TabCreate,
         Self::TabActivate,
         Self::TabMove,
-        Self::TabRename,
         Self::TabClose,
+        Self::TabRename,
+        Self::TabResetName,
+        Self::TabColorSet,
+        Self::TabColorClear,
         Self::PaneList,
+        Self::PaneInspect,
         Self::PaneSplit,
         Self::PaneFocus,
         Self::PaneNavigate,
-        Self::PaneClose,
-        Self::PaneMaximize,
         Self::PaneResize,
-        Self::PaneSessionPrevious,
-        Self::PaneSessionNext,
+        Self::PaneMaximize,
+        Self::PaneUnmaximize,
+        Self::PaneClose,
+        Self::PaneRename,
+        Self::PaneResetName,
         Self::SessionList,
+        Self::SessionInspect,
+        Self::SessionActivate,
+        Self::SessionPrevious,
+        Self::SessionNext,
+        Self::SessionReopenClosed,
+        Self::BlockList,
+        Self::BlockInspect,
+        Self::BlockOutput,
+        Self::InputGet,
         Self::InputInsert,
         Self::InputReplace,
         Self::InputClear,
         Self::InputModeSet,
+        Self::InputRun,
+        Self::HistoryList,
         Self::ThemeList,
+        Self::ThemeGet,
         Self::ThemeSet,
+        Self::ThemeSystemSet,
+        Self::ThemeLightSet,
+        Self::ThemeDarkSet,
         Self::AppearanceGet,
-        Self::AppearanceSet,
-        Self::AppearanceFontSize,
-        Self::AppearanceZoom,
-        Self::SettingGet,
+        Self::AppearanceFontSizeIncrease,
+        Self::AppearanceFontSizeDecrease,
+        Self::AppearanceFontSizeReset,
+        Self::AppearanceZoomIncrease,
+        Self::AppearanceZoomDecrease,
+        Self::AppearanceZoomReset,
         Self::SettingList,
+        Self::SettingGet,
         Self::SettingSet,
         Self::SettingToggle,
+        Self::KeybindingList,
+        Self::KeybindingGet,
+        Self::ActionList,
+        Self::ActionInspect,
+        Self::SurfaceSettingsOpen,
+        Self::SurfaceCommandPaletteOpen,
+        Self::SurfaceCommandSearchOpen,
+        Self::SurfaceWarpDriveOpen,
+        Self::SurfaceWarpDriveToggle,
+        Self::SurfaceResourceCenterToggle,
+        Self::SurfaceAiAssistantToggle,
+        Self::SurfaceCodeReviewToggle,
+        Self::SurfaceLeftPanelToggle,
+        Self::SurfaceRightPanelToggle,
+        Self::SurfaceVerticalTabsToggle,
+        Self::FileList,
+        Self::FileOpen,
+        Self::ProjectActive,
+        Self::ProjectList,
+        Self::ProjectOpen,
+        Self::DriveList,
+        Self::DriveInspect,
+        Self::DriveOpen,
+        Self::DriveNotebookOpen,
+        Self::DriveEnvVarCollectionOpen,
+        Self::DriveObjectShareOpen,
+        Self::DriveObjectCreate,
+        Self::DriveObjectUpdate,
+        Self::DriveObjectDelete,
+        Self::DriveObjectInsert,
+        Self::DriveObjectShareToTeam,
+        Self::DriveWorkflowRun,
     ];
+
     pub fn as_str(self) -> &'static str {
-        match self {
-            Self::InstanceList => "instance.list",
-            Self::AppPing => "app.ping",
-            Self::AppInspect => "app.inspect",
-            Self::AppVersion => "app.version",
-            Self::AppActive => "app.active",
-            Self::AppFocus => "app.focus",
-            Self::AppSettingsOpen => "app.settings.open",
-            Self::AppCommandPaletteOpen => "app.command_palette.open",
-            Self::AppCommandSearchOpen => "app.command_search.open",
-            Self::AppWarpDriveOpen => "app.warp_drive.open",
-            Self::AppWarpDriveToggle => "app.warp_drive.toggle",
-            Self::AppResourceCenterToggle => "app.resource_center.toggle",
-            Self::AppAiAssistantToggle => "app.ai_assistant.toggle",
-            Self::AppCodeReviewToggle => "app.code_review.toggle",
-            Self::AppVerticalTabsToggle => "app.vertical_tabs.toggle",
-            Self::WindowList => "window.list",
-            Self::WindowCreate => "window.create",
-            Self::WindowFocus => "window.focus",
-            Self::WindowClose => "window.close",
-            Self::TabList => "tab.list",
-            Self::TabCreate => "tab.create",
-            Self::TabActivate => "tab.activate",
-            Self::TabMove => "tab.move",
-            Self::TabRename => "tab.rename",
-            Self::TabClose => "tab.close",
-            Self::PaneList => "pane.list",
-            Self::PaneSplit => "pane.split",
-            Self::PaneFocus => "pane.focus",
-            Self::PaneNavigate => "pane.navigate",
-            Self::PaneClose => "pane.close",
-            Self::PaneMaximize => "pane.maximize",
-            Self::PaneResize => "pane.resize",
-            Self::PaneSessionPrevious => "pane.session.previous",
-            Self::PaneSessionNext => "pane.session.next",
-            Self::SessionList => "session.list",
-            Self::InputInsert => "input.insert",
-            Self::InputReplace => "input.replace",
-            Self::InputClear => "input.clear",
-            Self::InputModeSet => "input.mode.set",
-            Self::ThemeList => "theme.list",
-            Self::ThemeSet => "theme.set",
-            Self::AppearanceGet => "appearance.get",
-            Self::AppearanceSet => "appearance.set",
-            Self::AppearanceFontSize => "appearance.font_size",
-            Self::AppearanceZoom => "appearance.zoom",
-            Self::SettingGet => "setting.get",
-            Self::SettingList => "setting.list",
-            Self::SettingSet => "setting.set",
-            Self::SettingToggle => "setting.toggle",
-        }
+        serde_names::action_name(self)
     }
 
     pub fn metadata(self) -> ActionMetadata {
-        let (implementation_status, requires_authenticated_user, allowed_invocation_contexts) =
-            match self {
-                Self::InstanceList | Self::AppPing | Self::AppVersion | Self::TabCreate => (
-                    ActionImplementationStatus::Implemented,
-                    false,
-                    vec![InvocationContext::OutsideWarp],
-                ),
-                _ => (ActionImplementationStatus::Stub, true, Vec::new()),
-            };
+        let implementation_status = self.implementation_status();
+        let requires_authenticated_user = self.requires_authenticated_user();
         ActionMetadata {
             kind: self,
             name: self.as_str().to_owned(),
@@ -327,9 +520,11 @@ impl ActionKind {
             authenticated_user: AuthenticatedUserRequirement {
                 required: requires_authenticated_user,
             },
-            allowed_invocation_contexts,
+            allowed_invocation_contexts: self.allowed_invocation_contexts(),
             permission_category: self.default_permission_category(),
             target_scope: self.default_target_scope(),
+            parameter_spec: self.parameter_spec(),
+            result_spec: self.result_spec(),
         }
     }
 
@@ -345,113 +540,354 @@ impl ActionKind {
     }
 
     pub fn is_implemented(self) -> bool {
-        self.metadata().implementation_status == ActionImplementationStatus::Implemented
+        self.implementation_status() == ActionImplementationStatus::Implemented
     }
 
-    fn default_risk_tier(self) -> RiskTier {
+    fn implementation_status(self) -> ActionImplementationStatus {
         match self {
-            Self::InstanceList
-            | Self::AppPing
-            | Self::AppInspect
-            | Self::AppVersion
+            Self::InstanceList | Self::AppPing | Self::AppVersion | Self::TabCreate => {
+                ActionImplementationStatus::Implemented
+            }
+            Self::InstanceInspect
             | Self::AppActive
+            | Self::AppFocus
+            | Self::AuthStatus
+            | Self::AuthLogin
+            | Self::AuthApiKeySet
+            | Self::AuthApiKeyStatus
+            | Self::AuthApiKeyRevoke
+            | Self::CapabilityList
+            | Self::CapabilityInspect
             | Self::WindowList
-            | Self::TabList
-            | Self::PaneList
-            | Self::SessionList
-            | Self::ThemeList
-            | Self::AppearanceGet
-            | Self::SettingGet
-            | Self::SettingList => RiskTier::ReadOnlyMetadata,
-            Self::InputInsert
-            | Self::InputReplace
-            | Self::InputClear
-            | Self::InputModeSet
-            | Self::WindowClose
-            | Self::TabClose
-            | Self::PaneClose => RiskTier::MutatingDestructiveOrExecution,
-            Self::AppFocus
-            | Self::AppSettingsOpen
-            | Self::AppCommandPaletteOpen
-            | Self::AppCommandSearchOpen
-            | Self::AppWarpDriveOpen
-            | Self::AppWarpDriveToggle
-            | Self::AppResourceCenterToggle
-            | Self::AppAiAssistantToggle
-            | Self::AppCodeReviewToggle
-            | Self::AppVerticalTabsToggle
+            | Self::WindowInspect
             | Self::WindowCreate
             | Self::WindowFocus
-            | Self::TabCreate
+            | Self::WindowClose
+            | Self::TabList
+            | Self::TabInspect
             | Self::TabActivate
             | Self::TabMove
+            | Self::TabClose
             | Self::TabRename
+            | Self::TabResetName
+            | Self::TabColorSet
+            | Self::TabColorClear
+            | Self::PaneList
+            | Self::PaneInspect
             | Self::PaneSplit
             | Self::PaneFocus
             | Self::PaneNavigate
-            | Self::PaneMaximize
             | Self::PaneResize
-            | Self::PaneSessionPrevious
-            | Self::PaneSessionNext
+            | Self::PaneMaximize
+            | Self::PaneUnmaximize
+            | Self::PaneClose
+            | Self::PaneRename
+            | Self::PaneResetName
+            | Self::SessionList
+            | Self::SessionInspect
+            | Self::SessionActivate
+            | Self::SessionPrevious
+            | Self::SessionNext
+            | Self::SessionReopenClosed
+            | Self::BlockList
+            | Self::BlockInspect
+            | Self::BlockOutput
+            | Self::InputGet
+            | Self::InputInsert
+            | Self::InputReplace
+            | Self::InputClear
+            | Self::InputModeSet
+            | Self::InputRun
+            | Self::HistoryList
+            | Self::ThemeList
+            | Self::ThemeGet
             | Self::ThemeSet
-            | Self::AppearanceSet
-            | Self::AppearanceFontSize
-            | Self::AppearanceZoom
+            | Self::ThemeSystemSet
+            | Self::ThemeLightSet
+            | Self::ThemeDarkSet
+            | Self::AppearanceGet
+            | Self::AppearanceFontSizeIncrease
+            | Self::AppearanceFontSizeDecrease
+            | Self::AppearanceFontSizeReset
+            | Self::AppearanceZoomIncrease
+            | Self::AppearanceZoomDecrease
+            | Self::AppearanceZoomReset
+            | Self::SettingList
+            | Self::SettingGet
             | Self::SettingSet
-            | Self::SettingToggle => RiskTier::MutatingNonDestructive,
+            | Self::SettingToggle
+            | Self::KeybindingList
+            | Self::KeybindingGet
+            | Self::ActionList
+            | Self::ActionInspect
+            | Self::SurfaceSettingsOpen
+            | Self::SurfaceCommandPaletteOpen
+            | Self::SurfaceCommandSearchOpen
+            | Self::SurfaceWarpDriveOpen
+            | Self::SurfaceWarpDriveToggle
+            | Self::SurfaceResourceCenterToggle
+            | Self::SurfaceAiAssistantToggle
+            | Self::SurfaceCodeReviewToggle
+            | Self::SurfaceLeftPanelToggle
+            | Self::SurfaceRightPanelToggle
+            | Self::SurfaceVerticalTabsToggle
+            | Self::FileList
+            | Self::FileOpen
+            | Self::ProjectActive
+            | Self::ProjectList
+            | Self::ProjectOpen
+            | Self::DriveList
+            | Self::DriveInspect
+            | Self::DriveOpen
+            | Self::DriveNotebookOpen
+            | Self::DriveEnvVarCollectionOpen
+            | Self::DriveObjectShareOpen
+            | Self::DriveObjectCreate
+            | Self::DriveObjectUpdate
+            | Self::DriveObjectDelete
+            | Self::DriveObjectInsert
+            | Self::DriveObjectShareToTeam
+            | Self::DriveWorkflowRun => ActionImplementationStatus::Stub,
+        }
+    }
+
+    fn allowed_invocation_contexts(self) -> Vec<InvocationContext> {
+        match self {
+            Self::InstanceList | Self::AppPing | Self::AppVersion | Self::TabCreate => {
+                vec![InvocationContext::OutsideWarp]
+            }
+            _ => vec![
+                InvocationContext::InsideWarp,
+                InvocationContext::OutsideWarp,
+            ],
+        }
+    }
+
+    fn requires_authenticated_user(self) -> bool {
+        match self {
+            Self::DriveList
+            | Self::DriveInspect
+            | Self::DriveOpen
+            | Self::DriveNotebookOpen
+            | Self::DriveEnvVarCollectionOpen
+            | Self::DriveObjectShareOpen
+            | Self::DriveObjectCreate
+            | Self::DriveObjectUpdate
+            | Self::DriveObjectDelete
+            | Self::DriveObjectInsert
+            | Self::DriveObjectShareToTeam
+            | Self::DriveWorkflowRun
+            | Self::AuthApiKeySet
+            | Self::AuthApiKeyStatus
+            | Self::AuthApiKeyRevoke
+            | Self::InputRun => true,
+            Self::InstanceList
+            | Self::InstanceInspect
+            | Self::AppPing
+            | Self::AppVersion
+            | Self::AppActive
+            | Self::AppFocus
+            | Self::AuthStatus
+            | Self::AuthLogin
+            | Self::CapabilityList
+            | Self::CapabilityInspect
+            | Self::WindowList
+            | Self::WindowInspect
+            | Self::WindowCreate
+            | Self::WindowFocus
+            | Self::WindowClose
+            | Self::TabList
+            | Self::TabInspect
+            | Self::TabCreate
+            | Self::TabActivate
+            | Self::TabMove
+            | Self::TabClose
+            | Self::TabRename
+            | Self::TabResetName
+            | Self::TabColorSet
+            | Self::TabColorClear
+            | Self::PaneList
+            | Self::PaneInspect
+            | Self::PaneSplit
+            | Self::PaneFocus
+            | Self::PaneNavigate
+            | Self::PaneResize
+            | Self::PaneMaximize
+            | Self::PaneUnmaximize
+            | Self::PaneClose
+            | Self::PaneRename
+            | Self::PaneResetName
+            | Self::SessionList
+            | Self::SessionInspect
+            | Self::SessionActivate
+            | Self::SessionPrevious
+            | Self::SessionNext
+            | Self::SessionReopenClosed
+            | Self::BlockList
+            | Self::BlockInspect
+            | Self::BlockOutput
+            | Self::InputGet
+            | Self::InputInsert
+            | Self::InputReplace
+            | Self::InputClear
+            | Self::InputModeSet
+            | Self::HistoryList
+            | Self::ThemeList
+            | Self::ThemeGet
+            | Self::ThemeSet
+            | Self::ThemeSystemSet
+            | Self::ThemeLightSet
+            | Self::ThemeDarkSet
+            | Self::AppearanceGet
+            | Self::AppearanceFontSizeIncrease
+            | Self::AppearanceFontSizeDecrease
+            | Self::AppearanceFontSizeReset
+            | Self::AppearanceZoomIncrease
+            | Self::AppearanceZoomDecrease
+            | Self::AppearanceZoomReset
+            | Self::SettingList
+            | Self::SettingGet
+            | Self::SettingSet
+            | Self::SettingToggle
+            | Self::KeybindingList
+            | Self::KeybindingGet
+            | Self::ActionList
+            | Self::ActionInspect
+            | Self::SurfaceSettingsOpen
+            | Self::SurfaceCommandPaletteOpen
+            | Self::SurfaceCommandSearchOpen
+            | Self::SurfaceWarpDriveOpen
+            | Self::SurfaceWarpDriveToggle
+            | Self::SurfaceResourceCenterToggle
+            | Self::SurfaceAiAssistantToggle
+            | Self::SurfaceCodeReviewToggle
+            | Self::SurfaceLeftPanelToggle
+            | Self::SurfaceRightPanelToggle
+            | Self::SurfaceVerticalTabsToggle
+            | Self::FileList
+            | Self::FileOpen
+            | Self::ProjectActive
+            | Self::ProjectList
+            | Self::ProjectOpen => false,
+        }
+    }
+
+    fn default_risk_tier(self) -> RiskTier {
+        match self.default_state_data_category() {
+            StateDataCategory::MetadataRead => RiskTier::ReadOnlyMetadata,
+            StateDataCategory::UnderlyingDataRead => RiskTier::ReadOnlyTerminalData,
+            StateDataCategory::UnderlyingDataMutation => RiskTier::MutatingDestructiveOrExecution,
+            StateDataCategory::AppStateMutation
+            | StateDataCategory::MetadataConfigurationMutation => RiskTier::MutatingNonDestructive,
         }
     }
 
     fn default_state_data_category(self) -> StateDataCategory {
         match self {
             Self::InstanceList
+            | Self::InstanceInspect
             | Self::AppPing
-            | Self::AppInspect
             | Self::AppVersion
             | Self::AppActive
+            | Self::AuthStatus
+            | Self::CapabilityList
+            | Self::CapabilityInspect
             | Self::WindowList
+            | Self::WindowInspect
             | Self::TabList
+            | Self::TabInspect
             | Self::PaneList
+            | Self::PaneInspect
             | Self::SessionList
+            | Self::SessionInspect
+            | Self::BlockList
             | Self::ThemeList
+            | Self::ThemeGet
             | Self::AppearanceGet
+            | Self::SettingList
             | Self::SettingGet
-            | Self::SettingList => StateDataCategory::MetadataRead,
-            Self::SettingSet
-            | Self::SettingToggle
+            | Self::KeybindingList
+            | Self::KeybindingGet
+            | Self::ActionList
+            | Self::ActionInspect
+            | Self::FileList
+            | Self::ProjectActive
+            | Self::ProjectList
+            | Self::DriveList
+            | Self::AuthApiKeyStatus => StateDataCategory::MetadataRead,
+            Self::BlockInspect
+            | Self::BlockOutput
+            | Self::InputGet
+            | Self::HistoryList
+            | Self::DriveInspect => StateDataCategory::UnderlyingDataRead,
+            Self::TabRename
+            | Self::TabResetName
+            | Self::TabColorSet
+            | Self::TabColorClear
+            | Self::PaneRename
+            | Self::PaneResetName
             | Self::ThemeSet
-            | Self::AppearanceSet
-            | Self::AppearanceFontSize
-            | Self::AppearanceZoom => StateDataCategory::MetadataConfigurationMutation,
-            Self::InputInsert | Self::InputReplace | Self::InputClear | Self::InputModeSet => {
-                StateDataCategory::UnderlyingDataMutation
-            }
+            | Self::ThemeSystemSet
+            | Self::ThemeLightSet
+            | Self::ThemeDarkSet
+            | Self::AppearanceFontSizeIncrease
+            | Self::AppearanceFontSizeDecrease
+            | Self::AppearanceFontSizeReset
+            | Self::AppearanceZoomIncrease
+            | Self::AppearanceZoomDecrease
+            | Self::AppearanceZoomReset
+            | Self::SettingSet
+            | Self::SettingToggle => StateDataCategory::MetadataConfigurationMutation,
+            Self::DriveObjectCreate
+            | Self::DriveObjectUpdate
+            | Self::DriveObjectDelete
+            | Self::DriveObjectInsert
+            | Self::DriveObjectShareToTeam
+            | Self::DriveWorkflowRun
+            | Self::InputRun => StateDataCategory::UnderlyingDataMutation,
             Self::AppFocus
-            | Self::AppSettingsOpen
-            | Self::AppCommandPaletteOpen
-            | Self::AppCommandSearchOpen
-            | Self::AppWarpDriveOpen
-            | Self::AppWarpDriveToggle
-            | Self::AppResourceCenterToggle
-            | Self::AppAiAssistantToggle
-            | Self::AppCodeReviewToggle
-            | Self::AppVerticalTabsToggle
+            | Self::AuthLogin
+            | Self::AuthApiKeySet
+            | Self::AuthApiKeyRevoke
             | Self::WindowCreate
             | Self::WindowFocus
             | Self::WindowClose
             | Self::TabCreate
             | Self::TabActivate
             | Self::TabMove
-            | Self::TabRename
             | Self::TabClose
             | Self::PaneSplit
             | Self::PaneFocus
             | Self::PaneNavigate
-            | Self::PaneClose
-            | Self::PaneMaximize
             | Self::PaneResize
-            | Self::PaneSessionPrevious
-            | Self::PaneSessionNext => StateDataCategory::AppStateMutation,
+            | Self::PaneMaximize
+            | Self::PaneUnmaximize
+            | Self::PaneClose
+            | Self::SessionActivate
+            | Self::SessionPrevious
+            | Self::SessionNext
+            | Self::SessionReopenClosed
+            | Self::InputInsert
+            | Self::InputReplace
+            | Self::InputClear
+            | Self::InputModeSet
+            | Self::SurfaceSettingsOpen
+            | Self::SurfaceCommandPaletteOpen
+            | Self::SurfaceCommandSearchOpen
+            | Self::SurfaceWarpDriveOpen
+            | Self::SurfaceWarpDriveToggle
+            | Self::SurfaceResourceCenterToggle
+            | Self::SurfaceAiAssistantToggle
+            | Self::SurfaceCodeReviewToggle
+            | Self::SurfaceLeftPanelToggle
+            | Self::SurfaceRightPanelToggle
+            | Self::SurfaceVerticalTabsToggle
+            | Self::FileOpen
+            | Self::ProjectOpen
+            | Self::DriveOpen
+            | Self::DriveNotebookOpen
+            | Self::DriveEnvVarCollectionOpen
+            | Self::DriveObjectShareOpen => StateDataCategory::AppStateMutation,
         }
     }
 
@@ -466,55 +902,423 @@ impl ActionKind {
             StateDataCategory::UnderlyingDataMutation => PermissionCategory::MutateUnderlyingData,
         }
     }
+
     fn default_target_scope(self) -> TargetScope {
         match self {
-            Self::WindowList | Self::WindowCreate | Self::WindowFocus | Self::WindowClose => {
-                TargetScope::Window
-            }
-            Self::TabList
-            | Self::TabCreate
-            | Self::TabActivate
-            | Self::TabMove
-            | Self::TabRename
-            | Self::TabClose => TargetScope::Tab,
-            Self::PaneList
-            | Self::PaneSplit
-            | Self::PaneFocus
-            | Self::PaneNavigate
-            | Self::PaneClose
-            | Self::PaneMaximize
-            | Self::PaneResize
-            | Self::PaneSessionPrevious
-            | Self::PaneSessionNext => TargetScope::Pane,
-            Self::SessionList
-            | Self::InputInsert
-            | Self::InputReplace
-            | Self::InputClear
-            | Self::InputModeSet => TargetScope::Session,
-            Self::ThemeList
-            | Self::ThemeSet
-            | Self::AppearanceGet
-            | Self::AppearanceSet
-            | Self::AppearanceFontSize
-            | Self::AppearanceZoom => TargetScope::Appearance,
-            Self::SettingGet | Self::SettingList | Self::SettingSet | Self::SettingToggle => {
-                TargetScope::Settings
-            }
-            Self::AppSettingsOpen
-            | Self::AppCommandPaletteOpen
-            | Self::AppCommandSearchOpen
-            | Self::AppWarpDriveOpen
-            | Self::AppWarpDriveToggle
-            | Self::AppResourceCenterToggle
-            | Self::AppAiAssistantToggle
-            | Self::AppCodeReviewToggle
-            | Self::AppVerticalTabsToggle => TargetScope::Surface,
             Self::InstanceList
+            | Self::InstanceInspect
             | Self::AppPing
-            | Self::AppInspect
             | Self::AppVersion
             | Self::AppActive
             | Self::AppFocus => TargetScope::Instance,
+            Self::AuthStatus
+            | Self::AuthLogin
+            | Self::AuthApiKeySet
+            | Self::AuthApiKeyStatus
+            | Self::AuthApiKeyRevoke => TargetScope::Auth,
+            Self::CapabilityList | Self::CapabilityInspect => TargetScope::Capability,
+            Self::WindowList
+            | Self::WindowInspect
+            | Self::WindowCreate
+            | Self::WindowFocus
+            | Self::WindowClose => TargetScope::Window,
+            Self::TabList
+            | Self::TabInspect
+            | Self::TabCreate
+            | Self::TabActivate
+            | Self::TabMove
+            | Self::TabClose
+            | Self::TabRename
+            | Self::TabResetName
+            | Self::TabColorSet
+            | Self::TabColorClear => TargetScope::Tab,
+            Self::PaneList
+            | Self::PaneInspect
+            | Self::PaneSplit
+            | Self::PaneFocus
+            | Self::PaneNavigate
+            | Self::PaneResize
+            | Self::PaneMaximize
+            | Self::PaneUnmaximize
+            | Self::PaneClose
+            | Self::PaneRename
+            | Self::PaneResetName => TargetScope::Pane,
+            Self::SessionList
+            | Self::SessionInspect
+            | Self::SessionActivate
+            | Self::SessionPrevious
+            | Self::SessionNext
+            | Self::SessionReopenClosed => TargetScope::Session,
+            Self::BlockList | Self::BlockInspect | Self::BlockOutput => TargetScope::Block,
+            Self::InputGet
+            | Self::InputInsert
+            | Self::InputReplace
+            | Self::InputClear
+            | Self::InputModeSet
+            | Self::InputRun => TargetScope::Input,
+            Self::HistoryList => TargetScope::History,
+            Self::ThemeList
+            | Self::ThemeGet
+            | Self::ThemeSet
+            | Self::ThemeSystemSet
+            | Self::ThemeLightSet
+            | Self::ThemeDarkSet
+            | Self::AppearanceGet
+            | Self::AppearanceFontSizeIncrease
+            | Self::AppearanceFontSizeDecrease
+            | Self::AppearanceFontSizeReset
+            | Self::AppearanceZoomIncrease
+            | Self::AppearanceZoomDecrease
+            | Self::AppearanceZoomReset => TargetScope::Appearance,
+            Self::SettingList | Self::SettingGet | Self::SettingSet | Self::SettingToggle => {
+                TargetScope::Settings
+            }
+            Self::KeybindingList | Self::KeybindingGet => TargetScope::Keybinding,
+            Self::ActionList | Self::ActionInspect => TargetScope::Action,
+            Self::SurfaceSettingsOpen
+            | Self::SurfaceCommandPaletteOpen
+            | Self::SurfaceCommandSearchOpen
+            | Self::SurfaceWarpDriveOpen
+            | Self::SurfaceWarpDriveToggle
+            | Self::SurfaceResourceCenterToggle
+            | Self::SurfaceAiAssistantToggle
+            | Self::SurfaceCodeReviewToggle
+            | Self::SurfaceLeftPanelToggle
+            | Self::SurfaceRightPanelToggle
+            | Self::SurfaceVerticalTabsToggle => TargetScope::Surface,
+            Self::FileList | Self::FileOpen => TargetScope::File,
+            Self::ProjectActive | Self::ProjectList | Self::ProjectOpen => TargetScope::Project,
+            Self::DriveList
+            | Self::DriveInspect
+            | Self::DriveOpen
+            | Self::DriveNotebookOpen
+            | Self::DriveEnvVarCollectionOpen
+            | Self::DriveObjectShareOpen
+            | Self::DriveObjectCreate
+            | Self::DriveObjectUpdate
+            | Self::DriveObjectDelete
+            | Self::DriveObjectInsert
+            | Self::DriveObjectShareToTeam
+            | Self::DriveWorkflowRun => TargetScope::DriveObject,
+        }
+    }
+
+    fn parameter_spec(self) -> ActionParameterSpec {
+        match self {
+            Self::InstanceList
+            | Self::InstanceInspect
+            | Self::AppPing
+            | Self::AppVersion
+            | Self::AppActive
+            | Self::AppFocus
+            | Self::AuthStatus
+            | Self::AuthLogin
+            | Self::AuthApiKeyStatus
+            | Self::AuthApiKeyRevoke
+            | Self::CapabilityList
+            | Self::WindowList
+            | Self::WindowInspect
+            | Self::TabList
+            | Self::TabInspect
+            | Self::PaneList
+            | Self::PaneInspect
+            | Self::SessionList
+            | Self::SessionInspect
+            | Self::ThemeList
+            | Self::ThemeGet
+            | Self::AppearanceGet
+            | Self::KeybindingList
+            | Self::ActionList
+            | Self::FileList
+            | Self::ProjectActive
+            | Self::ProjectList => ActionParameterSpec::None,
+            Self::CapabilityInspect | Self::ActionInspect => ActionParameterSpec::ActionName,
+            Self::AuthApiKeySet => ActionParameterSpec::AuthApiKeySet,
+            Self::WindowCreate | Self::TabCreate => ActionParameterSpec::TabCreate,
+            Self::WindowFocus
+            | Self::WindowClose
+            | Self::TabResetName
+            | Self::TabColorClear
+            | Self::PaneFocus
+            | Self::PaneMaximize
+            | Self::PaneUnmaximize
+            | Self::PaneClose
+            | Self::PaneResetName
+            | Self::SessionActivate => ActionParameterSpec::None,
+            Self::TabActivate => ActionParameterSpec::TabActivate,
+            Self::TabMove | Self::PaneSplit | Self::PaneNavigate => ActionParameterSpec::Direction,
+            Self::TabClose => ActionParameterSpec::TabClose,
+            Self::TabRename | Self::PaneRename => ActionParameterSpec::Rename,
+            Self::TabColorSet => ActionParameterSpec::ColorValue,
+            Self::PaneResize => ActionParameterSpec::Resize,
+            Self::SessionPrevious | Self::SessionNext | Self::SessionReopenClosed => {
+                ActionParameterSpec::None
+            }
+            Self::BlockList | Self::HistoryList => ActionParameterSpec::Limit,
+            Self::BlockInspect | Self::BlockOutput => ActionParameterSpec::None,
+            Self::InputGet => ActionParameterSpec::None,
+            Self::InputInsert | Self::InputReplace | Self::InputRun => ActionParameterSpec::Text,
+            Self::InputClear => ActionParameterSpec::None,
+            Self::InputModeSet => ActionParameterSpec::InputMode,
+            Self::ThemeSet | Self::ThemeLightSet | Self::ThemeDarkSet => {
+                ActionParameterSpec::ThemeName
+            }
+            Self::ThemeSystemSet => ActionParameterSpec::BooleanValue,
+            Self::AppearanceFontSizeIncrease
+            | Self::AppearanceFontSizeDecrease
+            | Self::AppearanceFontSizeReset
+            | Self::AppearanceZoomIncrease
+            | Self::AppearanceZoomDecrease
+            | Self::AppearanceZoomReset => ActionParameterSpec::None,
+            Self::SettingList => ActionParameterSpec::Namespace,
+            Self::SettingGet => ActionParameterSpec::Key,
+            Self::SettingSet => ActionParameterSpec::KeyValue,
+            Self::SettingToggle => ActionParameterSpec::Key,
+            Self::KeybindingGet => ActionParameterSpec::BindingName,
+            Self::SurfaceSettingsOpen => ActionParameterSpec::PageQuery,
+            Self::SurfaceCommandPaletteOpen | Self::SurfaceCommandSearchOpen => {
+                ActionParameterSpec::Query
+            }
+            Self::SurfaceWarpDriveOpen
+            | Self::SurfaceWarpDriveToggle
+            | Self::SurfaceResourceCenterToggle
+            | Self::SurfaceAiAssistantToggle
+            | Self::SurfaceCodeReviewToggle
+            | Self::SurfaceLeftPanelToggle
+            | Self::SurfaceRightPanelToggle
+            | Self::SurfaceVerticalTabsToggle => ActionParameterSpec::None,
+            Self::FileOpen => ActionParameterSpec::FileOpen,
+            Self::ProjectOpen => ActionParameterSpec::Path,
+            Self::DriveList => ActionParameterSpec::DriveObjectList,
+            Self::DriveInspect
+            | Self::DriveOpen
+            | Self::DriveNotebookOpen
+            | Self::DriveEnvVarCollectionOpen
+            | Self::DriveObjectShareOpen
+            | Self::DriveObjectDelete
+            | Self::DriveObjectShareToTeam => ActionParameterSpec::DriveObjectId,
+            Self::DriveObjectCreate => ActionParameterSpec::DriveObjectCreate,
+            Self::DriveObjectUpdate => ActionParameterSpec::DriveObjectUpdate,
+            Self::DriveObjectInsert => ActionParameterSpec::DriveObjectInsert,
+            Self::DriveWorkflowRun => ActionParameterSpec::WorkflowRun,
+        }
+    }
+
+    fn result_spec(self) -> ActionResultSpec {
+        match self {
+            Self::InstanceList => ActionResultSpec::InstanceList,
+            Self::InstanceInspect | Self::AppPing | Self::AppVersion => {
+                ActionResultSpec::InstanceMetadata
+            }
+            Self::AppActive => ActionResultSpec::ActiveTarget,
+            Self::AuthStatus | Self::AuthApiKeyStatus => ActionResultSpec::AuthStatus,
+            Self::CapabilityList => ActionResultSpec::CapabilityList,
+            Self::CapabilityInspect => ActionResultSpec::CapabilityMetadata,
+            Self::WindowList
+            | Self::TabList
+            | Self::PaneList
+            | Self::SessionList
+            | Self::BlockList => ActionResultSpec::TargetList,
+            Self::WindowInspect | Self::TabInspect | Self::PaneInspect | Self::SessionInspect => {
+                ActionResultSpec::TargetMetadata
+            }
+            Self::BlockInspect | Self::BlockOutput | Self::InputGet | Self::HistoryList => {
+                ActionResultSpec::Content
+            }
+            Self::ThemeList => ActionResultSpec::ThemeList,
+            Self::ThemeGet => ActionResultSpec::ThemeState,
+            Self::AppearanceGet => ActionResultSpec::AppearanceState,
+            Self::SettingList => ActionResultSpec::SettingList,
+            Self::SettingGet => ActionResultSpec::SettingValue,
+            Self::KeybindingList => ActionResultSpec::KeybindingList,
+            Self::KeybindingGet => ActionResultSpec::KeybindingMetadata,
+            Self::ActionList => ActionResultSpec::CapabilityList,
+            Self::ActionInspect => ActionResultSpec::CapabilityMetadata,
+            Self::FileList => ActionResultSpec::FileList,
+            Self::ProjectActive | Self::ProjectList => ActionResultSpec::ProjectList,
+            Self::DriveList => ActionResultSpec::DriveObjectList,
+            Self::DriveInspect => ActionResultSpec::DriveObjectMetadata,
+            Self::AppFocus
+            | Self::AuthLogin
+            | Self::AuthApiKeySet
+            | Self::AuthApiKeyRevoke
+            | Self::WindowCreate
+            | Self::WindowFocus
+            | Self::WindowClose
+            | Self::TabCreate
+            | Self::TabActivate
+            | Self::TabMove
+            | Self::TabClose
+            | Self::TabRename
+            | Self::TabResetName
+            | Self::TabColorSet
+            | Self::TabColorClear
+            | Self::PaneSplit
+            | Self::PaneFocus
+            | Self::PaneNavigate
+            | Self::PaneResize
+            | Self::PaneMaximize
+            | Self::PaneUnmaximize
+            | Self::PaneClose
+            | Self::PaneRename
+            | Self::PaneResetName
+            | Self::SessionActivate
+            | Self::SessionPrevious
+            | Self::SessionNext
+            | Self::SessionReopenClosed
+            | Self::InputInsert
+            | Self::InputReplace
+            | Self::InputClear
+            | Self::InputModeSet
+            | Self::InputRun
+            | Self::ThemeSet
+            | Self::ThemeSystemSet
+            | Self::ThemeLightSet
+            | Self::ThemeDarkSet
+            | Self::AppearanceFontSizeIncrease
+            | Self::AppearanceFontSizeDecrease
+            | Self::AppearanceFontSizeReset
+            | Self::AppearanceZoomIncrease
+            | Self::AppearanceZoomDecrease
+            | Self::AppearanceZoomReset
+            | Self::SettingSet
+            | Self::SettingToggle
+            | Self::SurfaceSettingsOpen
+            | Self::SurfaceCommandPaletteOpen
+            | Self::SurfaceCommandSearchOpen
+            | Self::SurfaceWarpDriveOpen
+            | Self::SurfaceWarpDriveToggle
+            | Self::SurfaceResourceCenterToggle
+            | Self::SurfaceAiAssistantToggle
+            | Self::SurfaceCodeReviewToggle
+            | Self::SurfaceLeftPanelToggle
+            | Self::SurfaceRightPanelToggle
+            | Self::SurfaceVerticalTabsToggle
+            | Self::FileOpen
+            | Self::ProjectOpen
+            | Self::DriveOpen
+            | Self::DriveNotebookOpen
+            | Self::DriveEnvVarCollectionOpen
+            | Self::DriveObjectShareOpen
+            | Self::DriveObjectCreate
+            | Self::DriveObjectUpdate
+            | Self::DriveObjectDelete
+            | Self::DriveObjectInsert
+            | Self::DriveObjectShareToTeam
+            | Self::DriveWorkflowRun => ActionResultSpec::Acknowledgement,
+        }
+    }
+}
+
+mod serde_names {
+    use super::ActionKind;
+
+    pub(super) fn action_name(action: ActionKind) -> &'static str {
+        match action {
+            ActionKind::InstanceList => "instance.list",
+            ActionKind::InstanceInspect => "instance.inspect",
+            ActionKind::AppPing => "app.ping",
+            ActionKind::AppVersion => "app.version",
+            ActionKind::AppActive => "app.active",
+            ActionKind::AppFocus => "app.focus",
+            ActionKind::AuthStatus => "auth.status",
+            ActionKind::AuthLogin => "auth.login",
+            ActionKind::AuthApiKeySet => "auth.api_key.set",
+            ActionKind::AuthApiKeyStatus => "auth.api_key.status",
+            ActionKind::AuthApiKeyRevoke => "auth.api_key.revoke",
+            ActionKind::CapabilityList => "capability.list",
+            ActionKind::CapabilityInspect => "capability.inspect",
+            ActionKind::WindowList => "window.list",
+            ActionKind::WindowInspect => "window.inspect",
+            ActionKind::WindowCreate => "window.create",
+            ActionKind::WindowFocus => "window.focus",
+            ActionKind::WindowClose => "window.close",
+            ActionKind::TabList => "tab.list",
+            ActionKind::TabInspect => "tab.inspect",
+            ActionKind::TabCreate => "tab.create",
+            ActionKind::TabActivate => "tab.activate",
+            ActionKind::TabMove => "tab.move",
+            ActionKind::TabClose => "tab.close",
+            ActionKind::TabRename => "tab.rename",
+            ActionKind::TabResetName => "tab.reset_name",
+            ActionKind::TabColorSet => "tab.color.set",
+            ActionKind::TabColorClear => "tab.color.clear",
+            ActionKind::PaneList => "pane.list",
+            ActionKind::PaneInspect => "pane.inspect",
+            ActionKind::PaneSplit => "pane.split",
+            ActionKind::PaneFocus => "pane.focus",
+            ActionKind::PaneNavigate => "pane.navigate",
+            ActionKind::PaneResize => "pane.resize",
+            ActionKind::PaneMaximize => "pane.maximize",
+            ActionKind::PaneUnmaximize => "pane.unmaximize",
+            ActionKind::PaneClose => "pane.close",
+            ActionKind::PaneRename => "pane.rename",
+            ActionKind::PaneResetName => "pane.reset_name",
+            ActionKind::SessionList => "session.list",
+            ActionKind::SessionInspect => "session.inspect",
+            ActionKind::SessionActivate => "session.activate",
+            ActionKind::SessionPrevious => "session.previous",
+            ActionKind::SessionNext => "session.next",
+            ActionKind::SessionReopenClosed => "session.reopen_closed",
+            ActionKind::BlockList => "block.list",
+            ActionKind::BlockInspect => "block.inspect",
+            ActionKind::BlockOutput => "block.output",
+            ActionKind::InputGet => "input.get",
+            ActionKind::InputInsert => "input.insert",
+            ActionKind::InputReplace => "input.replace",
+            ActionKind::InputClear => "input.clear",
+            ActionKind::InputModeSet => "input.mode.set",
+            ActionKind::InputRun => "input.run",
+            ActionKind::HistoryList => "history.list",
+            ActionKind::ThemeList => "theme.list",
+            ActionKind::ThemeGet => "theme.get",
+            ActionKind::ThemeSet => "theme.set",
+            ActionKind::ThemeSystemSet => "theme.system.set",
+            ActionKind::ThemeLightSet => "theme.light.set",
+            ActionKind::ThemeDarkSet => "theme.dark.set",
+            ActionKind::AppearanceGet => "appearance.get",
+            ActionKind::AppearanceFontSizeIncrease => "appearance.font_size.increase",
+            ActionKind::AppearanceFontSizeDecrease => "appearance.font_size.decrease",
+            ActionKind::AppearanceFontSizeReset => "appearance.font_size.reset",
+            ActionKind::AppearanceZoomIncrease => "appearance.zoom.increase",
+            ActionKind::AppearanceZoomDecrease => "appearance.zoom.decrease",
+            ActionKind::AppearanceZoomReset => "appearance.zoom.reset",
+            ActionKind::SettingList => "setting.list",
+            ActionKind::SettingGet => "setting.get",
+            ActionKind::SettingSet => "setting.set",
+            ActionKind::SettingToggle => "setting.toggle",
+            ActionKind::KeybindingList => "keybinding.list",
+            ActionKind::KeybindingGet => "keybinding.get",
+            ActionKind::ActionList => "action.list",
+            ActionKind::ActionInspect => "action.inspect",
+            ActionKind::SurfaceSettingsOpen => "surface.settings.open",
+            ActionKind::SurfaceCommandPaletteOpen => "surface.command_palette.open",
+            ActionKind::SurfaceCommandSearchOpen => "surface.command_search.open",
+            ActionKind::SurfaceWarpDriveOpen => "surface.warp_drive.open",
+            ActionKind::SurfaceWarpDriveToggle => "surface.warp_drive.toggle",
+            ActionKind::SurfaceResourceCenterToggle => "surface.resource_center.toggle",
+            ActionKind::SurfaceAiAssistantToggle => "surface.ai_assistant.toggle",
+            ActionKind::SurfaceCodeReviewToggle => "surface.code_review.toggle",
+            ActionKind::SurfaceLeftPanelToggle => "surface.left_panel.toggle",
+            ActionKind::SurfaceRightPanelToggle => "surface.right_panel.toggle",
+            ActionKind::SurfaceVerticalTabsToggle => "surface.vertical_tabs.toggle",
+            ActionKind::FileList => "file.list",
+            ActionKind::FileOpen => "file.open",
+            ActionKind::ProjectActive => "project.active",
+            ActionKind::ProjectList => "project.list",
+            ActionKind::ProjectOpen => "project.open",
+            ActionKind::DriveList => "drive.list",
+            ActionKind::DriveInspect => "drive.inspect",
+            ActionKind::DriveOpen => "drive.open",
+            ActionKind::DriveNotebookOpen => "drive.notebook.open",
+            ActionKind::DriveEnvVarCollectionOpen => "drive.env_var_collection.open",
+            ActionKind::DriveObjectShareOpen => "drive.object.share.open",
+            ActionKind::DriveObjectCreate => "drive.object.create",
+            ActionKind::DriveObjectUpdate => "drive.object.update",
+            ActionKind::DriveObjectDelete => "drive.object.delete",
+            ActionKind::DriveObjectInsert => "drive.object.insert",
+            ActionKind::DriveObjectShareToTeam => "drive.object.share_to_team",
+            ActionKind::DriveWorkflowRun => "drive.workflow.run",
         }
     }
 }

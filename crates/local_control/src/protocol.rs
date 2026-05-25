@@ -3,13 +3,238 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 pub use crate::catalog::{
-    ActionImplementationStatus, ActionKind, ActionMetadata, AuthenticatedUserRequirement,
-    ExecutionContextProof, InvocationContext, PROTOCOL_VERSION, PermissionCategory, RiskTier,
-    StateDataCategory, TargetScope,
+    ActionImplementationStatus, ActionKind, ActionMetadata, ActionParameterSpec, ActionResultSpec,
+    AuthenticatedUserRequirement, EXCLUDED_FILE_CONTENT_ACTION_NAMES, ExecutionContextProof,
+    InvocationContext, PROTOCOL_VERSION, PermissionCategory, RiskTier, StateDataCategory,
+    TargetScope,
 };
 pub use crate::selectors::{
-    PaneSelector, PaneTarget, TabSelector, TabTarget, TargetSelector, WindowSelector, WindowTarget,
+    BlockSelector, BlockTarget, DriveObjectId, DriveObjectTarget, DriveObjectType, FileTarget,
+    InstanceTarget, PaneSelector, PaneTarget, ProjectTarget, SessionSelector, SessionTarget,
+    TabSelector, TabTarget, TargetSelector, WindowSelector, WindowTarget,
 };
+
+/// Common layout direction values accepted by pane and tab mutations.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Direction {
+    Left,
+    Right,
+    Up,
+    Down,
+    Previous,
+    Next,
+}
+
+/// Input mode values accepted by `input.mode.set`.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum InputMode {
+    Terminal,
+    Agent,
+}
+
+/// Output flavor for block output reads.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BlockOutputFormat {
+    Plain,
+    Ansi,
+    Json,
+}
+
+/// Tab type accepted by `tab.create`.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TabType {
+    Terminal,
+    Agent,
+    CloudAgent,
+    Default,
+}
+
+/// Typed parameter payloads for public catalog actions.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum ActionParams {
+    None,
+    ActionName {
+        action: String,
+    },
+    AuthApiKeySet {
+        source: ApiKeySource,
+    },
+    BindingName {
+        binding_name: String,
+    },
+    BooleanValue {
+        value: bool,
+    },
+    ColorValue {
+        color: String,
+    },
+    Direction {
+        direction: Direction,
+    },
+    DriveObjectCreate(DriveObjectCreateParams),
+    DriveObjectId {
+        id: DriveObjectId,
+    },
+    DriveObjectInsert(DriveObjectInsertParams),
+    DriveObjectList {
+        object_type: DriveObjectType,
+    },
+    DriveObjectUpdate(DriveObjectUpdateParams),
+    FileOpen(FileOpenParams),
+    InputMode {
+        mode: InputMode,
+    },
+    Key {
+        key: String,
+    },
+    KeyValue {
+        key: String,
+        value: serde_json::Value,
+    },
+    Limit {
+        limit: Option<u32>,
+    },
+    Namespace {
+        namespace: Option<String>,
+    },
+    PageQuery {
+        page: Option<String>,
+        query: Option<String>,
+    },
+    Path {
+        path: String,
+    },
+    Query {
+        query: Option<String>,
+    },
+    Rename {
+        title: String,
+    },
+    Resize {
+        direction: Direction,
+        amount: Option<u32>,
+    },
+    TabActivate {
+        mode: TabActivationMode,
+    },
+    TabClose {
+        mode: TabCloseMode,
+    },
+    TabCreate(TabCreateParams),
+    Text {
+        text: String,
+    },
+    ThemeName {
+        theme_name: String,
+    },
+    WorkflowRun(WorkflowRunParams),
+}
+
+/// Secret source for external scripting API-key setup.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum ApiKeySource {
+    Env { env_var: String },
+    Stdin,
+}
+
+/// Parameters for `tab.create` and `window.create` shell/profile options.
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct TabCreateParams {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tab_type: Option<TabType>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub shell: Option<String>,
+}
+
+/// Parameters for opening a file in Warp's app/editor state.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FileOpenParams {
+    pub path: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub line: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub column: Option<u32>,
+    #[serde(default)]
+    pub new_tab: bool,
+}
+
+/// Parameters for Drive object creation.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DriveObjectCreateParams {
+    pub object_type: DriveObjectType,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content_file: Option<String>,
+}
+
+/// Parameters for Drive object updates.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DriveObjectUpdateParams {
+    pub id: DriveObjectId,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content_file: Option<String>,
+}
+
+/// Parameters for inserting an existing Drive object into a target surface.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DriveObjectInsertParams {
+    pub id: DriveObjectId,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target: Option<TargetSelector>,
+}
+
+/// Parameters for running an approved Warp Drive workflow.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct WorkflowRunParams {
+    pub id: DriveObjectId,
+    #[serde(default)]
+    pub args: Vec<WorkflowArgument>,
+}
+
+/// Name/value argument passed to an approved workflow run.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct WorkflowArgument {
+    pub name: String,
+    pub value: String,
+}
+
+/// Mode accepted by `tab.activate`.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TabActivationMode {
+    Target,
+    Previous,
+    Next,
+    Last,
+}
+
+/// Mode accepted by `tab.close`.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TabCloseMode {
+    Target,
+    Active,
+    Others,
+    RightOf,
+}
+
+/// Typed success payloads for catalog actions that need stable structured data.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum ControlResult {
+    Acknowledgement { action: ActionKind },
+    Metadata { data: serde_json::Value },
+    Content { data: serde_json::Value },
+}
 
 /// Top-level request sent by a local-control client to a Warp instance.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

@@ -15,15 +15,22 @@ pub use auth::{
     AuthToken, AuthenticatedUserGrant, CredentialGrant, CredentialRequest, ScopedCredential,
 };
 pub use catalog::{
-    ActionImplementationStatus, ActionKind, ActionMetadata, AuthenticatedUserRequirement,
-    InvocationContext, PermissionCategory, RiskTier, StateDataCategory, TargetScope,
+    ActionImplementationStatus, ActionKind, ActionMetadata, ActionParameterSpec, ActionResultSpec,
+    AuthenticatedUserRequirement, EXCLUDED_FILE_CONTENT_ACTION_NAMES, InvocationContext,
+    PermissionCategory, RiskTier, StateDataCategory, TargetScope,
 };
 pub use discovery::{
     ControlEndpoint, CredentialBrokerReference, InstanceId, InstanceRecord, RegisteredInstance,
     discovery_dir,
 };
 pub use protocol::{
-    Action, ControlError, ControlResponse, ErrorCode, ErrorResponseEnvelope, ExecutionContextProof,
-    PROTOCOL_VERSION, RequestEnvelope, ResponseEnvelope,
+    Action, ActionParams, ApiKeySource, BlockOutputFormat, ControlError, ControlResponse,
+    ControlResult, Direction, ErrorCode, ErrorResponseEnvelope, ExecutionContextProof,
+    FileOpenParams, InputMode, PROTOCOL_VERSION, RequestEnvelope, ResponseEnvelope,
+    TabActivationMode, TabCloseMode, TabCreateParams, TabType,
 };
-pub use selectors::{PaneSelector, TabSelector, TargetSelector, WindowSelector};
+pub use selectors::{
+    BlockSelector, BlockTarget, DriveObjectId, DriveObjectTarget, DriveObjectType, FileTarget,
+    InstanceTarget, PaneSelector, PaneTarget, ProjectTarget, SessionSelector, SessionTarget,
+    TabSelector, TabTarget, TargetSelector, WindowSelector, WindowTarget,
+};
