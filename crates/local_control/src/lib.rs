@@ -31,10 +31,13 @@ pub use protocol::{
     ControlResponse, ControlResult, Direction, DriveInspectParams, DriveInspectResult,
     DriveListParams, DriveListResult, DriveObjectSummary, ErrorCode, ErrorResponseEnvelope,
     ExecutionContextProof, FileListResult, FileOpenParams, FileSummary, HistoryEntrySummary,
-    HistoryListParams, HistoryListResult, InputMode, InputStateResult, PROTOCOL_VERSION,
-    ProjectActiveResult, ProjectListResult, ProjectSummary, RequestEnvelope, ResponseEnvelope,
-    SettingGetParams, SettingGetResult, SettingListResult, SettingSummary, TabActivationMode,
-    TabCloseMode, TabCreateParams, TabType, ThemeListResult, ThemeSummary,
+    HistoryListParams, HistoryListResult, HorizontalDirection, InputMode, InputStateResult,
+    PROTOCOL_VERSION, PaneDirection, PaneMaximizeParams, PaneMutationResult, PaneNavigateParams,
+    PaneResizeParams, PaneSplitParams, ProjectActiveResult, ProjectListResult, ProjectSummary,
+    RequestEnvelope, ResponseEnvelope, SettingGetParams, SettingGetResult, SettingListResult,
+    SettingSummary, TabActivateParams, TabActivationMode, TabActivationTarget, TabCloseMode,
+    TabCloseParams, TabCloseScope, TabCreateParams, TabMoveParams, TabMutationResult, TabType,
+    ThemeListResult, ThemeSummary, WindowCloseParams, WindowCreateParams,
 };
 pub use scripting::{
     ApiKeySecret, ApiKeyStatus, ApiKeyStorageRef, AuthStatusSummary, ScriptingGrant,

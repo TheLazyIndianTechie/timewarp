@@ -1,8 +1,10 @@
 //! Target and parameter validation for the first local-control action slice.
 use crate::local_control::handlers::metadata::action_metadata_for_name;
 use ::local_control::protocol::{
-    ActionGetParams, PaneTarget, SessionTarget, SettingGetParams, TabTarget, TargetSelector,
-    WindowTarget,
+    ActionGetParams, BlockListParams, BlockOutputParams, HistoryListParams, PaneMaximizeParams,
+    PaneNavigateParams, PaneResizeParams, PaneSplitParams, PaneTarget, SessionTarget,
+    SettingGetParams, TabActivateParams, TabCloseParams, TabMoveParams, TabTarget, TargetSelector,
+    WindowCloseParams, WindowCreateParams, WindowTarget,
 };
 use ::local_control::{ActionKind, ControlError, ErrorCode};
 use warpui::ModelContext;
@@ -73,27 +75,54 @@ pub(crate) fn validate_action_params(action: &::local_control::Action) -> Result
             action_metadata_for_name(&params.action)?;
             Ok(())
         }
-
         ActionKind::SettingGet => {
             action.params_as::<SettingGetParams>()?;
             Ok(())
         }
+        ActionKind::WindowCreate => action.params_as::<WindowCreateParams>().map(|_| ()),
+        ActionKind::WindowClose => action.params_as::<WindowCloseParams>().map(|_| ()),
+        ActionKind::TabActivate => action.params_as::<TabActivateParams>().map(|_| ()),
+        ActionKind::TabMove => action.params_as::<TabMoveParams>().map(|_| ()),
+        ActionKind::TabClose => action.params_as::<TabCloseParams>().map(|_| ()),
+        ActionKind::PaneSplit => action.params_as::<PaneSplitParams>().map(|_| ()),
+        ActionKind::PaneNavigate => action.params_as::<PaneNavigateParams>().map(|_| ()),
+        ActionKind::PaneMaximize => action.params_as::<PaneMaximizeParams>().map(|_| ()),
+        ActionKind::PaneResize => action.params_as::<PaneResizeParams>().and_then(|params| {
+            if params.amount == Some(0) {
+                return Err(ControlError::new(
+                    ErrorCode::InvalidParams,
+                    "pane.resize amount must be greater than zero",
+                ));
+            }
+            Ok(())
+        }),
+        ActionKind::BlockList => action.params_as::<BlockListParams>().map(|_| ()),
+        ActionKind::BlockOutput => action.params_as::<BlockOutputParams>().map(|_| ()),
+        ActionKind::HistoryList => action.params_as::<HistoryListParams>().map(|_| ()),
         ActionKind::InstanceList
         | ActionKind::InstanceInspect
         | ActionKind::AppPing
         | ActionKind::AppVersion
         | ActionKind::AppActive
+        | ActionKind::AppFocus
         | ActionKind::ActionList
         | ActionKind::CapabilityList
         | ActionKind::WindowList
         | ActionKind::WindowInspect
+        | ActionKind::WindowFocus
         | ActionKind::TabList
         | ActionKind::TabInspect
         | ActionKind::TabCreate
         | ActionKind::PaneList
         | ActionKind::PaneInspect
+        | ActionKind::PaneFocus
+        | ActionKind::PaneClose
         | ActionKind::SessionList
-        | ActionKind::SessionInspect => validate_empty_action_params(action),
+        | ActionKind::SessionInspect
+        | ActionKind::InputGet
+        | ActionKind::ThemeList
+        | ActionKind::AppearanceGet
+        | ActionKind::SettingList => validate_empty_action_params(action),
         _ => Ok(()),
     }
 }
@@ -125,6 +154,18 @@ pub(crate) fn require_active_window_id(
         ControlError::new(
             ErrorCode::MissingTarget,
             "tab.create requires an active Warp window",
+        )
+    })
+}
+
+pub(crate) fn require_active_window_id_for_action(
+    active_window: Option<warpui::WindowId>,
+    action: ActionKind,
+) -> Result<warpui::WindowId, ControlError> {
+    active_window.ok_or_else(|| {
+        ControlError::new(
+            ErrorCode::MissingTarget,
+            format!("{} requires an active Warp window", action.as_str()),
         )
     })
 }

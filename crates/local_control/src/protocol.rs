@@ -309,6 +309,109 @@ pub struct HistoryListParams {
     pub limit: Option<u32>,
 }
 
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct WindowCreateParams {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub profile: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct WindowCloseParams {
+    #[serde(default)]
+    pub force: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TabActivationTarget {
+    Previous,
+    Next,
+    Last,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TabActivateParams {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub relative: Option<TabActivationTarget>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum HorizontalDirection {
+    Left,
+    Right,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TabMoveParams {
+    pub direction: HorizontalDirection,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TabCloseScope {
+    Target,
+    Others,
+    Right,
+}
+
+impl Default for TabCloseScope {
+    fn default() -> Self {
+        Self::Target
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TabCloseParams {
+    #[serde(default)]
+    pub scope: TabCloseScope,
+    #[serde(default)]
+    pub force: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PaneDirection {
+    Left,
+    Right,
+    Up,
+    Down,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PaneSplitParams {
+    pub direction: PaneDirection,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub profile: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PaneNavigateParams {
+    pub direction: PaneDirection,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PaneMaximizeParams {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PaneResizeParams {
+    pub direction: PaneDirection,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub amount: Option<u32>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BlockSummary {
     pub block_id: String,
@@ -455,6 +558,18 @@ pub struct DriveListResult {
 pub struct DriveInspectResult {
     pub object: DriveObjectSummary,
     pub content: serde_json::Value,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TabMutationResult {
+    pub tab_id: String,
+    pub window_id: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PaneMutationResult {
+    pub pane_id: String,
+    pub tab_id: String,
 }
 
 impl Action {

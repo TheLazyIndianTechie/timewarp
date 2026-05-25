@@ -88,7 +88,7 @@ pub(super) fn run_app_command(
         AppCommand::Active(args) => {
             run_action(args, ActionKind::AppActive, json!({}), output_format)
         }
-        AppCommand::Focus(_) => unsupported_action("app.focus"),
+        AppCommand::Focus(args) => run_action(args, ActionKind::AppFocus, json!({}), output_format),
     }
 }
 
@@ -115,9 +115,18 @@ pub(super) fn run_window_command(
         WindowCommand::Inspect(args) => {
             run_action(args, ActionKind::WindowInspect, json!({}), output_format)
         }
-        WindowCommand::Create(_) => unsupported_action("window.create"),
-        WindowCommand::Focus(_) => unsupported_action("window.focus"),
-        WindowCommand::Close(_) => unsupported_action("window.close"),
+        WindowCommand::Create(args) => run_action(
+            args.target,
+            ActionKind::WindowCreate,
+            json!({ "profile": args.shell }),
+            output_format,
+        ),
+        WindowCommand::Focus(args) => {
+            run_action(args, ActionKind::WindowFocus, json!({}), output_format)
+        }
+        WindowCommand::Close(args) => {
+            run_action(args, ActionKind::WindowClose, json!({}), output_format)
+        }
     }
 }
 
@@ -131,12 +140,27 @@ pub(super) fn run_tab_command(
             run_action(args, ActionKind::TabInspect, json!({}), output_format)
         }
         TabCommand::Create(args) => run_tab_create(args, output_format),
-        TabCommand::Activate(_) => unsupported_action("tab.activate"),
-        TabCommand::Move(_) => unsupported_action("tab.move"),
+        TabCommand::Activate(args) => run_action(
+            args.target,
+            ActionKind::TabActivate,
+            json!({ "relative": tab_activation_target(args.previous, args.next, args.last) }),
+            output_format,
+        ),
+        TabCommand::Move(args) => run_action(
+            args.target,
+            ActionKind::TabMove,
+            json!({ "direction": horizontal_direction(args.direction) }),
+            output_format,
+        ),
         TabCommand::Rename(_) => unsupported_action("tab.rename"),
         TabCommand::ResetName(_) => unsupported_action("tab.reset-name"),
         TabCommand::Color(_) => unsupported_action("tab.color"),
-        TabCommand::Close(_) => unsupported_action("tab.close"),
+        TabCommand::Close(args) => run_action(
+            args.target,
+            ActionKind::TabClose,
+            json!({ "scope": tab_close_scope(args.others, args.right_of), "force": false }),
+            output_format,
+        ),
     }
 }
 
@@ -149,13 +173,42 @@ pub(super) fn run_pane_command(
         PaneCommand::Inspect(args) => {
             run_action(args, ActionKind::PaneInspect, json!({}), output_format)
         }
-        PaneCommand::Split(_) => unsupported_action("pane.split"),
-        PaneCommand::Focus(_) => unsupported_action("pane.focus"),
-        PaneCommand::Navigate(_) => unsupported_action("pane.navigate"),
-        PaneCommand::Resize(_) => unsupported_action("pane.resize"),
-        PaneCommand::Maximize(_) => unsupported_action("pane.maximize"),
-        PaneCommand::Unmaximize(_) => unsupported_action("pane.unmaximize"),
-        PaneCommand::Close(_) => unsupported_action("pane.close"),
+        PaneCommand::Split(args) => run_action(
+            args.target,
+            ActionKind::PaneSplit,
+            json!({ "direction": split_direction(args.direction), "profile": args.shell }),
+            output_format,
+        ),
+        PaneCommand::Focus(args) => {
+            run_action(args, ActionKind::PaneFocus, json!({}), output_format)
+        }
+        PaneCommand::Navigate(args) => run_action(
+            args.target,
+            ActionKind::PaneNavigate,
+            json!({ "direction": navigation_direction(args.direction) }),
+            output_format,
+        ),
+        PaneCommand::Resize(args) => run_action(
+            args.target,
+            ActionKind::PaneResize,
+            json!({ "direction": split_direction(args.direction), "amount": args.amount }),
+            output_format,
+        ),
+        PaneCommand::Maximize(args) => run_action(
+            args,
+            ActionKind::PaneMaximize,
+            json!({ "enabled": true }),
+            output_format,
+        ),
+        PaneCommand::Unmaximize(args) => run_action(
+            args,
+            ActionKind::PaneMaximize,
+            json!({ "enabled": false }),
+            output_format,
+        ),
+        PaneCommand::Close(args) => {
+            run_action(args, ActionKind::PaneClose, json!({}), output_format)
+        }
         PaneCommand::Rename(_) => unsupported_action("pane.rename"),
         PaneCommand::ResetName(_) => unsupported_action("pane.reset-name"),
     }
@@ -386,6 +439,55 @@ pub(super) fn run_surface_command(command: SurfaceCommand) -> Result<(), Control
         SurfaceCommand::LeftPanel(_) => unsupported_action("surface.left-panel.toggle"),
         SurfaceCommand::RightPanel(_) => unsupported_action("surface.right-panel.toggle"),
         SurfaceCommand::VerticalTabs(_) => unsupported_action("surface.vertical-tabs.toggle"),
+    }
+}
+
+fn tab_activation_target(previous: bool, next: bool, last: bool) -> Option<&'static str> {
+    if previous {
+        Some("previous")
+    } else if next {
+        Some("next")
+    } else if last {
+        Some("last")
+    } else {
+        None
+    }
+}
+
+fn tab_close_scope(others: bool, right_of: bool) -> &'static str {
+    if others {
+        "others"
+    } else if right_of {
+        "right"
+    } else {
+        "target"
+    }
+}
+
+fn horizontal_direction(direction: crate::local_control::HorizontalDirection) -> &'static str {
+    match direction {
+        crate::local_control::HorizontalDirection::Left => "left",
+        crate::local_control::HorizontalDirection::Right => "right",
+    }
+}
+
+fn split_direction(direction: crate::local_control::SplitDirection) -> &'static str {
+    match direction {
+        crate::local_control::SplitDirection::Left => "left",
+        crate::local_control::SplitDirection::Right => "right",
+        crate::local_control::SplitDirection::Up => "up",
+        crate::local_control::SplitDirection::Down => "down",
+    }
+}
+
+fn navigation_direction(direction: crate::local_control::NavigationDirection) -> &'static str {
+    match direction {
+        crate::local_control::NavigationDirection::Left => "left",
+        crate::local_control::NavigationDirection::Right => "right",
+        crate::local_control::NavigationDirection::Up => "up",
+        crate::local_control::NavigationDirection::Down => "down",
+        crate::local_control::NavigationDirection::Previous => "left",
+        crate::local_control::NavigationDirection::Next => "right",
     }
 }
 

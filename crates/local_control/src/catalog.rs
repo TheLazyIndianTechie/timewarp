@@ -587,30 +587,30 @@ impl ActionKind {
             | Self::ProjectActive
             | Self::ProjectList
             | Self::DriveList
-            | Self::DriveInspect => ActionImplementationStatus::Implemented,
-            Self::AppFocus
-            | Self::AuthStatus
-            | Self::AuthLogin
-            | Self::AuthApiKeySet
-            | Self::AuthApiKeyStatus
-            | Self::AuthApiKeyRevoke
+            | Self::DriveInspect
+            | Self::AppFocus
             | Self::WindowCreate
             | Self::WindowFocus
             | Self::WindowClose
             | Self::TabActivate
             | Self::TabMove
             | Self::TabClose
-            | Self::TabRename
-            | Self::TabResetName
-            | Self::TabColorSet
-            | Self::TabColorClear
             | Self::PaneSplit
             | Self::PaneFocus
             | Self::PaneNavigate
             | Self::PaneResize
             | Self::PaneMaximize
+            | Self::PaneClose => ActionImplementationStatus::Implemented,
+            Self::AuthStatus
+            | Self::AuthLogin
+            | Self::AuthApiKeySet
+            | Self::AuthApiKeyStatus
+            | Self::AuthApiKeyRevoke
+            | Self::TabRename
+            | Self::TabResetName
+            | Self::TabColorSet
+            | Self::TabColorClear
             | Self::PaneUnmaximize
-            | Self::PaneClose
             | Self::PaneRename
             | Self::PaneResetName
             | Self::SessionActivate

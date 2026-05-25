@@ -440,6 +440,158 @@ fn structured_error_output_uses_stable_error_code() {
 }
 
 #[test]
+fn parses_app_focus_command() {
+    assert!(matches!(
+        ControlArgs::try_parse_from(["warpctrl", "app", "focus"])
+            .expect("app focus parses")
+            .command,
+        ControlCommand::App(AppCommand::Focus(_))
+    ));
+}
+
+#[test]
+fn parses_window_mutation_commands() {
+    assert!(matches!(
+        ControlArgs::try_parse_from(["warpctrl", "window", "create"])
+            .expect("window create parses")
+            .command,
+        ControlCommand::Window(WindowCommand::Create(_))
+    ));
+
+    assert!(matches!(
+        ControlArgs::try_parse_from(["warpctrl", "window", "focus"])
+            .expect("window focus parses")
+            .command,
+        ControlCommand::Window(WindowCommand::Focus(_))
+    ));
+
+    assert!(matches!(
+        ControlArgs::try_parse_from(["warpctrl", "window", "close"])
+            .expect("window close parses")
+            .command,
+        ControlCommand::Window(WindowCommand::Close(_))
+    ));
+
+    let args = ControlArgs::try_parse_from(["warpctrl", "window", "close", "--force"])
+        .expect("window close --force parses");
+    let ControlCommand::Window(WindowCommand::Close(close)) = args.command else {
+        panic!("expected window close command");
+    };
+    assert!(close.force);
+}
+
+#[test]
+fn parses_tab_mutation_commands() {
+    assert!(matches!(
+        ControlArgs::try_parse_from(["warpctrl", "tab", "activate"])
+            .expect("tab activate parses")
+            .command,
+        ControlCommand::Tab(TabCommand::Activate(_))
+    ));
+    assert!(matches!(
+        ControlArgs::try_parse_from(["warpctrl", "tab", "previous"])
+            .expect("tab previous parses")
+            .command,
+        ControlCommand::Tab(TabCommand::Previous(_))
+    ));
+    assert!(matches!(
+        ControlArgs::try_parse_from(["warpctrl", "tab", "next"])
+            .expect("tab next parses")
+            .command,
+        ControlCommand::Tab(TabCommand::Next(_))
+    ));
+    assert!(matches!(
+        ControlArgs::try_parse_from(["warpctrl", "tab", "last"])
+            .expect("tab last parses")
+            .command,
+        ControlCommand::Tab(TabCommand::Last(_))
+    ));
+
+    let args = ControlArgs::try_parse_from(["warpctrl", "tab", "move", "--direction", "right"])
+        .expect("tab move parses");
+    assert!(matches!(
+        args.command,
+        ControlCommand::Tab(TabCommand::Move(_))
+    ));
+    assert!(ControlArgs::try_parse_from(["warpctrl", "tab", "move"]).is_err());
+
+    assert!(matches!(
+        ControlArgs::try_parse_from(["warpctrl", "tab", "close"])
+            .expect("tab close parses")
+            .command,
+        ControlCommand::Tab(TabCommand::Close(_))
+    ));
+    assert!(matches!(
+        ControlArgs::try_parse_from(["warpctrl", "tab", "close", "--scope", "others"])
+            .expect("tab close with scope parses")
+            .command,
+        ControlCommand::Tab(TabCommand::Close(_))
+    ));
+}
+
+#[test]
+fn parses_pane_mutation_commands() {
+    let args = ControlArgs::try_parse_from(["warpctrl", "pane", "split", "--direction", "right"])
+        .expect("pane split parses");
+    assert!(matches!(
+        args.command,
+        ControlCommand::Pane(PaneCommand::Split(_))
+    ));
+    assert!(ControlArgs::try_parse_from(["warpctrl", "pane", "split"]).is_err());
+
+    assert!(matches!(
+        ControlArgs::try_parse_from(["warpctrl", "pane", "focus"])
+            .expect("pane focus parses")
+            .command,
+        ControlCommand::Pane(PaneCommand::Focus(_))
+    ));
+
+    let args = ControlArgs::try_parse_from(["warpctrl", "pane", "navigate", "--direction", "left"])
+        .expect("pane navigate parses");
+    assert!(matches!(
+        args.command,
+        ControlCommand::Pane(PaneCommand::Navigate(_))
+    ));
+    assert!(ControlArgs::try_parse_from(["warpctrl", "pane", "navigate"]).is_err());
+
+    assert!(matches!(
+        ControlArgs::try_parse_from(["warpctrl", "pane", "close"])
+            .expect("pane close parses")
+            .command,
+        ControlCommand::Pane(PaneCommand::Close(_))
+    ));
+
+    assert!(matches!(
+        ControlArgs::try_parse_from(["warpctrl", "pane", "maximize"])
+            .expect("pane maximize parses without enabled")
+            .command,
+        ControlCommand::Pane(PaneCommand::Maximize(_))
+    ));
+    assert!(matches!(
+        ControlArgs::try_parse_from(["warpctrl", "pane", "maximize", "--enabled", "true"])
+            .expect("pane maximize parses with enabled")
+            .command,
+        ControlCommand::Pane(PaneCommand::Maximize(_))
+    ));
+
+    let args = ControlArgs::try_parse_from([
+        "warpctrl",
+        "pane",
+        "resize",
+        "--direction",
+        "up",
+        "--amount",
+        "3",
+    ])
+    .expect("pane resize parses");
+    assert!(matches!(
+        args.command,
+        ControlCommand::Pane(PaneCommand::Resize(_))
+    ));
+    assert!(ControlArgs::try_parse_from(["warpctrl", "pane", "resize"]).is_err());
+}
+
+#[test]
 #[serial]
 fn tab_create_without_discovery_records_reports_no_instance() {
     let dir = std::env::temp_dir().join(format!(
