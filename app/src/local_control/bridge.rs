@@ -9,7 +9,9 @@ use ::local_control::{
 };
 use warpui::{Entity, ModelContext, SingletonEntity};
 
-use crate::local_control::handlers::{data, drive, layout, metadata, product_metadata, settings_surfaces};
+use crate::local_control::handlers::{
+    data, drive, layout, metadata, product_metadata, settings_surfaces,
+};
 use crate::local_control::permissions::{
     ensure_action_allowed, ensure_authenticated_user_matches, ensure_feature_enabled,
 };

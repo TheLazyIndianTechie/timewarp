@@ -1,8 +1,7 @@
 use ::local_control::protocol::{
     BlockListParams, BlockListResult, BlockOutputFormat, BlockOutputParams, BlockOutputResult,
     BlockSummary, BlockTarget, HistoryEntrySummary, HistoryListParams, HistoryListResult,
-    InputStateResult,
-    PaneTarget, SessionTarget, TabTarget, TargetSelector, WindowTarget,
+    InputStateResult, PaneTarget, SessionTarget, TabTarget, TargetSelector, WindowTarget,
 };
 use ::local_control::{ActionKind, ControlError, ErrorCode};
 use warpui::{ModelContext, SingletonEntity, ViewHandle};
@@ -329,7 +328,10 @@ fn resolve_session_selector(
         }),
         Some(SessionTarget::Index { .. }) => Err(ControlError::new(
             ErrorCode::InvalidSelector,
-            format!("{} does not support indexed session selectors", action.as_str()),
+            format!(
+                "{} does not support indexed session selectors",
+                action.as_str()
+            ),
         )),
     }
 }
@@ -391,7 +393,9 @@ fn block_output_result_from_model(
         let matches_block = match block_target {
             None | Some(BlockTarget::Active) => index == blocks.len().saturating_sub(1),
             Some(BlockTarget::Id { id }) => block.id().as_str() == id.0,
-            Some(BlockTarget::Index { index: target_index }) => index as u32 == *target_index,
+            Some(BlockTarget::Index {
+                index: target_index,
+            }) => index as u32 == *target_index,
         };
         matches_block.then(|| (index, block))
     });

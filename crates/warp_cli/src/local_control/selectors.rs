@@ -1,7 +1,7 @@
 //! CLI argument conversion into shared local-control selectors.
 use local_control::protocol::{
-    ControlError, ErrorCode, BlockSelector, BlockTarget, PaneSelector, PaneTarget, SessionSelector, SessionTarget,
-    TabSelector, TabTarget, TargetSelector, WindowSelector, WindowTarget,
+    BlockSelector, BlockTarget, ControlError, ErrorCode, PaneSelector, PaneTarget, SessionSelector,
+    SessionTarget, TabSelector, TabTarget, TargetSelector, WindowSelector, WindowTarget,
 };
 use local_control::selection::InstanceSelector;
 
@@ -83,7 +83,6 @@ fn pane_target(args: &TargetArgs) -> Result<Option<PaneTarget>, ControlError> {
     Ok(None)
 }
 
-
 fn session_target(args: &TargetArgs) -> Result<Option<SessionTarget>, ControlError> {
     if let Some(selector) = args.session.as_deref() {
         return parse_session_selector(selector).map(Some);
@@ -98,7 +97,6 @@ fn session_target(args: &TargetArgs) -> Result<Option<SessionTarget>, ControlErr
     }
     Ok(None)
 }
-
 
 fn block_target(args: &TargetArgs) -> Result<Option<BlockTarget>, ControlError> {
     if let Some(selector) = args.block.as_deref() {
@@ -170,7 +168,6 @@ fn parse_pane_selector(selector: &str) -> Result<PaneTarget, ControlError> {
     Err(invalid_selector("pane", selector))
 }
 
-
 fn parse_session_selector(selector: &str) -> Result<SessionTarget, ControlError> {
     if selector == "active" {
         return Ok(SessionTarget::Active);
@@ -185,7 +182,6 @@ fn parse_session_selector(selector: &str) -> Result<SessionTarget, ControlError>
     }
     Err(invalid_selector("session", selector))
 }
-
 
 fn parse_block_selector(selector: &str) -> Result<BlockTarget, ControlError> {
     if selector == "active" {
