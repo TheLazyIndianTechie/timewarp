@@ -10,7 +10,10 @@ use crate::agent::OutputFormat;
 use clap::{Args, CommandFactory, FromArgMatches, Parser, Subcommand};
 use clap_complete::aot::Shell;
 
-use commands::{run_app_command, run_instance_command, run_tab_command};
+use commands::{
+    run_action_catalog_command, run_app_command, run_capability_command, run_instance_command,
+    run_tab_command,
+};
 use completions::generate_completions_to_stdout;
 use output::write_control_error;
 
@@ -36,6 +39,44 @@ pub struct ControlArgs {
     pub command: ControlCommand,
 }
 
+/// Commands that inspect the public action catalog.
+#[derive(Debug, Clone, Subcommand)]
+pub enum ActionCatalogCommand {
+    /// List allowlisted catalog actions with implementation status.
+    List(CatalogFilterArgs),
+
+    /// Inspect a single allowlisted catalog action.
+    Inspect {
+        /// Canonical action name, such as `tab.create` or `surface.settings.open`.
+        action: String,
+    },
+}
+
+/// Commands that inspect public local-control capabilities.
+#[derive(Debug, Clone, Subcommand)]
+pub enum CapabilityCommand {
+    /// List allowlisted local-control capabilities with implementation status.
+    List(CatalogFilterArgs),
+
+    /// Inspect a single local-control capability by canonical action name.
+    Inspect {
+        /// Canonical action name, such as `tab.create` or `surface.settings.open`.
+        action: String,
+    },
+}
+
+/// Filters for local catalog and capability metadata commands.
+#[derive(Debug, Clone, Args, Default)]
+pub struct CatalogFilterArgs {
+    /// Show only actions with app-side handlers in this implementation slice.
+    #[arg(long = "implemented-only", conflicts_with = "stubs_only")]
+    pub implemented_only: bool,
+
+    /// Show only allowlisted catalog entries that currently return `unsupported_action`.
+    #[arg(long = "stubs-only")]
+    pub stubs_only: bool,
+}
+
 impl ControlArgs {
     pub fn from_env() -> Self {
         let matches = Self::clap_command().get_matches();
@@ -53,9 +94,13 @@ impl ControlArgs {
   <dim>$</dim> <bold>{bin_name} instance list</bold>
 
   <dim>$</dim> <bold>{bin_name} tab create</bold>
+  <dim>$</dim> <bold>{bin_name} action list --stubs-only</bold>
+
+  <dim>$</dim> <bold>{bin_name} action inspect surface.settings.open</bold>
 
 <bold><underline>Learn more:</underline></bold>
 * Use <bold>{bin_name} help</bold> to learn more about each command
+* Use <bold>{bin_name} action list</bold> to distinguish implemented commands from catalog stubs
 "#
             ))
     }
@@ -70,6 +115,14 @@ pub enum ControlCommand {
     /// Inspect a selected local Warp app.
     #[command(subcommand)]
     App(AppCommand),
+
+    /// Inspect public action metadata and implementation status.
+    #[command(subcommand)]
+    Action(ActionCatalogCommand),
+
+    /// Inspect local-control capability metadata.
+    #[command(subcommand)]
+    Capability(CapabilityCommand),
 
     /// Control local Warp tabs.
     #[command(subcommand)]
@@ -103,6 +156,9 @@ pub enum ControlCommand {
 pub enum InstanceCommand {
     /// List locally discoverable Warp instances.
     List,
+
+    /// Inspect the selected local Warp instance.
+    Inspect(TargetArgs),
 }
 
 /// Commands that inspect the selected Warp app instance.
@@ -113,6 +169,12 @@ pub enum AppCommand {
 
     /// Print protocol and app version metadata for the selected local Warp app.
     Version(TargetArgs),
+
+    /// Print active target metadata for the selected local Warp app.
+    Active(TargetArgs),
+
+    /// Focus the selected local Warp app.
+    Focus(TargetArgs),
 }
 
 /// Commands that control tabs in the selected Warp app instance.
@@ -125,7 +187,7 @@ pub enum TabCommand {
 /// Common flags for selecting which running Warp instance receives a command.
 #[derive(Debug, Clone, Args, Default)]
 pub struct TargetArgs {
-    /// Target a specific local Warp instance id from `warp instance list`.
+    /// Target a specific local Warp instance id from `warpctrl instance list`.
     #[arg(long = "instance")]
     pub instance: Option<String>,
 
@@ -155,6 +217,8 @@ fn run_inner(args: ControlArgs) -> Result<(), local_control::protocol::ControlEr
     match args.command {
         ControlCommand::Instance(command) => run_instance_command(command, output_format),
         ControlCommand::App(command) => run_app_command(command, output_format),
+        ControlCommand::Action(command) => run_action_catalog_command(command, output_format),
+        ControlCommand::Capability(command) => run_capability_command(command, output_format),
         ControlCommand::Tab(command) => run_tab_command(command, output_format),
         ControlCommand::Completions { shell } => generate_completions_to_stdout(shell),
     }

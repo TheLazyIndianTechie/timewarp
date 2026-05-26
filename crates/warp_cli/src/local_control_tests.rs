@@ -46,6 +46,34 @@ fn parses_first_slice_instance_list() {
 fn parses_first_slice_app_smoke_metadata_commands() {
     assert!(ControlArgs::try_parse_from(["warpctrl", "app", "ping"]).is_ok());
     assert!(ControlArgs::try_parse_from(["warpctrl", "app", "version"]).is_ok());
+    assert!(ControlArgs::try_parse_from(["warpctrl", "app", "active"]).is_ok());
+    assert!(ControlArgs::try_parse_from(["warpctrl", "app", "focus"]).is_ok());
+    assert!(ControlArgs::try_parse_from(["warpctrl", "instance", "inspect"]).is_ok());
+}
+
+#[test]
+fn parses_catalog_metadata_commands() {
+    let args = ControlArgs::try_parse_from([
+        "warpctrl",
+        "action",
+        "inspect",
+        "surface.settings.open",
+    ])
+    .expect("action inspect parses");
+    let ControlCommand::Action(ActionCatalogCommand::Inspect { action }) = args.command else {
+        panic!("expected action inspect command");
+    };
+    assert_eq!(action, "surface.settings.open");
+    assert!(ControlArgs::try_parse_from(["warpctrl", "action", "list", "--stubs-only"]).is_ok());
+    assert!(ControlArgs::try_parse_from([
+        "warpctrl",
+        "capability",
+        "list",
+        "--implemented-only"
+    ])
+    .is_ok());
+    assert!(ControlArgs::try_parse_from(["warpctrl", "capability", "inspect", "tab.create"])
+        .is_ok());
 }
 
 #[test]
@@ -61,10 +89,22 @@ fn parses_completion_generation_command() {
 }
 
 #[test]
-fn rejects_future_catalog_commands_not_in_first_slice() {
+fn rejects_catalog_commands_without_public_cli_groups() {
     assert!(ControlArgs::try_parse_from(["warpctrl", "window", "list"]).is_err());
     assert!(ControlArgs::try_parse_from(["warpctrl", "tab", "list"]).is_err());
     assert!(ControlArgs::try_parse_from(["warpctrl", "setting", "list"]).is_err());
+}
+
+#[test]
+fn excluded_actions_are_not_allowlisted_catalog_entries() {
+    let args = ControlArgs::try_parse_from(["warpctrl", "action", "inspect", "auth.api_key.set"])
+        .expect("action inspect parses arbitrary action name");
+    let error = run_inner(args).expect_err("excluded auth api-key action is not allowlisted");
+    assert_eq!(error.code, ErrorCode::NotAllowlisted);
+    let args = ControlArgs::try_parse_from(["warpctrl", "action", "inspect", "file.write"])
+        .expect("action inspect parses arbitrary action name");
+    let error = run_inner(args).expect_err("excluded file mutation action is not allowlisted");
+    assert_eq!(error.code, ErrorCode::NotAllowlisted);
 }
 
 #[test]
@@ -72,6 +112,9 @@ fn generated_bash_completions_include_first_slice_commands() {
     let completions =
         generate_completion_string(Shell::Bash).expect("bash completions render to UTF-8");
     assert!(completions.contains("instance"));
+    assert!(completions.contains("action"));
+    assert!(completions.contains("capability"));
+    assert!(completions.contains("stubs-only"));
     assert!(completions.contains("tab"));
     assert!(completions.contains("completions"));
 }
