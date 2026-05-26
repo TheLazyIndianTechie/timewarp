@@ -108,6 +108,7 @@ pub async fn generate_multi_agent_output(
             supports_research_agent: params.research_agent_enabled,
             supports_orchestration_v2: params.orchestration_enabled
                 && FeatureFlag::OrchestrationV2.is_enabled(),
+            supports_background_computer_use: FeatureFlag::BackgroundComputerUse.is_enabled(),
             custom_model_providers: params.custom_model_providers,
         }),
         metadata: Some(api::request::Metadata {
