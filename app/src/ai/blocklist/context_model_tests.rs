@@ -164,6 +164,32 @@ fn parse_repo_name_and_owner_ignores_extra_path_segments() {
     );
 }
 
+#[cfg(not(target_family = "wasm"))]
+#[test]
+fn parse_repo_name_and_owner_uses_name_only_for_unrecognized_url_scheme() {
+    assert_eq!(
+        super::parse_repo_name_and_owner("custom://github.com/warpdotdev/warp-internal.git"),
+        ("warp-internal".to_owned(), None)
+    );
+}
+
+#[cfg(not(target_family = "wasm"))]
+#[test]
+fn parse_repo_name_and_owner_uses_name_only_for_invalid_ssh_remote() {
+    assert_eq!(
+        super::parse_repo_name_and_owner("git@:warpdotdev/warp-internal.git"),
+        ("warp-internal".to_owned(), None)
+    );
+    assert_eq!(
+        super::parse_repo_name_and_owner("git@github.com/warpdotdev/warp-internal.git"),
+        ("warp-internal".to_owned(), None)
+    );
+    assert_eq!(
+        super::parse_repo_name_and_owner("git@github.com:/warpdotdev/warp-internal.git"),
+        ("warp-internal".to_owned(), None)
+    );
+}
+
 #[test]
 fn has_locking_attachment_is_false_with_only_pending_selected_text() {
     // Selected text alone is *not* a locking attachment: the user could be selecting shell

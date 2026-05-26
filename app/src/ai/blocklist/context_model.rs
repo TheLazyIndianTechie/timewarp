@@ -1031,27 +1031,11 @@ impl BlocklistAIContextModel {
 #[cfg(not(target_family = "wasm"))]
 fn parse_repo_name_and_owner(url: &str) -> (String, Option<String>) {
     let url = url.trim().trim_end_matches(".git");
-    // SSH format: git@github.com:owner/repo
-    if let Some(path) = url
-        .strip_prefix("git@")
-        .and_then(|rest| rest.split_once(':').map(|(_, p)| p))
+    if let Some((name, owner)) = parse_scp_like_ssh_remote_path(url)
+        .or_else(|| parse_supported_url_remote_path(url))
+        .and_then(parse_repo_name_and_owner_from_path)
     {
-        if let Some((name, owner)) = parse_repo_name_and_owner_from_path(path) {
-            return (name, owner);
-        }
-    }
-
-    // URL format: https://github.com/owner/repo or ssh://git@github.com/owner/repo
-    if url.starts_with("https://") || url.starts_with("http://") || url.starts_with("ssh://") {
-        // Collect path segments after the host.
-        if let Some(path) = url
-            .split_once("://")
-            .and_then(|(_, rest)| rest.split_once('/').map(|(_, p)| p))
-        {
-            if let Some((name, owner)) = parse_repo_name_and_owner_from_path(path) {
-                return (name, owner);
-            }
-        }
+        return (name, owner);
     }
 
     // Fallback: use the last path component as the name.
@@ -1064,6 +1048,32 @@ fn parse_repo_name_and_owner(url: &str) -> (String, Option<String>) {
     (name, None)
 }
 
+/// Parses a SSH-like remote path (e.g. `git@github.com:owner/repo_name.git`)
+#[cfg(not(target_family = "wasm"))]
+fn parse_scp_like_ssh_remote_path(url: &str) -> Option<&str> {
+    let rest = url.strip_prefix("git@")?;
+    let (host, path) = rest.split_once(':')?;
+    if host.is_empty() || host.contains('/') || path.is_empty() || path.starts_with('/') {
+        return None;
+    }
+    Some(path)
+}
+
+/// Parses a supported URL remote path (e.g. `https://github.com/owner/repo_name.git` or `ssh://git@github.com/owner/repo_name.git`).
+#[cfg(not(target_family = "wasm"))]
+fn parse_supported_url_remote_path(url: &str) -> Option<&str> {
+    if !(url.starts_with("https://") || url.starts_with("http://") || url.starts_with("ssh://")) {
+        return None;
+    }
+
+    let (_, rest) = url.split_once("://")?;
+    let (host, path) = rest.split_once('/')?;
+    if host.is_empty() || path.is_empty() {
+        return None;
+    }
+    Some(path)
+}
+
 #[cfg(not(target_family = "wasm"))]
 fn parse_repo_name_and_owner_from_path(path: &str) -> Option<(String, Option<String>)> {
     let path = path.trim_matches('/');
@@ -1071,7 +1081,9 @@ fn parse_repo_name_and_owner_from_path(path: &str) -> Option<(String, Option<Str
         return None;
     }
 
-    // Take only the first two path segments.
+    // Defensive mechanism in case the path has more than two segments.
+    // we will treat the first segment as the owner and the second segment as the repository name.
+    // Rest will be ignored.
     let mut segments = path.splitn(3, '/');
     let first = segments.next()?;
     let second = segments.next();
