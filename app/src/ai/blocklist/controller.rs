@@ -59,6 +59,7 @@ use crate::ai::document::ai_document_model::{
 use crate::ai::llms::{LLMId, LLMPreferences};
 use crate::ai::AIRequestUsageModel;
 use crate::cloud_object::model::persistence::CloudModel;
+use crate::context_chips::prompt_type::PromptType;
 use crate::features::FeatureFlag;
 use crate::global_resource_handles::GlobalResourceHandlesProvider;
 use crate::network::NetworkStatus;
@@ -303,6 +304,7 @@ pub struct BlocklistAIController {
     context_model: ModelHandle<BlocklistAIContextModel>,
     action_model: ModelHandle<BlocklistAIActionModel>,
     terminal_model: Arc<FairMutex<TerminalModel>>,
+    current_prompt: ModelHandle<PromptType>,
 
     in_flight_response_streams: PendingResponseStreams,
 
@@ -409,6 +411,7 @@ impl BlocklistAIController {
         context_model: ModelHandle<BlocklistAIContextModel>,
         action_model: ModelHandle<BlocklistAIActionModel>,
         active_session: ModelHandle<ActiveSession>,
+        current_prompt: ModelHandle<PromptType>,
         agent_view_controller: ModelHandle<AgentViewController>,
         terminal_model: Arc<FairMutex<TerminalModel>>,
         terminal_view_id: EntityId,
@@ -595,6 +598,7 @@ impl BlocklistAIController {
             action_model,
             active_session,
             terminal_model,
+            current_prompt,
             in_flight_response_streams: PendingResponseStreams::new(),
             terminal_view_id,
             should_refresh_available_llms_on_stream_finish: false,
@@ -702,6 +706,7 @@ impl BlocklistAIController {
             self.context_model.as_ref(ctx),
             self.active_session.as_ref(ctx),
             Some(conversation_id),
+            Some(self.current_prompt.as_ref(ctx)),
             vec![],
             ctx,
         );
@@ -757,6 +762,7 @@ impl BlocklistAIController {
                 additional_attachments,
                 self.context_model.as_ref(ctx),
                 self.active_session.as_ref(ctx),
+                self.current_prompt.as_ref(ctx),
                 ctx,
             ),
             InputQueryType::AIInputType { ai_input } => ai_input,
@@ -1352,6 +1358,7 @@ impl BlocklistAIController {
             self.context_model.as_ref(ctx),
             self.active_session.as_ref(ctx),
             None,
+            Some(self.current_prompt.as_ref(ctx)),
             vec![],
             ctx,
         );
@@ -1387,6 +1394,7 @@ impl BlocklistAIController {
             self.context_model.as_ref(ctx),
             self.active_session.as_ref(ctx),
             conversation_id,
+            Some(self.current_prompt.as_ref(ctx)),
             vec![],
             ctx,
         );
@@ -1487,6 +1495,7 @@ impl BlocklistAIController {
             self.context_model.as_ref(ctx),
             self.active_session.as_ref(ctx),
             Some(conversation_id),
+            Some(self.current_prompt.as_ref(ctx)),
             vec![],
             ctx,
         );
@@ -1884,6 +1893,7 @@ impl BlocklistAIController {
             self.context_model.as_ref(ctx),
             self.active_session.as_ref(ctx),
             Some(conversation_id),
+            Some(self.current_prompt.as_ref(ctx)),
             additional_context,
             ctx,
         );
@@ -2046,6 +2056,7 @@ impl BlocklistAIController {
                 self.context_model.as_ref(ctx),
                 self.active_session.as_ref(ctx),
                 Some(conversation_id),
+                Some(self.current_prompt.as_ref(ctx)),
                 vec![],
                 ctx,
             ),
@@ -2098,6 +2109,7 @@ impl BlocklistAIController {
                 self.context_model.as_ref(ctx),
                 self.active_session.as_ref(ctx),
                 None,
+                Some(self.current_prompt.as_ref(ctx)),
                 vec![],
                 ctx,
             ),
@@ -3082,6 +3094,7 @@ fn input_for_query(
     additional_attachments: HashMap<String, AIAgentAttachment>,
     context_model: &BlocklistAIContextModel,
     active_session: &ActiveSession,
+    current_prompt: &PromptType,
     app: &AppContext,
 ) -> AIAgentInput {
     let context = input_context_for_request(
@@ -3089,6 +3102,7 @@ fn input_for_query(
         context_model,
         active_session,
         Some(conversation_id),
+        Some(current_prompt),
         vec![],
         app,
     );

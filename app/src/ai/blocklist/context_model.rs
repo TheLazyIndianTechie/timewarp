@@ -21,7 +21,6 @@ use crate::ai::agent::conversation::{
 use crate::ai::agent::todos::AIAgentTodoList;
 use crate::ai::agent::{
     AIAgentAttachment, AIAgentContext, AnyFileContent, FileContext, ImageContext,
-    PullRequestContext,
 };
 use crate::ai::block_context::BlockContext;
 use crate::ai::document::ai_document_model::AIDocumentId;
@@ -139,12 +138,6 @@ pub struct BlocklistAIContextModel {
     /// instead of sending it immediately.
     /// Persists across exchanges in the same conversation (like fast-forward).
     queue_next_prompt_enabled: bool,
-
-    /// Metadata for the GitHub pull request associated with the current branch,
-    /// if one exists. Populated by the TerminalView when the GithubPullRequest
-    /// prompt chip value changes. The URL itself is intentionally not stored in
-    /// AI context.
-    cached_pull_request: Option<PullRequestContext>,
 }
 
 pub fn block_context_from_terminal_model(
@@ -299,7 +292,6 @@ impl BlocklistAIContextModel {
             pending_document_id: None,
             auto_attached_agent_view_user_block_ids: Vec::new(),
             queue_next_prompt_enabled: false,
-            cached_pull_request: None,
         }
     }
 
@@ -328,7 +320,6 @@ impl BlocklistAIContextModel {
             pending_document_id: None,
             auto_attached_agent_view_user_block_ids: Vec::new(),
             queue_next_prompt_enabled: false,
-            cached_pull_request: None,
         }
     }
 
@@ -452,16 +443,6 @@ impl BlocklistAIContextModel {
         // Include repository info from the origin remote URL if available.
         if let Some(repo_context) = self.repository_context() {
             context.push(repo_context);
-        }
-
-        // Include the associated pull request metadata if it has been cached.
-        if let Some(pull_request) = &self.cached_pull_request {
-            context.push(AIAgentContext::PullRequest {
-                number: pull_request.number,
-                state: pull_request.state.clone(),
-                draft: pull_request.draft,
-                base_branch: pull_request.base_branch.clone(),
-            });
         }
 
         // Always include project rules if available
@@ -1014,14 +995,6 @@ impl BlocklistAIContextModel {
                 requires_text_resync: false,
             });
         }
-    }
-
-    /// Updates the cached GitHub pull request metadata for the current branch.
-    ///
-    /// Called by the `TerminalView` whenever the `GithubPullRequest` prompt chip value changes.
-    /// Passing `None` clears any previously cached PR metadata.
-    pub fn set_cached_pull_request(&mut self, pull_request: Option<PullRequestContext>) {
-        self.cached_pull_request = pull_request;
     }
 
     /// Builds an `AIAgentContext::Repository` from the current working directory's git remote
