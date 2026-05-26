@@ -1,0 +1,7 @@
+checkout_sha=53d0313df1f712cf98b1c53e9272c588141da350
+verified_head=53d0313df1f712cf98b1c53e9272c588141da350
+build_command=CARGO_BUILD_JOBS=2 cargo build -p warp --bin warp --bin warpctrl --features gui,warp_control_cli
+build_status=pass
+build_note=Initial build completed successfully in developer tool output.
+warp_binary=/workspace/warp/target/debug/warp
+warpctrl_binary=/workspace/warp/target/debug/warpctrl

@@ -1,0 +1,11 @@
+WARPCTRL=/workspace/warp/target/debug/warpctrl
+$ /workspace/warp/target/debug/warpctrl --output-format json drive list --type workflow
+{
+  "ok": false,
+  "error": {
+    "code": "execution_context_not_allowed",
+    "message": "drive.list cannot run from the requested invocation context"
+  }
+}
+
+exit_code=1

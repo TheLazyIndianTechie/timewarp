@@ -1,0 +1,586 @@
+2026-05-26T20:55:43Z [INFO] [warp::terminal::local_tty::server] Spawning terminal server process...
+2026-05-26T20:55:43Z [WARN] [arboard::platform::linux] Tried to initialize the wayland data control protocol clipboard, but failed. Falling back to the X11 clipboard protocol. The error was: Unknown error while interacting with the clipboard: Couldn't connect to the Wayland compositor
+2026-05-26T20:55:43Z [INFO] [warpui::windowing::winit::event_loop] Running app with windowing system: X11
+2026-05-26T20:55:43Z [INFO] [warp::terminal::local_tty::server::event_loop] Running terminal server...
+2026-05-26T20:55:43Z [INFO] [warp::settings::init] Migrating public settings from native store to settings.toml
+2026-05-26T20:55:43Z [INFO] [warp::settings::init] Settings file migration complete — migrated 0 settings, 0 failed
+2026-05-26T20:55:43Z [INFO] [warpui::windowing::winit::delegate] Unable to fetch Linux system color scheme: I/O error: No such file or directory (os error 2)
+2026-05-26T20:55:43Z [INFO] [warp::auth::auth_state] Authenticating via API key
+2026-05-26T20:55:43Z [INFO] [warp::persistence::sqlite] Connecting to SQLite database at /tmp/warpctrl-validation/home/.local/state/warp-terminal-local/warp.sqlite
+2026-05-26T20:55:43Z [WARN] [warp::persistence::sqlite] SQLite error 284 (Automatic indexing used - database might benefit from additional indexes): automatic index on object_permissions(subject_type)
+2026-05-26T20:55:43Z [ERROR] [warpui_extras::secure_storage::imp] Failed to acquire default Secret Service collection: unknown error
+2026-05-26T20:55:43Z [INFO] [warp] Starting warp with channel state ChannelState { channel: Local, additional_features: {GeminiNotifications, Projects, CreatingSharedSessions, ProviderCommand, RemoteCodebaseIndexing, CodeReviewScrollPreservation, CrossRepoContext, SshDragAndDrop, RetryTruncatedCodeResponses, RememberFastForwardState, ContextLineReviewComments, MarkdownTables, RunGeneratorsWithCmdExe, GitOperationsInCodeReview, SshRemoteServer, MSYS2Shells, OzLaunchModal, RemoveAutosuggestionDuringTabCompletions, EditableMarkdownMermaid, WarpControlCli, DebugMode, MarkdownImages, CodebaseIndexPersistence, LocalComputerUse, SummarizationViaMessageReplacement, FullSourceCodeEmbedding, AgentModeAnalytics, LogExpensiveFramesInSentry, LocalDockerSandbox, RemoteCodeReview, LazySceneBuilding, MultiWorkspace, CodebaseIndexSpeedbump, FileGlobV2Warnings, ToggleBootstrapBlock, ResizeFix, DragTabsToWindows, BlocklistMarkdownTableRendering, RuntimeFeatureFlags, QueueSlashCommand, ImeMarkedText, SSHTmuxWrapper, FileAndDiffSetComments, AgentModeWorkflows}, config: ChannelConfig { app_id: AppId { qualifier: "dev", organization: "warp", application_name: "WarpLocal" }, logfile_name: "warp_local.log", server_config: WarpServerConfig { server_root_url: "https://staging.warp.dev", rtc_server_url: "wss://rtc.staging.warp.dev/graphql/v2", session_sharing_server_url: Some("wss://sessions.staging.warp.dev"), firebase_auth_api_key: "AIzaSyBpJesVKm1MP4kB56ilHcXg-J3xekVlzqY" }, oz_config: OzConfig { oz_root_url: "https://oz.staging.warp.dev", workload_audience_url: Some("https://staging.warp.dev") }, telemetry_config: Some(TelemetryConfig { telemetry_file_name: "warp_local.telemetry", rudderstack_config: None }), autoupdate_config: None, crash_reporting_config: Some(CrashReportingConfig { sentry_url: "https://f3be38d2a52a40e8afd2e09663810c05@o540343.ingest.sentry.io/5660375" }), mcp_static_config: Some(McpStaticConfig { providers: [McpOAuthProviderConfig { issuer: "https://github.com/login/oauth", client_id: "Ov23liaDXzpen4TQJXvI", client_secret: "a83fea90e7c8f54babcdd26123c5878e3ec7dcd6" }] }) } } and version None
+2026-05-26T20:55:43Z [INFO] [warpui_core::fonts] Computing available system fonts
+2026-05-26T20:55:43Z [INFO] [warpui::windowing::winit::fonts::loader] Loaded 14 font families
+2026-05-26T20:55:43Z [INFO] [warp::app_services] Initializing app services
+2026-05-26T20:55:43Z [ERROR] [warp::app_services::linux] Failed to initialize org.freedesktop.Application D-Bus service: I/O error: No such file or directory (os error 2): No such file or directory (os error 2)
+2026-05-26T20:55:43Z [INFO] [warp::ai::mcp::templatable_manager::native] Converting 0 legacy MCP servers into templatable MCP servers
+2026-05-26T20:55:43Z [INFO] [warp::ai::execution_profiles::profiles] Initialized execution profile model with state: Unsynced
+2026-05-26T20:55:43Z [INFO] [warpui_core::core::app] dispatching global action for root_view:open_from_restored
+2026-05-26T20:55:43Z [INFO] [warpui_core::fonts] Computing available system fonts
+2026-05-26T20:55:43Z [INFO] [warpui::windowing::winit::fonts::loader] Loaded 14 font families
+2026-05-26T20:55:44Z [INFO] [warp::terminal::local_tty::terminal_manager] Creating terminal model with 0 restored blocks
+2026-05-26T20:55:44Z [INFO] [warp::ai::persisted_workspace] Cleaning up index metadata from SQLite
+2026-05-26T20:55:44Z [INFO] [warpui_core::core::app] dispatching typed action: warp::pane_group::PaneGroupAction::HandleFocusChange
+2026-05-26T20:55:44Z [WARN] [warpui_core::core::app] Action HandleFocusChange was dispatched, but no view handled it
+2026-05-26T20:55:44Z [INFO] [warpui_core::core::app] dispatching typed action: warp::pane_group::PaneGroupAction::HandleFocusChange
+2026-05-26T20:55:44Z [WARN] [warpui_core::core::app] Action HandleFocusChange was dispatched, but no view handled it
+2026-05-26T20:55:44Z [WARN] [warp::terminal::view] Tried to update block filter query without active_filter_editor_block_index set
+2026-05-26T20:55:44Z [WARN] [warpui::windowing::winit::linux::zbus::suspend_resume] Encountered error while watching for system suspend/resume events: I/O error: No such file or directory (os error 2)
+2026-05-26T20:55:44Z [WARN] [warpui::windowing::winit::linux::zbus::network_status] Encountered error while watching for network status events: I/O error: No such file or directory (os error 2)
+2026-05-26T20:55:44Z [WARN] [warpui::windowing::winit::linux::zbus::desktop_settings] Encountered error while watching for desktop settings change events: I/O error: No such file or directory (os error 2)
+2026-05-26T20:55:44Z [INFO] [warpui::rendering::wgpu::resources] Enabled wgpu backends: Backends(NOOP | VULKAN | GL | METAL | DX12 | BROWSER_WEBGPU)
+2026-05-26T20:55:44Z [INFO] [warpui::rendering::wgpu::resources] Available wgpu adapters (in priority order):
+2026-05-26T20:55:44Z [INFO] [warpui::rendering::wgpu::resources] Cpu: llvmpipe (LLVM 20.1.2, 256 bits)
+	Backend: Vulkan
+	Driver: llvmpipe (Mesa 25.2.8-0ubuntu0.24.04.1 (LLVM 20.1.2))
+	Can present: true
+	Supported texture format: Some(Bgra8UnormSrgb)
+	Supported alpha mode: [PreMultiplied, Inherit]
+2026-05-26T20:55:44Z [INFO] [warpui::rendering::wgpu::resources] Cpu: llvmpipe (LLVM 20.1.2, 256 bits)
+	Backend: Gl
+	Driver: Unknown (4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.1)
+	Can present: true
+	Supported texture format: Some(Rgba8UnormSrgb)
+	Supported alpha mode: [Opaque]
+2026-05-26T20:55:44Z [INFO] [warpui::rendering::wgpu::resources] Verifying adapter "llvmpipe (LLVM 20.1.2, 256 bits)" is valid...
+2026-05-26T20:55:44Z [INFO] [warpui::rendering::wgpu::resources] Using Vulkan Cpu (llvmpipe (LLVM 20.1.2, 256 bits)) for rendering new window.
+2026-05-26T20:55:44Z [INFO] [warp::terminal::local_tty::unix] Starting shell /bin/bash
+2026-05-26T20:55:44Z [INFO] [warp::terminal::local_tty::unix] Successfully spawned child bash process with pid 1747
+2026-05-26T20:55:44Z [INFO] [warp::terminal::local_tty::server::event_loop] Successfully spawned tty with pid: 1747
+2026-05-26T20:55:44Z [INFO] [warp::terminal::model::ansi] Received InitShell hook
+2026-05-26T20:55:44Z [WARN] [warp::workspace::native_modal] No alert dialog was set for the native modal
+2026-05-26T20:55:44Z [INFO] [warpui::windowing::winit::delegate] Unable to fetch Linux system color scheme: I/O error: No such file or directory (os error 2)
+2026-05-26T20:55:44Z [INFO] [warpui::windowing::winit::delegate] Unable to fetch Linux system color scheme: I/O error: No such file or directory (os error 2)
+2026-05-26T20:55:44Z [WARN] [warp::ai::blocklist::suggested_agent_mode_workflow_modal] SuggestedAgentModeWorkflowModal has not been initialized
+2026-05-26T20:55:44Z [WARN] [warp::terminal::share_block_modal] Tried to render share modal without a model
+2026-05-26T20:55:44Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T20:55:44Z [INFO] [warpui_core::platform::app] window resized
+2026-05-26T20:55:44Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T20:55:44Z [INFO] [warp::settings::cloud_preferences_syncer] Not opting existing user into cloud preferences
+2026-05-26T20:55:44Z [INFO] [warp::persistence::sqlite] Reconstructing database, but it already exists
+2026-05-26T20:55:44Z [INFO] [warp::server::server_api::object] fetching updated cloud objects
+2026-05-26T20:55:44Z [INFO] [warp::server::server_api::object] forcing sync of all objects
+2026-05-26T20:55:44Z [INFO] [warp::persistence::sqlite] Connecting to SQLite database at /tmp/warpctrl-validation/home/.local/state/warp-terminal-local/warp.sqlite
+2026-05-26T20:55:44Z [INFO] [warp::persistence::sqlite] SQLite Writer is resumed
+2026-05-26T20:55:44Z [INFO] [warpui_core::core::app] dispatching typed action: warp::pane_group::PaneGroupAction::HandleFocusChange
+2026-05-26T20:55:44Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T20:55:44Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T20:55:44Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T20:55:44Z [INFO] [warp::terminal::model::ansi] Received CommandFinished hook
+2026-05-26T20:55:44Z [INFO] [warp::terminal::model::terminal_model] Tried to exit the alternate screen, but it was already inactive
+2026-05-26T20:55:44Z [INFO] [warp::terminal::model::block] Block finished with new state DoneWithNoExecution
+2026-05-26T20:55:44Z [INFO] [warp::terminal::model::blocks] Incrementing stage from WarpInput to ScriptExecution
+2026-05-26T20:55:44Z [INFO] [warp::terminal::model::ansi] Received Precmd hook
+2026-05-26T20:55:44Z [INFO] [warpui_core::core::app] dispatching typed action: warp::pane_group::PaneGroupAction::HandleFocusChange
+2026-05-26T20:55:44Z [INFO] [warp::terminal::model::ansi] Received Bootstrapped hook
+2026-05-26T20:55:44Z [INFO] [warp::terminal::model::early_output] Configured typeahead mode as ShellReported
+2026-05-26T20:55:44Z [INFO] [warp::terminal::model::ansi] Received CommandFinished hook
+2026-05-26T20:55:44Z [INFO] [warp::terminal::model::terminal_model] Tried to exit the alternate screen, but it was already inactive
+2026-05-26T20:55:44Z [INFO] [warp::terminal::model::block] Block finished with new state DoneWithNoExecution
+2026-05-26T20:55:44Z [INFO] [warp::terminal::model::blocks] Incrementing stage from Bootstrapped to PostBootstrapPrecmd
+2026-05-26T20:55:44Z [INFO] [warp::terminal::model::ansi] Received Precmd hook
+2026-05-26T20:55:44Z [INFO] [warp::terminal::model::session::command_executor] creating a local executor!
+2026-05-26T20:55:44Z [INFO] [warp::terminal::model::session] Parsed shell version string: Some([Number(5), Number(2), Number(21), Number(1), Text("release")])
+2026-05-26T20:55:44Z [INFO] [warp::terminal::model::session] Shell is bootstrapped with session_id SessionId(177982894413613)
+2026-05-26T20:55:44Z [INFO] [warp::terminal::model::session] No history file found for shell bash, starting with empty history
+2026-05-26T20:55:44Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T20:55:44Z [INFO] [warpui_core::core::app] dispatching typed action: warp::pane_group::PaneGroupAction::HandleFocusChange
+2026-05-26T20:55:44Z [INFO] [warpui::windowing::winit::delegate] Unable to fetch Linux system color scheme: I/O error: No such file or directory (os error 2)
+2026-05-26T20:55:44Z [INFO] [warpui::windowing::winit::delegate] Unable to fetch Linux system color scheme: I/O error: No such file or directory (os error 2)
+2026-05-26T20:55:44Z [INFO] [warp::terminal::model::ansi] Received InputBuffer hook
+2026-05-26T20:55:44Z [INFO] [warp::server::cloud_objects::listener] Attempting to start websocket connection in CloudObjects::Listener
+2026-05-26T20:55:44Z [INFO] [warpui_core::core::app] notifying view observers and updating windows for timer id 0
+2026-05-26T20:55:44Z [INFO] [warpui_core::core::app] notifying view observers and updating windows for timer id 1
+2026-05-26T20:55:45Z [WARN] [warp::server::cloud_objects::listener] CloudObjects::Listener: websocket connection failed to connect or finished with an error; trying again: failed to initialize graphql subscription: unknown: connection dropped
+2026-05-26T20:55:45Z [INFO] [warp::crash_recovery] Successfully drew 10 frames; killing crash recovery child process
+2026-05-26T20:55:45Z [INFO] [warp::ai::agent_conversations_model] Updating model with 100 tasks
+2026-05-26T20:55:45Z [INFO] [warp::ai::agent_conversations_model] Fetched 476 cloud conversation metadata entries total
+2026-05-26T20:55:46Z [INFO] [warp::ai::blocklist::history_model::conversation_loader] Merged cloud conversations: 0 local, 0 found matched cloud metadata, 476 new cloud-only added, 0 restored conversations updated. Total: 476
+2026-05-26T20:55:48Z [ERROR] [errors::report_error] Failed to convert Json(EnvVarCollection) jIvy1ShsNexjz9zvTB92lE: unknown variant `full`, expected one of `Constant`, `Command`, `Secret` at line 1 column 121
+2026-05-26T20:55:48Z [ERROR] [errors::report_error] Failed to convert Json(EnvVarCollection) nDjmPW0cJDCOMJL5M2ksAG: unknown variant `warp-server-staging`, expected one of `Constant`, `Command`, `Secret` at line 1 column 104
+2026-05-26T20:55:48Z [ERROR] [errors::report_error] Failed to convert Json(EnvVarCollection) gVOpdrSKb5WvqVBnvYd2ow: unknown variant `astral-field-294621`, expected one of `Constant`, `Command`, `Secret` at line 1 column 101
+2026-05-26T20:55:48Z [ERROR] [errors::report_error] Failed to convert Json(EnvVarCollection) mKyGHKm9bmDUklSL3ecilp: unknown variant `sk-proj-MqKHi7lWWAbEFhrVMtlcT3BlbkFJnTapQp3xdwKPVqw8oDXe`, expected one of `Constant`, `Command`, `Secret` at line 1 column 345
+2026-05-26T20:55:48Z [ERROR] [errors::report_error] Failed to convert Json(CloudEnvironment) 2ecHWewTvanvTh8QEkCymD: no variant of enum BaseImage found in flattened data at line 1 column 182
+2026-05-26T20:55:48Z [INFO] [warp::ai::execution_profiles::profiles] Reconciled default execution profile with cloud after initial load: profile_id=ClientProfileId(0), sync_id=ServerId(ServerId(5MYGFLHEiEgu6vFACMAGUp))
+2026-05-26T20:55:48Z [INFO] [warp::ai::execution_profiles::profiles] Registered existing cloud execution profile after initial load: ServerId(ServerId(IKcQWJ0rbawSccdX3uhfGH))
+2026-05-26T20:55:48Z [INFO] [warp::ai::execution_profiles::profiles] Registered existing cloud execution profile after initial load: ServerId(ServerId(KIHSHwAgI3TqlttDycAZTN))
+2026-05-26T20:55:48Z [INFO] [warp::ai::execution_profiles::profiles] Registered existing cloud execution profile after initial load: ServerId(ServerId(d2NVMy6amN3H2a5wdHDTRw))
+2026-05-26T20:55:48Z [INFO] [warp::ai::execution_profiles::profiles] Registered existing cloud execution profile after initial load: ServerId(ServerId(gtEF8nPDItcOjFhqxYCDgz))
+2026-05-26T20:55:49Z [INFO] [warp::settings::privacy] Warp Drive privacy preferences are set, using those for telemetry=true, crash_reporting=true, cloud_conversation_storage=true
+2026-05-26T20:55:49Z [INFO] [warp::settings::privacy] Warp Drive privacy preferences are set, using those for telemetry=true, crash_reporting=true, cloud_conversation_storage=true
+2026-05-26T20:55:49Z [INFO] [warp::settings::cloud_preferences_syncer] Ensuring no duplicate cloud prefs
+2026-05-26T20:55:49Z [INFO] [warp::settings::cloud_preferences_syncer] Initial load complete, syncing cloud preferences. Force cloud to match local: No
+2026-05-26T20:55:49Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key IsActiveAIEnabled and value true to match cloud preference
+2026-05-26T20:55:49Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key IsAnyAIEnabled and value true to match cloud preference
+2026-05-26T20:55:49Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key DidShowAgents3LaunchModal and value true to match cloud preference
+2026-05-26T20:55:49Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key DidShowOrchestrationLaunchModal and value true to match cloud preference
+2026-05-26T20:55:49Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key CloudConversationStorageEnabled and value true to match cloud preference
+2026-05-26T20:55:49Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key TelemetryEnabled and value true to match cloud preference
+2026-05-26T20:55:49Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key DidShowOzLaunchModal and value true to match cloud preference
+2026-05-26T20:55:49Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key DidShowOpenWarpLaunchModal and value true to match cloud preference
+2026-05-26T20:55:49Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key DidAddHandoffChipToToolbar and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key CustomSecretRegexList and value [] to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key CrashReportingEnabled and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key IsSettingsSyncEnabled and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key CursorDisplayType and value "Bar" to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key HonorPS1 and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key OpenWindowsAtCustomSize and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key CopyOnSelect and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key WorkflowAliases and value [] to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ShouldConfirmCloseSession and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key AgentModeCodingPermissions and value "always_allow_reading" to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key NewWindowsNumRows and value 40 to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key AutosuggestionAcceptedCount and value 2 to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key WarpDriveSortingChoice and value "ByTimestamp" to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key SystemTheme and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key CompletionsOpenWhileTyping and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key AddedSubshellCommands and value ["docker shell"] to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key WelcomeTipsCompleted and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key Notifications and value {"is_agent_task_completed_enabled":true,"is_long_running_enabled":true,"is_needs_attention_enabled":true,"is_password_prompt_enabled":true,"long_running_threshold":30,"mode":"enabled","play_notification_sound":true} to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key FocusPaneOnHover and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key MouseReportingEnabled and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ShowChangelogAfterUpdate and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key UndoCloseEnabled and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key MaximumGridSize and value 100000 to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key EnforceMinimumContrast and value "OnlyNamedColors" to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key TelemetryBannerDismissed and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ShowHintText and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ShowGlobalSearch and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key OverrideOpacity and value 100 to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key CursorBlink and value "Enabled" to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key WorkflowsBoxOpen and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key FreeTierLimitHitModalDismissed and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key VerticalTabsPrimaryInfo and value "Branch" to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key RuleSuggestionsEnabled and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key VerticalTabsViewMode and value "expanded" to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key NewWindowsNumColumns and value 80 to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key LinkTooltip and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ShowConversationHistory and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key AwsBedrockLoginBannerDismissed and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key IntelligentAutosuggestionsEnabled and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ShowIndicatorsButton and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key FtuModelCalloutDismissed and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key AgentModeCommandExecutionDenylist and value [] to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ShowAgentNotifications and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key BonusGrantsShown and value ["one_time_ambient_grant:1768420990"] to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ExtraMetaKeys and value {"left_alt":true,"right_alt":false} to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key AltScreenPadding and value {"Custom":{"uniform_padding":0.0}} to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key VerticalTabsTabItemMode and value "summary" to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key AutocompleteSymbols and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key EnableSshWarpification and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key RestoreSession and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key AgentModeExecuteReadonlyCommands and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key InputMode and value "PinnedToBottom" to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key SameLinePromptBlockState and value "DoNotShow" to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key AgentModeQuerySuggestionsEnabled and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ClassicCompletionsMode and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key DismissedCodeToolbeltNewFeaturePopup and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key EnteredAgentModeNumTimes and value 5833 to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ShouldShowAgentModeWriteToPtySpeedbump and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key DidDismissAgentManagementHelpPage and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key FocusReportingEnabled and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key NaturalLanguageAutosuggestionsEnabled and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ShouldShowAgentModeCodingReadPermissionsNudge and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key AIRequestQuotaInfoSetting and value {"cycle_history":[{"banner_state":{"dismissed":true},"end_date":"2026-02-28T03:24:38.304245Z","was_quota_exceeded":true},{"banner_state":{"dismissed":true},"end_date":"2026-03-28T03:24:38.304245Z","was_quota_exceeded":true},{"banner_state":{"dismissed":true},"end_date":"2026-04-28T03:24:38.304245Z","was_quota_exceeded":true},{"banner_state":{"dismissed":false},"end_date":"2026-05-28T03:24:38.304245Z","was_quota_exceeded":true}]} to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key UseAudibleBell and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ShowJumpToBottomOfBlockButton and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ShouldDimInactivePanes and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key DismissedVoiceInputNewFeaturePopup and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key UndoCloseGracePeriod and value {"nanos":0,"secs":50} to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key SafeModeEnabled and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key HeaderToolbarChipSelection and value {"custom":{"left":["tabs_panel","agent_management"],"right":["tools_panel","code_review"]}} to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key Theme and value "dark" to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key OpenConversationLayoutPreference and value "SplitPane" to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key EnableSSHWrapper and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key SubshellCommandsDenylist and value ["blarg_shell"] to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key SshHostsDenylist and value ["3.4.5.6"] to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key AgentModeOnboardingBlockShown and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ShowBlockDividers and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key AgentModeCommandExecutionAllowlist and value ["echo .*","ls(\\s.*)?","which .*","cat .*"] to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key SyntaxHighlighting and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ShowProjectExplorer and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key DefaultSessionMode and value "agent" to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ShouldAddAgentModeChip and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key AgentModeCodebaseContext and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key PreferMarkdownViewer and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key CtrlTabBehaviorSetting and value "CycleMostLeastRecentSession" to match cloud preference
+2026-05-26T20:55:50Z [WARN] [warp::settings::cloud_preferences_syncer] Error updating setting with storage key CtrlTabBehaviorSetting while merging cloud prefs to local: Failed to parse updated value for setting CtrlTabBehaviorSetting: Not updating
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key VimStatusBar and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key Spacing and value "Normal" to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ShowWarningBeforeQuitting and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key VimModeEnabled and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key AliasExpansionEnabled and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ShowGlobalWorkflowsInUniversalSearch and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ShouldRenderCLIAgentToolbar and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key WarpDriveSharingOnboardingBlockShown and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ScrollReportingEnabled and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key CommandCorrections and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key LigatureRenderingEnabled and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key VoiceInputEnabled and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key NotificationToastDurationSecs and value 8 to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key AIAutoDetectionEnabled and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key SessionSharingOnboardingBlockShown and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key AgentToolbarChipSelectionSetting and value {"custom":{"left":[{"context_chip":"ssh"},{"context_chip":"working_directory"},{"context_chip":"shell_git_branch"},{"context_chip":"git_diff_stats"},"nld_toggle","fast_forward_toggle","share_session"],"right":[{"context_chip":"github_pull_request"},{"context_chip":"agent_plan_and_todo_list"},"context_window_usage","model_selector","voice_input","file_attach","handoff_to_cloud"]}} to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key WorkspaceDecorationVisibility and value "HideFullscreen" to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ShouldShowCodeSuggestionSpeedbump and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key HasShownAgentModeProfileCommandAutoexecutionSpeedbump and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ErrorUnderliningEnabled and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ShowModelSelectorsInPrompt and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key InputBoxTypeSetting and value "Universal" to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ShowCodeReviewButton and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key MatchNotebookToMonospaceFontSize and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key SnackbarEnabled and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key UseVerticalTabs and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key SavedPrompt and value {"CustomChipSelection":{"chips":[{"chip":"CondaEnvironment","config":{}},{"chip":"VirtualEnvironment","config":{}},{"chip":"Ssh","config":{}},{"chip":"Subshell","config":{}},{"chip":"NodeVersion","config":{}},{"chip":"WorkingDirectory","config":{}},{"chip":"ShellGitBranch","config":{}},{"chip":"GitDiffStats","config":{}},{"chip":"KubernetesContext","config":{}},{"chip":"GithubPullRequest","config":{}}],"did_separate_git_diff_stats":true,"same_line_prompt_enabled":false,"separator":"None"}} to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ActivationHotkeyEnabled and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key VimUnnamedSystemClipboard and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key HasAutoOpenedConversationList and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key SelectedSystemThemes and value {"dark":{"Custom":{"name":"Warp New Bright","path":"/Users/zach/.warp/themes/warp_new_bright.yaml"}},"light":"Dracula"} to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key VerticalTabsDisplayGranularity and value "tabs" to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key AgentModeCodebaseContextAutoIndexing and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key QuakeModeEnabled and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key ShouldShowAgentModeModelExecuteReadonlyCommandsSpeedbump and value false to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key Autosuggestions and value true to match cloud preference
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Settings sync enabled setting changed. Resyncing cloud preferences. Force cloud to match local: No
+2026-05-26T20:55:50Z [INFO] [warpui::windowing::winit::delegate] Unable to fetch Linux system color scheme: I/O error: No such file or directory (os error 2)
+2026-05-26T20:55:50Z [INFO] [warpui::windowing::winit::delegate] Unable to fetch Linux system color scheme: I/O error: No such file or directory (os error 2)
+2026-05-26T20:55:50Z [INFO] [warp::terminal::model::ansi] Received CommandFinished hook
+2026-05-26T20:55:50Z [INFO] [warp::terminal::model::terminal_model] Tried to exit the alternate screen, but it was already inactive
+2026-05-26T20:55:50Z [INFO] [warp::terminal::model::block] Block finished with new state DoneWithNoExecution
+2026-05-26T20:55:50Z [INFO] [warpui::windowing::winit::delegate] Unable to fetch Linux system color scheme: I/O error: No such file or directory (os error 2)
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Ensuring no duplicate cloud prefs
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Initial load complete, syncing cloud preferences. Force cloud to match local: No
+2026-05-26T20:55:50Z [INFO] [warp::terminal::model::ansi] Received Precmd hook
+2026-05-26T20:55:50Z [INFO] [warp::terminal::model::ansi] Received CommandFinished hook
+2026-05-26T20:55:50Z [INFO] [warp::terminal::model::terminal_model] Tried to exit the alternate screen, but it was already inactive
+2026-05-26T20:55:50Z [INFO] [warp::terminal::model::block] Block finished with new state DoneWithNoExecution
+2026-05-26T20:55:50Z [INFO] [warp::settings::cloud_preferences_syncer] Updating local preference with storage key CtrlTabBehaviorSetting and value "CycleMostLeastRecentSession" to match cloud preference
+2026-05-26T20:55:50Z [WARN] [warp::settings::cloud_preferences_syncer] Error updating setting with storage key CtrlTabBehaviorSetting while merging cloud prefs to local: Failed to parse updated value for setting CtrlTabBehaviorSetting: Not updating
+2026-05-26T20:55:50Z [INFO] [warp::terminal::model::ansi] Received Precmd hook
+2026-05-26T20:55:50Z [INFO] [warp::settings::privacy] Warp Drive privacy preferences are set, using those for telemetry=true, crash_reporting=true, cloud_conversation_storage=true
+2026-05-26T20:55:50Z [WARN] [warp::terminal::model::session] failed to get git_branches_for_command_corrections
+2026-05-26T20:55:50Z [WARN] [warp::terminal::model::session] failed to get git_branches_for_command_corrections
+2026-05-26T20:55:50Z [WARN] [warp::workspace::native_modal] No alert dialog was set for the native modal
+2026-05-26T20:55:50Z [WARN] [warp::ai::blocklist::suggested_agent_mode_workflow_modal] SuggestedAgentModeWorkflowModal has not been initialized
+2026-05-26T20:55:50Z [INFO] [warpui::windowing::winit::delegate] Unable to fetch Linux system color scheme: I/O error: No such file or directory (os error 2)
+2026-05-26T20:55:50Z [INFO] [warpui::windowing::winit::delegate] Unable to fetch Linux system color scheme: I/O error: No such file or directory (os error 2)
+2026-05-26T20:55:50Z [WARN] [warp::terminal::share_block_modal] Tried to render share modal without a model
+2026-05-26T20:56:15Z [INFO] [warp::server::cloud_objects::listener] Attempting to start websocket connection in CloudObjects::Listener
+2026-05-26T20:56:16Z [WARN] [warp::server::cloud_objects::listener] CloudObjects::Listener: websocket connection failed to connect or finished with an error; trying again: failed to initialize graphql subscription: unknown: connection dropped
+2026-05-26T20:56:42Z [INFO] [warp::server::cloud_objects::listener] Attempting to start websocket connection in CloudObjects::Listener
+2026-05-26T20:56:42Z [WARN] [warp::server::cloud_objects::listener] CloudObjects::Listener: websocket connection failed to connect or finished with an error; trying again: failed to initialize graphql subscription: got close frame. code: 1000, reason: terminated
+2026-05-26T20:57:09Z [INFO] [warp::server::cloud_objects::listener] Attempting to start websocket connection in CloudObjects::Listener
+2026-05-26T20:57:10Z [WARN] [warp::server::cloud_objects::listener] CloudObjects::Listener: websocket connection failed to connect or finished with an error; trying again: failed to initialize graphql subscription: got close frame. code: 1000, reason: terminated
+2026-05-26T20:57:38Z [INFO] [warp::server::cloud_objects::listener] Attempting to start websocket connection in CloudObjects::Listener
+2026-05-26T20:57:39Z [WARN] [warp::server::cloud_objects::listener] CloudObjects::Listener: websocket connection failed to connect or finished with an error; trying again: failed to initialize graphql subscription: unknown: connection dropped
+2026-05-26T20:58:07Z [INFO] [warp::server::cloud_objects::listener] Attempting to start websocket connection in CloudObjects::Listener
+2026-05-26T20:58:07Z [ERROR] [errors::report_error] CloudObjects::Listener websocket connection failed: failed to initialize graphql subscription: got close frame. code: 1000, reason: terminated
+2026-05-26T20:58:12Z [INFO] [warpui_core::core::app] dispatching typed action: warp::workspace::hoa_onboarding::hoa_onboarding_flow::HoaOnboardingAction::Dismiss
+2026-05-26T20:58:20Z [INFO] [warpui_core::core::app] dispatching typed action: warp::workspace::hoa_onboarding::hoa_onboarding_flow::HoaOnboardingAction::Dismiss
+2026-05-26T20:58:20Z [INFO] [warpui_core::core::app] dispatching typed action: warp::pane_group::PaneGroupAction::HandleFocusChange
+2026-05-26T20:58:20Z [INFO] [warpui_core::core::app] dispatching typed action: warp::pane_group::PaneGroupAction::HandleFocusChange
+2026-05-26T20:58:30Z [INFO] [warpui_core::core::app] dispatching typed action: warp::workspace::action::WorkspaceAction::ShowSettings
+2026-05-26T20:58:30Z [INFO] [warpui_core::core::view::context] enabling actions for window id 0
+2026-05-26T20:58:30Z [INFO] [warpui_core::core::app] dispatching action for "root_view:maybe_stop_active_voice_input"
+2026-05-26T20:58:30Z [WARN] [warp::terminal::share_block_modal] Tried to render share modal without a model
+2026-05-26T20:58:30Z [INFO] [warpui::windowing::winit::delegate] Unable to fetch Linux system color scheme: I/O error: No such file or directory (os error 2)
+2026-05-26T20:58:30Z [INFO] [warpui::windowing::winit::delegate] Unable to fetch Linux system color scheme: I/O error: No such file or directory (os error 2)
+2026-05-26T20:58:48Z [INFO] [warpui_core::core::app] dispatching typed action: warp::settings_view::SettingsAction::FocusSelf
+2026-05-26T20:58:48Z [INFO] [warpui_core::core::app] dispatching typed action: warp::settings_view::SettingsAction::SelectAndRefresh(Scripting)
+2026-05-26T20:58:48Z [INFO] [warpui_core::core::view::context] enabling actions for window id 0
+2026-05-26T20:58:48Z [INFO] [warp::settings_view::settings_page] No updates for the selected view handle.
+2026-05-26T21:00:21Z [INFO] [warpui_core::platform::app] active window changed: None
+2026-05-26T21:00:21Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:00:21Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:00:23Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T21:00:23Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:00:23Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:00:23Z [INFO] [warpui_core::platform::app] active window changed: None
+2026-05-26T21:00:23Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:00:23Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:00:25Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T21:00:25Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:00:25Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:00:25Z [INFO] [warpui_core::platform::app] active window changed: None
+2026-05-26T21:00:25Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:00:25Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:00:27Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T21:00:27Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:00:27Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:00:27Z [INFO] [warpui_core::platform::app] active window changed: None
+2026-05-26T21:00:27Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:00:27Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:00:29Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T21:00:29Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:00:29Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:00:29Z [INFO] [warpui_core::platform::app] active window changed: None
+2026-05-26T21:00:29Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:00:29Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:00:31Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T21:00:31Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:00:31Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:00:31Z [INFO] [warpui_core::platform::app] active window changed: None
+2026-05-26T21:00:31Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:00:31Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:00:33Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T21:00:33Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:00:33Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:01:19Z [INFO] [warpui_core::platform::app] active window changed: None
+2026-05-26T21:01:19Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:01:19Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:01:19Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T21:01:19Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:01:19Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:01:22Z [INFO] [warpui_core::platform::app] active window changed: None
+2026-05-26T21:01:22Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:01:22Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:01:22Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T21:01:22Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:01:22Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:01:25Z [INFO] [warpui_core::platform::app] active window changed: None
+2026-05-26T21:01:25Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:01:25Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:01:25Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T21:01:25Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:01:25Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:01:28Z [INFO] [warpui_core::platform::app] active window changed: None
+2026-05-26T21:01:28Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:01:28Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:01:28Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T21:01:28Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:01:28Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:01:31Z [INFO] [warpui_core::platform::app] active window changed: None
+2026-05-26T21:01:31Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:01:31Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:01:31Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T21:01:31Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:01:31Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:01:34Z [INFO] [warpui_core::platform::app] active window changed: None
+2026-05-26T21:01:34Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:01:34Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:01:34Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T21:01:34Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:01:34Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:02:06Z [INFO] [warpui_core::core::app] dispatching typed action: warp::settings_view::SettingsAction::FocusSelf
+2026-05-26T21:02:06Z [INFO] [warpui_core::core::app] dispatching typed action: warp::settings_view::scripting_page::ScriptingSettingsPageAction::Toggle(OutsideWarpControl)
+2026-05-26T21:02:35Z [INFO] [warpui_core::core::app] dispatching typed action: warp::settings_view::SettingsAction::FocusSelf
+2026-05-26T21:02:35Z [INFO] [warpui_core::core::app] dispatching typed action: warp::settings_view::scripting_page::ScriptingSettingsPageAction::Toggle(OutsideWarpMetadataReads)
+2026-05-26T21:02:36Z [INFO] [warpui_core::core::app] dispatching typed action: warp::settings_view::SettingsAction::FocusSelf
+2026-05-26T21:02:36Z [INFO] [warpui_core::core::app] dispatching typed action: warp::settings_view::scripting_page::ScriptingSettingsPageAction::Toggle(OutsideWarpAppStateMutations)
+2026-05-26T21:03:05Z [INFO] [warpui_core::platform::app] active window changed: None
+2026-05-26T21:03:05Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:03:05Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:03:05Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T21:03:05Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:03:05Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:03:09Z [INFO] [warpui_core::platform::app] active window changed: None
+2026-05-26T21:03:09Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:03:09Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:03:09Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T21:03:09Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:03:09Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:03:12Z [INFO] [warpui_core::platform::app] active window changed: None
+2026-05-26T21:03:12Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:03:12Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:03:12Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T21:03:12Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:03:12Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:03:15Z [INFO] [warpui_core::platform::app] active window changed: None
+2026-05-26T21:03:15Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:03:15Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:03:15Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T21:03:15Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:03:15Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:03:18Z [INFO] [warpui_core::platform::app] active window changed: None
+2026-05-26T21:03:18Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:03:18Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:03:18Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T21:03:18Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:03:18Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:04:25Z [INFO] [warpui_core::platform::app] active window changed: None
+2026-05-26T21:04:25Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:04:25Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:04:25Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T21:04:25Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:04:25Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:05:16Z [INFO] [warp::terminal::local_tty::terminal_manager] Creating terminal model with 0 restored blocks
+2026-05-26T21:05:16Z [INFO] [warpui_core::core::app] dispatching typed action: warp::pane_group::PaneGroupAction::HandleFocusChange
+2026-05-26T21:05:16Z [WARN] [warpui_core::core::app] Action HandleFocusChange was dispatched, but no view handled it
+2026-05-26T21:05:16Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:05:16Z [WARN] [warp::terminal::view] Tried to update block filter query without active_filter_editor_block_index set
+2026-05-26T21:05:16Z [INFO] [warp::terminal::local_tty::unix] Starting shell /bin/bash
+2026-05-26T21:05:16Z [INFO] [warp::terminal::local_tty::server::event_loop] Successfully spawned tty with pid: 5351
+2026-05-26T21:05:16Z [INFO] [warp::terminal::local_tty::unix] Successfully spawned child bash process with pid 5351
+2026-05-26T21:05:16Z [INFO] [warp::terminal::model::ansi] Received InitShell hook
+2026-05-26T21:05:16Z [WARN] [warp::terminal::share_block_modal] Tried to render share modal without a model
+2026-05-26T21:05:16Z [INFO] [warp::terminal::model::ansi] Received CommandFinished hook
+2026-05-26T21:05:16Z [INFO] [warp::terminal::model::terminal_model] Tried to exit the alternate screen, but it was already inactive
+2026-05-26T21:05:16Z [INFO] [warp::terminal::model::block] Block finished with new state DoneWithNoExecution
+2026-05-26T21:05:16Z [INFO] [warp::terminal::model::blocks] Incrementing stage from WarpInput to ScriptExecution
+2026-05-26T21:05:16Z [INFO] [warp::terminal::model::ansi] Received Precmd hook
+2026-05-26T21:05:16Z [INFO] [warpui_core::core::app] dispatching typed action: warp::pane_group::PaneGroupAction::HandleFocusChange
+2026-05-26T21:05:16Z [INFO] [warp::terminal::model::ansi] Received Bootstrapped hook
+2026-05-26T21:05:16Z [INFO] [warp::terminal::model::early_output] Configured typeahead mode as ShellReported
+2026-05-26T21:05:16Z [INFO] [warp::terminal::model::ansi] Received CommandFinished hook
+2026-05-26T21:05:16Z [INFO] [warp::terminal::model::terminal_model] Tried to exit the alternate screen, but it was already inactive
+2026-05-26T21:05:16Z [INFO] [warp::terminal::model::block] Block finished with new state DoneWithNoExecution
+2026-05-26T21:05:16Z [INFO] [warp::terminal::model::blocks] Incrementing stage from Bootstrapped to PostBootstrapPrecmd
+2026-05-26T21:05:16Z [INFO] [warp::terminal::model::ansi] Received Precmd hook
+2026-05-26T21:05:16Z [INFO] [warp::terminal::model::session::command_executor] creating a local executor!
+2026-05-26T21:05:16Z [INFO] [warp::terminal::model::session] Parsed shell version string: Some([Number(5), Number(2), Number(21), Number(1), Text("release")])
+2026-05-26T21:05:16Z [INFO] [warp::terminal::model::session] Shell is bootstrapped with session_id SessionId(177982951622821)
+2026-05-26T21:05:16Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:05:16Z [INFO] [warpui_core::core::app] dispatching typed action: warp::pane_group::PaneGroupAction::HandleFocusChange
+2026-05-26T21:05:16Z [INFO] [warp::terminal::model::ansi] Received InputBuffer hook
+2026-05-26T21:05:16Z [INFO] [warpui_core::core::app] notifying view observers and updating windows for timer id 4
+2026-05-26T21:05:18Z [INFO] [warpui_core::platform::app] active window changed: None
+2026-05-26T21:05:18Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:05:18Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:05:20Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T21:05:20Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:05:20Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:05:29Z [INFO] [warpui_core::platform::app] active window changed: None
+2026-05-26T21:05:29Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:05:29Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:05:29Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T21:05:29Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:05:29Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:05:32Z [INFO] [warpui_core::platform::app] active window changed: None
+2026-05-26T21:05:32Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:05:32Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:05:32Z [INFO] [warpui_core::platform::app] active window changed: Some(WindowId(0))
+2026-05-26T21:05:32Z [INFO] [warpui_core::core::app] dispatching global action for root_view:update_quake_mode_state
+2026-05-26T21:05:32Z [INFO] [warpui_core::core::app] dispatching global action for workspace:save_app
+2026-05-26T21:05:54Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::Escape
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("e"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("x"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("p"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("o"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("r"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("t"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput(" "))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("W"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching action for "root_view:maybe_stop_active_voice_input"
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("A"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching action for "root_view:maybe_stop_active_voice_input"
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("R"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching action for "root_view:maybe_stop_active_voice_input"
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("P"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching action for "root_view:maybe_stop_active_voice_input"
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("C"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching action for "root_view:maybe_stop_active_voice_input"
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("T"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching action for "root_view:maybe_stop_active_voice_input"
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("R"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching action for "root_view:maybe_stop_active_voice_input"
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("L"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching action for "root_view:maybe_stop_active_voice_input"
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("="))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("/"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("w"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("o"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("r"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("k"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("s"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("p"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("a"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("c"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("e"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("/"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("w"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("a"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("r"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("p"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("/"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("t"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("a"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("r"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("g"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("e"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("t"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("/"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("d"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("e"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("b"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("u"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("g"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("/"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("w"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("a"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("r"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("p"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("c"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("t"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("r"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("l"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::Enter
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::pane_group::PaneGroupAction::HandleFocusChange
+2026-05-26T21:05:55Z [WARN] [warp::terminal::model::terminal_model] Received 'end_in_band_command_output' while not expecting to read in-band command output.
+2026-05-26T21:05:55Z [INFO] [warp::terminal::model::ansi] Received Preexec hook
+2026-05-26T21:05:55Z [INFO] [warp::terminal::model::ansi] Received CommandFinished hook
+2026-05-26T21:05:55Z [INFO] [warp::terminal::model::terminal_model] Tried to exit the alternate screen, but it was already inactive
+2026-05-26T21:05:55Z [INFO] [warp::terminal::model::block] Block finished with new state DoneWithExecution
+2026-05-26T21:05:55Z [INFO] [warp::terminal::model::ansi] Received Precmd hook
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::pane_group::PaneGroupAction::HandleFocusChange
+2026-05-26T21:05:55Z [WARN] [warp::terminal::model::session] failed to get git_branches_for_command_corrections
+2026-05-26T21:05:55Z [INFO] [warp::terminal::model::ansi] Received InputBuffer hook
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("$"))
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching action for "root_view:maybe_stop_active_voice_input"
+2026-05-26T21:05:55Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("W"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching action for "root_view:maybe_stop_active_voice_input"
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("A"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching action for "root_view:maybe_stop_active_voice_input"
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("R"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching action for "root_view:maybe_stop_active_voice_input"
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("P"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching action for "root_view:maybe_stop_active_voice_input"
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("C"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching action for "root_view:maybe_stop_active_voice_input"
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("T"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching action for "root_view:maybe_stop_active_voice_input"
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("R"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching action for "root_view:maybe_stop_active_voice_input"
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("L"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching action for "root_view:maybe_stop_active_voice_input"
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput(" "))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("-"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("-"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("o"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("u"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("t"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("p"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("u"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("t"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("-"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("f"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("o"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("r"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("m"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("a"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("t"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput(" "))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("j"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("s"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("o"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("n"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput(" "))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("a"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("p"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("p"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput(" "))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("p"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("i"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("n"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::UserInsert(UserInput("g"))
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::editor::view::EditorAction::Enter
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::pane_group::PaneGroupAction::HandleFocusChange
+2026-05-26T21:05:56Z [WARN] [warp::terminal::model::terminal_model] Received 'end_in_band_command_output' while not expecting to read in-band command output.
+2026-05-26T21:05:56Z [INFO] [warp::terminal::model::ansi] Received Preexec hook
+2026-05-26T21:05:56Z [INFO] [warp::terminal::model::ansi] Received CommandFinished hook
+2026-05-26T21:05:56Z [INFO] [warp::terminal::model::terminal_model] Tried to exit the alternate screen, but it was already inactive
+2026-05-26T21:05:56Z [INFO] [warp::terminal::model::block] Block finished with new state DoneWithExecution
+2026-05-26T21:05:56Z [INFO] [warp::terminal::model::ansi] Received Precmd hook
+2026-05-26T21:05:56Z [INFO] [warpui_core::core::app] dispatching typed action: warp::pane_group::PaneGroupAction::HandleFocusChange
+2026-05-26T21:05:56Z [WARN] [warp::terminal::model::session] failed to get git_branches_for_command_corrections
+2026-05-26T21:05:56Z [INFO] [warp::terminal::model::ansi] Received InputBuffer hook

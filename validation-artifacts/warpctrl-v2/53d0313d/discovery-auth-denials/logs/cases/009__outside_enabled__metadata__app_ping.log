@@ -1,0 +1,10 @@
+WARPCTRL=/workspace/warp/target/debug/warpctrl
+$ /workspace/warp/target/debug/warpctrl --output-format json app ping
+{
+  "action": "app.ping",
+  "instance_id": "inst_40985ab8a79b4dd287cd89bb6702a8dc",
+  "ok": true,
+  "protocol_version": 1
+}
+
+exit_code=0

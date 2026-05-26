@@ -1,0 +1,11 @@
+WARPCTRL=/workspace/warp/target/debug/warpctrl
+$ /workspace/warp/target/debug/warpctrl --output-format json tab create
+{
+  "ok": false,
+  "error": {
+    "code": "missing_target",
+    "message": "tab.create requires an active Warp window"
+  }
+}
+
+exit_code=1
