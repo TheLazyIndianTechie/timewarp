@@ -5666,9 +5666,6 @@ impl TerminalView {
                     }
                 }
 
-                // Compat fallback for viewers connected to pre-feature sharers
-                // that don't emit AmbientSetupPhaseEnded. Idempotent with the
-                // canonical event_loop arm.
                 if self.is_ambient_agent_session(ctx)
                     && self
                         .model

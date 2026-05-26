@@ -158,12 +158,11 @@ pub(crate) struct PendingHandoff {
     /// stashed here so `maybe_auto_submit_handoff` can consume it once
     /// the touched workspace and snapshot upload have settled.
     pub(crate) auto_submit: Option<PendingCloudLaunch>,
-    /// Whether the source conversation was active (in-progress or blocked) at
-    /// handoff initiation. Captured once so the substitution decision is
-    /// deterministic and local-to-cloud-only — the server never sees an
-    /// in-progress signal it has to interpret. Drives the empty-prompt
-    /// `"Continue"` substitution in `build_handoff_spawn_request`.
-    pub(crate) source_conversation_active: bool,
+    /// Inject `"Continue"` into the wire prompt for empty-prompt submits,
+    /// so the cloud agent picks up where the cancelled local source left
+    /// off. Captured at handoff init since the source is cancelled before
+    /// submit.
+    pub(crate) should_inject_continue: bool,
 }
 
 /// Status of the ambient agent run.
@@ -644,10 +643,10 @@ impl AmbientAgentViewModel {
     }
 
     /// Build the `SpawnAgentRequest` for a handoff submit. Callers MUST
-    /// normalize an empty prompt to `None` before calling; the wire-prompt
-    /// helper treats `None` as the empty-prompt signal. See
-    /// [`crate::ai::blocklist::handoff::handoff_wire_prompt`] for the
-    /// substitution table.
+    /// normalize an empty prompt to `None` before calling; the empty-prompt
+    /// arms below treat `None` as the empty-prompt signal. All substitutions
+    /// are local-to-cloud-only; the server never sees an in-progress signal
+    /// it has to interpret.
     #[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
     fn build_handoff_spawn_request(
         &self,
@@ -655,7 +654,7 @@ impl AmbientAgentViewModel {
         attachments: Vec<AttachmentInput>,
         forked_conversation_id: Option<String>,
         initial_snapshot_token: Option<InitialSnapshotToken>,
-        source_conversation_active: bool,
+        should_inject_continue: bool,
         ctx: &AppContext,
     ) -> SpawnAgentRequest {
         let config = Some(self.build_default_spawn_config(ctx));
@@ -663,11 +662,19 @@ impl AmbientAgentViewModel {
             .as_ref()
             .is_some_and(|token| !token.as_str().is_empty());
 
-        let (wire_prompt, mode) = match crate::ai::blocklist::handoff::handoff_wire_prompt(
-            prompt,
-            source_conversation_active,
-            has_snapshot_content,
-        ) {
+        let raw_wire_prompt = match (prompt, should_inject_continue, has_snapshot_content) {
+            (Some(p), _, _) => Some(p),
+            (None, true, true) => {
+                Some("Continue. Apply the workspace changes from my previous session.".to_owned())
+            }
+            (None, true, false) => Some("Continue".to_owned()),
+            (None, false, true) => {
+                Some("Apply the workspace changes from my previous session.".to_owned())
+            }
+            (None, false, false) => None,
+        };
+
+        let (wire_prompt, mode) = match raw_wire_prompt {
             Some(p) => {
                 let (p, mode) = extract_user_query_mode(p);
                 (Some(p), mode)
@@ -696,7 +703,7 @@ impl AmbientAgentViewModel {
 
     #[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
     pub(crate) fn queue_handoff_auto_submit(&mut self, ctx: &mut ModelContext<Self>) -> bool {
-        let Some((launch, forked_conversation_id, source_conversation_active)) = ({
+        let Some((launch, forked_conversation_id, should_inject_continue)) = ({
             let handoff = self.pending_handoff.as_mut();
             handoff.and_then(|handoff| {
                 if !matches!(handoff.submission_state, HandoffSubmissionState::Idle) {
@@ -707,7 +714,7 @@ impl AmbientAgentViewModel {
                 Some((
                     launch,
                     handoff.forked_conversation_id.clone(),
-                    handoff.source_conversation_active,
+                    handoff.should_inject_continue,
                 ))
             })
         }) else {
@@ -723,7 +730,7 @@ impl AmbientAgentViewModel {
             launch.attachments.request_attachments,
             forked_conversation_id,
             None,
-            source_conversation_active,
+            should_inject_continue,
             ctx,
         ));
         self.status = Status::WaitingForSession {
@@ -1646,7 +1653,7 @@ impl AmbientAgentViewModel {
         }
         let initial_snapshot_token = handoff.snapshot_upload.initial_snapshot_token();
         let forked_conversation_id = handoff.forked_conversation_id.clone();
-        let source_conversation_active = handoff.source_conversation_active;
+        let should_inject_continue = handoff.should_inject_continue;
         handoff.submission_state = HandoffSubmissionState::Starting;
         ctx.emit(AmbientAgentViewModelEvent::PendingHandoffChanged);
 
@@ -1658,7 +1665,7 @@ impl AmbientAgentViewModel {
             attachments,
             forked_conversation_id,
             initial_snapshot_token,
-            source_conversation_active,
+            should_inject_continue,
             ctx,
         );
         self.spawn_agent_with_request(request, ctx);
