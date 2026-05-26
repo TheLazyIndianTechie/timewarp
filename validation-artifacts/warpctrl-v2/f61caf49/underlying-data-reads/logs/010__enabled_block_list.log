@@ -1,0 +1,9 @@
+{
+  "ok": false,
+  "error": {
+    "code": "missing_target",
+    "message": "block.list requires an active Warp window"
+  }
+}
+
+EXIT_STATUS=1

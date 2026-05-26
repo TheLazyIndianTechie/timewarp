@@ -1,0 +1,9 @@
+{
+  "ok": false,
+  "error": {
+    "code": "insufficient_permissions",
+    "message": "block.output requires a local-control permission that is disabled"
+  }
+}
+
+EXIT_STATUS=1

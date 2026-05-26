@@ -1,0 +1,21 @@
+{
+  "entries": [
+    {
+      "command": "printf 'WARPCTRL_BLOCK_SENTINEL_f61caf49\\n'",
+      "cwd": "/tmp/warpctrl-validation/underlying-data-reads/home_enabled",
+      "entry_id": "history:17798364485253:0"
+    },
+    {
+      "command": "pwd",
+      "cwd": "/tmp/warpctrl-validation/underlying-data-reads/home_enabled",
+      "entry_id": "history:17798364485253:1"
+    },
+    {
+      "command": "printf 'WARPCTRL_HISTORY_SENTINEL_f61caf49\\n'",
+      "cwd": "/tmp/warpctrl-validation/underlying-data-reads/home_enabled",
+      "entry_id": "history:17798364485253:2"
+    }
+  ]
+}
+
+EXIT_STATUS=0

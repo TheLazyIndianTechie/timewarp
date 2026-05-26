@@ -1,0 +1,10 @@
+{
+  "projects": [
+    {
+      "is_active": true,
+      "path": "/tmp/warpctrl-validation/underlying-data-reads/home_underlying_disabled"
+    }
+  ]
+}
+
+EXIT_STATUS=0

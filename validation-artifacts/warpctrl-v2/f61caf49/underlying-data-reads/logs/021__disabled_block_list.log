@@ -1,0 +1,22 @@
+{
+  "blocks": [
+    {
+      "block_id": "precmd-177983680618644-0",
+      "index": 1,
+      "session_id": "177983680618644"
+    },
+    {
+      "block_id": "precmd-177983680618644-1",
+      "command": "printf 'WARPCTRL_DISABLED_SENTINEL_f61caf49\\n'",
+      "index": 2,
+      "session_id": "177983680618644"
+    },
+    {
+      "block_id": "precmd-177983680618644-2",
+      "index": 3,
+      "session_id": "177983680618644"
+    }
+  ]
+}
+
+EXIT_STATUS=0

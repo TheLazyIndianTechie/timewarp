@@ -1,0 +1,11 @@
+{
+  "block": {
+    "block_id": "precmd-17798364485253-1",
+    "command": "printf 'WARPCTRL_BLOCK_SENTINEL_f61caf49\\n'",
+    "index": 2,
+    "session_id": "17798364485253"
+  },
+  "output": "WARPCTRL_BLOCK_SENTINEL_f61caf49"
+}
+
+EXIT_STATUS=0

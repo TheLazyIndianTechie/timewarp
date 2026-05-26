@@ -1,0 +1,34 @@
+{
+  "blocks": [
+    {
+      "block_id": "precmd-17798364485253-0",
+      "index": 1,
+      "session_id": "17798364485253"
+    },
+    {
+      "block_id": "precmd-17798364485253-1",
+      "command": "printf 'WARPCTRL_BLOCK_SENTINEL_f61caf49\\n'",
+      "index": 2,
+      "session_id": "17798364485253"
+    },
+    {
+      "block_id": "precmd-17798364485253-2",
+      "command": "pwd",
+      "index": 3,
+      "session_id": "17798364485253"
+    },
+    {
+      "block_id": "precmd-17798364485253-3",
+      "command": "printf 'WARPCTRL_HISTORY_SENTINEL_f61caf49\\n'",
+      "index": 4,
+      "session_id": "17798364485253"
+    },
+    {
+      "block_id": "precmd-17798364485253-4",
+      "index": 5,
+      "session_id": "17798364485253"
+    }
+  ]
+}
+
+EXIT_STATUS=0

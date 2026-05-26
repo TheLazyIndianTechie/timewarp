@@ -1,0 +1,613 @@
+{
+  "agent_name": "underlying-data-reads",
+  "repository": "git@github.com:warpdotdev/warp.git",
+  "validation_ref": "zach/warpctrl-validation/f61caf49",
+  "validated_sha": "f61caf49400dc5c0d37d57a553d27733700e5204",
+  "expected_sha": "f61caf49400dc5c0d37d57a553d27733700e5204",
+  "sha_matches_expected": true,
+  "artifact_root": "/workspace/warpctrl-validation/underlying-data-reads/validation-artifacts/warpctrl-v2/f61caf49/underlying-data-reads",
+  "builds": [
+    {
+      "name": "warpctrl",
+      "command": "cargo build --manifest-path app/Cargo.toml --bin warpctrl --features standalone,warp_control_cli",
+      "status": "pass",
+      "log_path": "logs/build_warpctrl.log"
+    },
+    {
+      "name": "warp-oss",
+      "command": "cargo build --manifest-path app/Cargo.toml --bin warp-oss --features gui,warp_control_cli",
+      "status": "pass",
+      "log_path": "logs/build_warp_oss.log"
+    }
+  ],
+  "environment": {
+    "display_strategy": "Xvfb with Openbox, xterm, xdotool, wmctrl, scrot; isolated HOME/XDG_CONFIG_HOME/XDG_DATA_HOME/XDG_STATE_HOME/XDG_RUNTIME_DIR/WARP_DATA_PROFILE/WARP_LOCAL_CONTROL_DISCOVERY_DIR per enabled/disabled profile.",
+    "permission_enablement": "Settings > Scripting equivalent private preferences were pre-seeded in isolated user_preferences.json because the validation profile is non-user and onboarding was precompleted. This produced real Warp local-control discovery records and app-side enforcement."
+  },
+  "counts": {
+    "pass": 16,
+    "fail": 0,
+    "skip": 0,
+    "blocked": 0
+  },
+  "visual_inspection_failures_or_blockers": [],
+  "blockers": [],
+  "caveats": [
+    "file.list returned an empty list because no CodeView/editor tabs were open in the terminal-only validation state. The current CLI exposes `file list` only, and `file open` is not accepted, so a non-empty file context could not be created through warpctrl setup.",
+    "A first active-window block.list attempt failed with missing_target while xterm owned focus. Subsequent validation used a delayed invocation plus explicit Warp refocus/click, satisfying active-window target resolution while retaining staggered screenshots."
+  ],
+  "commands": [
+    {
+      "ordinal": "011",
+      "title": "enabled block list",
+      "command": "/workspace/warpctrl-validation/underlying-data-reads/target/debug/warpctrl --output-format json block list --limit 5",
+      "context": "outside_warp_external_xterm",
+      "permission_state": "outside-Warp control enabled; metadata reads enabled; underlying-data reads enabled; app-state/config/underlying-data mutations disabled",
+      "proof_setup_question": "What is the best way to show the impact of this CLI command?",
+      "proof_setup_answer": "Warp was launched in an isolated Xvfb/Openbox session with onboarding precompleted. Recognizable commands created terminal blocks/history, and input text WARPCTRL_INPUT_SENTINEL_f61caf49 was left in the input box. The setup screenshot shows the sentinel block output, pwd output, history sentinel, and input sentinel.",
+      "expected_result": "JSON list of recent blocks including the sentinel command block.",
+      "actual_result": "Returned five block summaries including printf WARPCTRL_BLOCK_SENTINEL_f61caf49; exit 0.",
+      "exit_code": 0,
+      "status": "pass",
+      "required_command": true,
+      "screenshot_paths": [
+        "screenshots/011__outside-staggered__enabled_block_list_focus__terminal_ui.png",
+        "screenshots/031__outside-staggered__enabled_block_list_tall__terminal_ui.png"
+      ],
+      "log_paths": [
+        "logs/011__enabled_block_list_focus.log"
+      ],
+      "setup_screenshot_paths": [
+        "screenshots/007__enabled_setup__terminal_state.png"
+      ],
+      "visual_inspection": {
+        "expected_visual_effect": "The Warp window should show sentinel terminal content proving there are blocks/history and input text to read, while the external terminal shows full/representative JSON output for the command.",
+        "observed_visual_effect": "Screenshots show the external xterm with command/output and the Warp terminal with WARPCTRL_BLOCK_SENTINEL_f61caf49, pwd output, WARPCTRL_HISTORY_SENTINEL_f61caf49, and WARPCTRL_INPUT_SENTINEL_f61caf49 visible.",
+        "result": "pass",
+        "unexpected_ui_changes": "None. Warp remains in the same terminal workspace; active focus highlighting changes as expected when refocused."
+      }
+    },
+    {
+      "ordinal": "012",
+      "title": "enabled block inspect",
+      "command": "/workspace/warpctrl-validation/underlying-data-reads/target/debug/warpctrl --output-format json block inspect precmd-17798364485253-1",
+      "context": "outside_warp_external_xterm",
+      "permission_state": "outside-Warp control enabled; metadata reads enabled; underlying-data reads enabled; app-state/config/underlying-data mutations disabled",
+      "proof_setup_question": "What is the best way to show the impact of this CLI command?",
+      "proof_setup_answer": "Warp was launched in an isolated Xvfb/Openbox session with onboarding precompleted. Recognizable commands created terminal blocks/history, and input text WARPCTRL_INPUT_SENTINEL_f61caf49 was left in the input box. The setup screenshot shows the sentinel block output, pwd output, history sentinel, and input sentinel.",
+      "expected_result": "JSON block metadata and output for sentinel block.",
+      "actual_result": "Returned block id precmd-17798364485253-1, command printf WARPCTRL_BLOCK_SENTINEL_f61caf49, and output WARPCTRL_BLOCK_SENTINEL_f61caf49; exit 0.",
+      "exit_code": 0,
+      "status": "pass",
+      "required_command": true,
+      "screenshot_paths": [
+        "screenshots/012__outside-staggered__enabled_block_inspect__terminal_ui.png"
+      ],
+      "log_paths": [
+        "logs/012__enabled_block_inspect.log"
+      ],
+      "setup_screenshot_paths": [
+        "screenshots/007__enabled_setup__terminal_state.png"
+      ],
+      "visual_inspection": {
+        "expected_visual_effect": "The Warp window should show sentinel terminal content proving there are blocks/history and input text to read, while the external terminal shows full/representative JSON output for the command.",
+        "observed_visual_effect": "Screenshots show the external xterm with command/output and the Warp terminal with WARPCTRL_BLOCK_SENTINEL_f61caf49, pwd output, WARPCTRL_HISTORY_SENTINEL_f61caf49, and WARPCTRL_INPUT_SENTINEL_f61caf49 visible.",
+        "result": "pass",
+        "unexpected_ui_changes": "None. Warp remains in the same terminal workspace; active focus highlighting changes as expected when refocused."
+      }
+    },
+    {
+      "ordinal": "013",
+      "title": "enabled block output",
+      "command": "/workspace/warpctrl-validation/underlying-data-reads/target/debug/warpctrl --output-format json block output precmd-17798364485253-1",
+      "context": "outside_warp_external_xterm",
+      "permission_state": "outside-Warp control enabled; metadata reads enabled; underlying-data reads enabled; app-state/config/underlying-data mutations disabled",
+      "proof_setup_question": "What is the best way to show the impact of this CLI command?",
+      "proof_setup_answer": "Warp was launched in an isolated Xvfb/Openbox session with onboarding precompleted. Recognizable commands created terminal blocks/history, and input text WARPCTRL_INPUT_SENTINEL_f61caf49 was left in the input box. The setup screenshot shows the sentinel block output, pwd output, history sentinel, and input sentinel.",
+      "expected_result": "JSON block output for sentinel block.",
+      "actual_result": "Returned output WARPCTRL_BLOCK_SENTINEL_f61caf49; exit 0.",
+      "exit_code": 0,
+      "status": "pass",
+      "required_command": true,
+      "screenshot_paths": [
+        "screenshots/013__outside-staggered__enabled_block_output__terminal_ui.png"
+      ],
+      "log_paths": [
+        "logs/013__enabled_block_output.log"
+      ],
+      "setup_screenshot_paths": [
+        "screenshots/007__enabled_setup__terminal_state.png"
+      ],
+      "visual_inspection": {
+        "expected_visual_effect": "The Warp window should show sentinel terminal content proving there are blocks/history and input text to read, while the external terminal shows full/representative JSON output for the command.",
+        "observed_visual_effect": "Screenshots show the external xterm with command/output and the Warp terminal with WARPCTRL_BLOCK_SENTINEL_f61caf49, pwd output, WARPCTRL_HISTORY_SENTINEL_f61caf49, and WARPCTRL_INPUT_SENTINEL_f61caf49 visible.",
+        "result": "pass",
+        "unexpected_ui_changes": "None. Warp remains in the same terminal workspace; active focus highlighting changes as expected when refocused."
+      }
+    },
+    {
+      "ordinal": "014",
+      "title": "enabled input get",
+      "command": "/workspace/warpctrl-validation/underlying-data-reads/target/debug/warpctrl --output-format json input get",
+      "context": "outside_warp_external_xterm",
+      "permission_state": "outside-Warp control enabled; metadata reads enabled; underlying-data reads enabled; app-state/config/underlying-data mutations disabled",
+      "proof_setup_question": "What is the best way to show the impact of this CLI command?",
+      "proof_setup_answer": "Warp was launched in an isolated Xvfb/Openbox session with onboarding precompleted. Recognizable commands created terminal blocks/history, and input text WARPCTRL_INPUT_SENTINEL_f61caf49 was left in the input box. The setup screenshot shows the sentinel block output, pwd output, history sentinel, and input sentinel.",
+      "expected_result": "JSON input state containing WARPCTRL_INPUT_SENTINEL_f61caf49.",
+      "actual_result": "Returned text WARPCTRL_INPUT_SENTINEL_f61caf49 and cursor_offset 32; exit 0.",
+      "exit_code": 0,
+      "status": "pass",
+      "required_command": true,
+      "screenshot_paths": [
+        "screenshots/014__outside-staggered__enabled_input_get__terminal_ui.png"
+      ],
+      "log_paths": [
+        "logs/014__enabled_input_get.log"
+      ],
+      "setup_screenshot_paths": [
+        "screenshots/007__enabled_setup__terminal_state.png"
+      ],
+      "visual_inspection": {
+        "expected_visual_effect": "The Warp window should show sentinel terminal content proving there are blocks/history and input text to read, while the external terminal shows full/representative JSON output for the command.",
+        "observed_visual_effect": "Screenshots show the external xterm with command/output and the Warp terminal with WARPCTRL_BLOCK_SENTINEL_f61caf49, pwd output, WARPCTRL_HISTORY_SENTINEL_f61caf49, and WARPCTRL_INPUT_SENTINEL_f61caf49 visible.",
+        "result": "pass",
+        "unexpected_ui_changes": "None. Warp remains in the same terminal workspace; active focus highlighting changes as expected when refocused."
+      }
+    },
+    {
+      "ordinal": "015",
+      "title": "enabled history list",
+      "command": "/workspace/warpctrl-validation/underlying-data-reads/target/debug/warpctrl --output-format json history list --limit 5",
+      "context": "outside_warp_external_xterm",
+      "permission_state": "outside-Warp control enabled; metadata reads enabled; underlying-data reads enabled; app-state/config/underlying-data mutations disabled",
+      "proof_setup_question": "What is the best way to show the impact of this CLI command?",
+      "proof_setup_answer": "Warp was launched in an isolated Xvfb/Openbox session with onboarding precompleted. Recognizable commands created terminal blocks/history, and input text WARPCTRL_INPUT_SENTINEL_f61caf49 was left in the input box. The setup screenshot shows the sentinel block output, pwd output, history sentinel, and input sentinel.",
+      "expected_result": "JSON history entries including sentinel commands.",
+      "actual_result": "Returned history entries for printf WARPCTRL_BLOCK_SENTINEL_f61caf49, pwd, and printf WARPCTRL_HISTORY_SENTINEL_f61caf49; exit 0.",
+      "exit_code": 0,
+      "status": "pass",
+      "required_command": true,
+      "screenshot_paths": [
+        "screenshots/015__outside-staggered__enabled_history_list__terminal_ui.png",
+        "screenshots/032__outside-staggered__enabled_history_list_tall__terminal_ui.png"
+      ],
+      "log_paths": [
+        "logs/015__enabled_history_list.log"
+      ],
+      "setup_screenshot_paths": [
+        "screenshots/007__enabled_setup__terminal_state.png"
+      ],
+      "visual_inspection": {
+        "expected_visual_effect": "The Warp window should show sentinel terminal content proving there are blocks/history and input text to read, while the external terminal shows full/representative JSON output for the command.",
+        "observed_visual_effect": "Screenshots show the external xterm with command/output and the Warp terminal with WARPCTRL_BLOCK_SENTINEL_f61caf49, pwd output, WARPCTRL_HISTORY_SENTINEL_f61caf49, and WARPCTRL_INPUT_SENTINEL_f61caf49 visible.",
+        "result": "pass",
+        "unexpected_ui_changes": "None. Warp remains in the same terminal workspace; active focus highlighting changes as expected when refocused."
+      }
+    },
+    {
+      "ordinal": "016",
+      "title": "enabled file list",
+      "command": "/workspace/warpctrl-validation/underlying-data-reads/target/debug/warpctrl --output-format json file list",
+      "context": "outside_warp_external_xterm",
+      "permission_state": "outside-Warp control enabled; metadata reads enabled; underlying-data reads enabled; app-state/config/underlying-data mutations disabled",
+      "proof_setup_question": "What is the best way to show the impact of this CLI command?",
+      "proof_setup_answer": "Warp was launched in an isolated Xvfb/Openbox session with onboarding precompleted. Recognizable commands created terminal blocks/history, and input text WARPCTRL_INPUT_SENTINEL_f61caf49 was left in the input box. The setup screenshot shows the sentinel block output, pwd output, history sentinel, and input sentinel.",
+      "expected_result": "JSON open-file metadata for any files visible/open in Warp.",
+      "actual_result": "Returned {\"files\": []}; exit 0. No file editor tab was open in the terminal-only validation state.",
+      "exit_code": 0,
+      "status": "pass",
+      "required_command": true,
+      "screenshot_paths": [
+        "screenshots/016__outside-staggered__enabled_file_list__terminal_ui.png"
+      ],
+      "log_paths": [
+        "logs/016__enabled_file_list.log"
+      ],
+      "setup_screenshot_paths": [
+        "screenshots/007__enabled_setup__terminal_state.png"
+      ],
+      "visual_inspection": {
+        "expected_visual_effect": "External terminal should show file list JSON, and Warp should show the current terminal-only state that explains why no editor files are visible.",
+        "observed_visual_effect": "Screenshot shows terminal-only Warp state and JSON files: [] in xterm. No open code editor/file tab is visible.",
+        "result": "pass_with_caveat",
+        "unexpected_ui_changes": "None.",
+        "ambiguity": "The command passed, but visual evidence cannot prove a non-empty file list because this CLI slice exposes no file open subcommand and the terminal-only state has no editor file tabs."
+      },
+      "notes": "Exploratory `warpctrl file --help` showed only `file list`; `warpctrl file open --help` returned unrecognized subcommand, so a meaningful non-empty file context could not be created using warpctrl in this slice."
+    },
+    {
+      "ordinal": "017",
+      "title": "enabled project active",
+      "command": "/workspace/warpctrl-validation/underlying-data-reads/target/debug/warpctrl --output-format json project active",
+      "context": "outside_warp_external_xterm",
+      "permission_state": "outside-Warp control enabled; metadata reads enabled; underlying-data reads enabled; app-state/config/underlying-data mutations disabled",
+      "proof_setup_question": "What is the best way to show the impact of this CLI command?",
+      "proof_setup_answer": "Warp was launched in an isolated Xvfb/Openbox session with onboarding precompleted. Recognizable commands created terminal blocks/history, and input text WARPCTRL_INPUT_SENTINEL_f61caf49 was left in the input box. The setup screenshot shows the sentinel block output, pwd output, history sentinel, and input sentinel.",
+      "expected_result": "JSON active project/workdir metadata matching visible terminal context.",
+      "actual_result": "Returned active project path /tmp/warpctrl-validation/underlying-data-reads/home_enabled; exit 0.",
+      "exit_code": 0,
+      "status": "pass",
+      "required_command": true,
+      "screenshot_paths": [
+        "screenshots/017__outside-staggered__enabled_project_active__terminal_ui.png"
+      ],
+      "log_paths": [
+        "logs/017__enabled_project_active.log"
+      ],
+      "setup_screenshot_paths": [
+        "screenshots/007__enabled_setup__terminal_state.png"
+      ],
+      "visual_inspection": {
+        "expected_visual_effect": "The Warp window should show sentinel terminal content proving there are blocks/history and input text to read, while the external terminal shows full/representative JSON output for the command.",
+        "observed_visual_effect": "Screenshots show the external xterm with command/output and the Warp terminal with WARPCTRL_BLOCK_SENTINEL_f61caf49, pwd output, WARPCTRL_HISTORY_SENTINEL_f61caf49, and WARPCTRL_INPUT_SENTINEL_f61caf49 visible.",
+        "result": "pass",
+        "unexpected_ui_changes": "None. Warp remains in the same terminal workspace; active focus highlighting changes as expected when refocused."
+      }
+    },
+    {
+      "ordinal": "018",
+      "title": "enabled project list",
+      "command": "/workspace/warpctrl-validation/underlying-data-reads/target/debug/warpctrl --output-format json project list",
+      "context": "outside_warp_external_xterm",
+      "permission_state": "outside-Warp control enabled; metadata reads enabled; underlying-data reads enabled; app-state/config/underlying-data mutations disabled",
+      "proof_setup_question": "What is the best way to show the impact of this CLI command?",
+      "proof_setup_answer": "Warp was launched in an isolated Xvfb/Openbox session with onboarding precompleted. Recognizable commands created terminal blocks/history, and input text WARPCTRL_INPUT_SENTINEL_f61caf49 was left in the input box. The setup screenshot shows the sentinel block output, pwd output, history sentinel, and input sentinel.",
+      "expected_result": "JSON project list including the active terminal working directory.",
+      "actual_result": "Returned one project marked active with path /tmp/warpctrl-validation/underlying-data-reads/home_enabled; exit 0.",
+      "exit_code": 0,
+      "status": "pass",
+      "required_command": true,
+      "screenshot_paths": [
+        "screenshots/018__outside-staggered__enabled_project_list__terminal_ui.png",
+        "screenshots/033__outside-staggered__enabled_project_list_tall__terminal_ui.png"
+      ],
+      "log_paths": [
+        "logs/018__enabled_project_list.log"
+      ],
+      "setup_screenshot_paths": [
+        "screenshots/007__enabled_setup__terminal_state.png"
+      ],
+      "visual_inspection": {
+        "expected_visual_effect": "The Warp window should show sentinel terminal content proving there are blocks/history and input text to read, while the external terminal shows full/representative JSON output for the command.",
+        "observed_visual_effect": "Screenshots show the external xterm with command/output and the Warp terminal with WARPCTRL_BLOCK_SENTINEL_f61caf49, pwd output, WARPCTRL_HISTORY_SENTINEL_f61caf49, and WARPCTRL_INPUT_SENTINEL_f61caf49 visible.",
+        "result": "pass",
+        "unexpected_ui_changes": "None. Warp remains in the same terminal workspace; active focus highlighting changes as expected when refocused."
+      }
+    },
+    {
+      "ordinal": "021",
+      "title": "disabled block list",
+      "command": "/workspace/warpctrl-validation/underlying-data-reads/target/debug/warpctrl --output-format json block list --limit 5",
+      "context": "outside_warp_external_xterm",
+      "permission_state": "outside-Warp control enabled; metadata reads enabled; underlying-data reads disabled; app-state/config/underlying-data mutations disabled",
+      "proof_setup_question": "What is the best way to show the impact of this CLI command?",
+      "proof_setup_answer": "Separate isolated Warp profile with underlying-data reads disabled. Visible terminal state contains WARPCTRL_DISABLED_SENTINEL_f61caf49 block output and WARPCTRL_DISABLED_INPUT_SENTINEL_f61caf49 in the input box.",
+      "expected_result": "Because block.list is cataloged as metadata read, it should still succeed with metadata reads enabled and underlying-data reads disabled.",
+      "actual_result": "Returned block summaries including WARPCTRL_DISABLED_SENTINEL_f61caf49; exit 0.",
+      "exit_code": 0,
+      "status": "pass",
+      "required_command": true,
+      "screenshot_paths": [
+        "screenshots/021__outside-staggered__disabled_block_list__terminal_ui.png",
+        "screenshots/034__outside-staggered__disabled_block_list_tall__terminal_ui.png"
+      ],
+      "log_paths": [
+        "logs/021__disabled_block_list.log"
+      ],
+      "setup_screenshot_paths": [
+        "screenshots/020__disabled_setup__terminal_state.png"
+      ],
+      "visual_inspection": {
+        "expected_visual_effect": "The Warp window should show a disabled-profile sentinel terminal/input state while the external terminal shows denial or metadata-read output.",
+        "observed_visual_effect": "Screenshots show the external xterm and the disabled-profile Warp terminal with WARPCTRL_DISABLED_SENTINEL_f61caf49 and WARPCTRL_DISABLED_INPUT_SENTINEL_f61caf49 visible.",
+        "result": "pass",
+        "unexpected_ui_changes": "None."
+      },
+      "notes": "This verifies permission isolation: disabling underlying-data reads does not block metadata-read block summaries."
+    },
+    {
+      "ordinal": "024",
+      "title": "disabled block inspect",
+      "command": "/workspace/warpctrl-validation/underlying-data-reads/target/debug/warpctrl --output-format json block inspect precmd-177983680618644-1",
+      "context": "outside_warp_external_xterm",
+      "permission_state": "outside-Warp control enabled; metadata reads enabled; underlying-data reads disabled; app-state/config/underlying-data mutations disabled",
+      "proof_setup_question": "What is the best way to show the impact of this CLI command?",
+      "proof_setup_answer": "Separate isolated Warp profile with underlying-data reads disabled. Visible terminal state contains WARPCTRL_DISABLED_SENTINEL_f61caf49 block output and WARPCTRL_DISABLED_INPUT_SENTINEL_f61caf49 in the input box.",
+      "expected_result": "Deny with insufficient_permissions before revealing block output.",
+      "actual_result": "Returned insufficient_permissions for block.inspect; exit 1.",
+      "exit_code": 1,
+      "status": "pass",
+      "required_command": true,
+      "screenshot_paths": [
+        "screenshots/024__outside-staggered__disabled_block_inspect__terminal_ui.png"
+      ],
+      "log_paths": [
+        "logs/024__disabled_block_inspect.log"
+      ],
+      "setup_screenshot_paths": [
+        "screenshots/020__disabled_setup__terminal_state.png"
+      ],
+      "visual_inspection": {
+        "expected_visual_effect": "The Warp window should show a disabled-profile sentinel terminal/input state while the external terminal shows denial or metadata-read output.",
+        "observed_visual_effect": "Screenshots show the external xterm and the disabled-profile Warp terminal with WARPCTRL_DISABLED_SENTINEL_f61caf49 and WARPCTRL_DISABLED_INPUT_SENTINEL_f61caf49 visible.",
+        "result": "pass",
+        "unexpected_ui_changes": "None."
+      }
+    },
+    {
+      "ordinal": "025",
+      "title": "disabled block output",
+      "command": "/workspace/warpctrl-validation/underlying-data-reads/target/debug/warpctrl --output-format json block output precmd-177983680618644-1",
+      "context": "outside_warp_external_xterm",
+      "permission_state": "outside-Warp control enabled; metadata reads enabled; underlying-data reads disabled; app-state/config/underlying-data mutations disabled",
+      "proof_setup_question": "What is the best way to show the impact of this CLI command?",
+      "proof_setup_answer": "Separate isolated Warp profile with underlying-data reads disabled. Visible terminal state contains WARPCTRL_DISABLED_SENTINEL_f61caf49 block output and WARPCTRL_DISABLED_INPUT_SENTINEL_f61caf49 in the input box.",
+      "expected_result": "Deny with insufficient_permissions before revealing block output.",
+      "actual_result": "Returned insufficient_permissions for block.output; exit 1.",
+      "exit_code": 1,
+      "status": "pass",
+      "required_command": true,
+      "screenshot_paths": [
+        "screenshots/025__outside-staggered__disabled_block_output__terminal_ui.png"
+      ],
+      "log_paths": [
+        "logs/025__disabled_block_output.log"
+      ],
+      "setup_screenshot_paths": [
+        "screenshots/020__disabled_setup__terminal_state.png"
+      ],
+      "visual_inspection": {
+        "expected_visual_effect": "The Warp window should show a disabled-profile sentinel terminal/input state while the external terminal shows denial or metadata-read output.",
+        "observed_visual_effect": "Screenshots show the external xterm and the disabled-profile Warp terminal with WARPCTRL_DISABLED_SENTINEL_f61caf49 and WARPCTRL_DISABLED_INPUT_SENTINEL_f61caf49 visible.",
+        "result": "pass",
+        "unexpected_ui_changes": "None."
+      }
+    },
+    {
+      "ordinal": "022",
+      "title": "disabled input get",
+      "command": "/workspace/warpctrl-validation/underlying-data-reads/target/debug/warpctrl --output-format json input get",
+      "context": "outside_warp_external_xterm",
+      "permission_state": "outside-Warp control enabled; metadata reads enabled; underlying-data reads disabled; app-state/config/underlying-data mutations disabled",
+      "proof_setup_question": "What is the best way to show the impact of this CLI command?",
+      "proof_setup_answer": "Separate isolated Warp profile with underlying-data reads disabled. Visible terminal state contains WARPCTRL_DISABLED_SENTINEL_f61caf49 block output and WARPCTRL_DISABLED_INPUT_SENTINEL_f61caf49 in the input box.",
+      "expected_result": "Deny with insufficient_permissions before revealing input text.",
+      "actual_result": "Returned insufficient_permissions for input.get; exit 1.",
+      "exit_code": 1,
+      "status": "pass",
+      "required_command": true,
+      "screenshot_paths": [
+        "screenshots/022__outside-staggered__disabled_input_get__terminal_ui.png"
+      ],
+      "log_paths": [
+        "logs/022__disabled_input_get.log"
+      ],
+      "setup_screenshot_paths": [
+        "screenshots/020__disabled_setup__terminal_state.png"
+      ],
+      "visual_inspection": {
+        "expected_visual_effect": "The Warp window should show a disabled-profile sentinel terminal/input state while the external terminal shows denial or metadata-read output.",
+        "observed_visual_effect": "Screenshots show the external xterm and the disabled-profile Warp terminal with WARPCTRL_DISABLED_SENTINEL_f61caf49 and WARPCTRL_DISABLED_INPUT_SENTINEL_f61caf49 visible.",
+        "result": "pass",
+        "unexpected_ui_changes": "None."
+      }
+    },
+    {
+      "ordinal": "023",
+      "title": "disabled history list",
+      "command": "/workspace/warpctrl-validation/underlying-data-reads/target/debug/warpctrl --output-format json history list --limit 5",
+      "context": "outside_warp_external_xterm",
+      "permission_state": "outside-Warp control enabled; metadata reads enabled; underlying-data reads disabled; app-state/config/underlying-data mutations disabled",
+      "proof_setup_question": "What is the best way to show the impact of this CLI command?",
+      "proof_setup_answer": "Separate isolated Warp profile with underlying-data reads disabled. Visible terminal state contains WARPCTRL_DISABLED_SENTINEL_f61caf49 block output and WARPCTRL_DISABLED_INPUT_SENTINEL_f61caf49 in the input box.",
+      "expected_result": "Deny with insufficient_permissions before revealing command history.",
+      "actual_result": "Returned insufficient_permissions for history.list; exit 1.",
+      "exit_code": 1,
+      "status": "pass",
+      "required_command": true,
+      "screenshot_paths": [
+        "screenshots/023__outside-staggered__disabled_history_list__terminal_ui.png"
+      ],
+      "log_paths": [
+        "logs/023__disabled_history_list.log"
+      ],
+      "setup_screenshot_paths": [
+        "screenshots/020__disabled_setup__terminal_state.png"
+      ],
+      "visual_inspection": {
+        "expected_visual_effect": "The Warp window should show a disabled-profile sentinel terminal/input state while the external terminal shows denial or metadata-read output.",
+        "observed_visual_effect": "Screenshots show the external xterm and the disabled-profile Warp terminal with WARPCTRL_DISABLED_SENTINEL_f61caf49 and WARPCTRL_DISABLED_INPUT_SENTINEL_f61caf49 visible.",
+        "result": "pass",
+        "unexpected_ui_changes": "None."
+      }
+    },
+    {
+      "ordinal": "026",
+      "title": "disabled file list",
+      "command": "/workspace/warpctrl-validation/underlying-data-reads/target/debug/warpctrl --output-format json file list",
+      "context": "outside_warp_external_xterm",
+      "permission_state": "outside-Warp control enabled; metadata reads enabled; underlying-data reads disabled; app-state/config/underlying-data mutations disabled",
+      "proof_setup_question": "What is the best way to show the impact of this CLI command?",
+      "proof_setup_answer": "Separate isolated Warp profile with underlying-data reads disabled. Visible terminal state contains WARPCTRL_DISABLED_SENTINEL_f61caf49 block output and WARPCTRL_DISABLED_INPUT_SENTINEL_f61caf49 in the input box.",
+      "expected_result": "Because file.list is cataloged as metadata read, it should still succeed with metadata reads enabled and underlying-data reads disabled.",
+      "actual_result": "Returned {\"files\": []}; exit 0.",
+      "exit_code": 0,
+      "status": "pass",
+      "required_command": true,
+      "screenshot_paths": [
+        "screenshots/026__outside-staggered__disabled_file_list__terminal_ui.png"
+      ],
+      "log_paths": [
+        "logs/026__disabled_file_list.log"
+      ],
+      "setup_screenshot_paths": [
+        "screenshots/020__disabled_setup__terminal_state.png"
+      ],
+      "visual_inspection": {
+        "expected_visual_effect": "The Warp window should show a disabled-profile sentinel terminal/input state while the external terminal shows denial or metadata-read output.",
+        "observed_visual_effect": "Screenshots show the external xterm and the disabled-profile Warp terminal with WARPCTRL_DISABLED_SENTINEL_f61caf49 and WARPCTRL_DISABLED_INPUT_SENTINEL_f61caf49 visible.",
+        "result": "pass",
+        "unexpected_ui_changes": "None."
+      },
+      "notes": "file.list is metadata-read according to catalog and remained allowed when underlying-data reads were disabled."
+    },
+    {
+      "ordinal": "027",
+      "title": "disabled project active",
+      "command": "/workspace/warpctrl-validation/underlying-data-reads/target/debug/warpctrl --output-format json project active",
+      "context": "outside_warp_external_xterm",
+      "permission_state": "outside-Warp control enabled; metadata reads enabled; underlying-data reads disabled; app-state/config/underlying-data mutations disabled",
+      "proof_setup_question": "What is the best way to show the impact of this CLI command?",
+      "proof_setup_answer": "Separate isolated Warp profile with underlying-data reads disabled. Visible terminal state contains WARPCTRL_DISABLED_SENTINEL_f61caf49 block output and WARPCTRL_DISABLED_INPUT_SENTINEL_f61caf49 in the input box.",
+      "expected_result": "Because project.active is metadata read, it should still succeed with metadata reads enabled and underlying-data reads disabled.",
+      "actual_result": "Returned active project path /tmp/warpctrl-validation/underlying-data-reads/home_underlying_disabled; exit 0.",
+      "exit_code": 0,
+      "status": "pass",
+      "required_command": true,
+      "screenshot_paths": [
+        "screenshots/027__outside-staggered__disabled_project_active__terminal_ui.png"
+      ],
+      "log_paths": [
+        "logs/027__disabled_project_active.log"
+      ],
+      "setup_screenshot_paths": [
+        "screenshots/020__disabled_setup__terminal_state.png"
+      ],
+      "visual_inspection": {
+        "expected_visual_effect": "The Warp window should show a disabled-profile sentinel terminal/input state while the external terminal shows denial or metadata-read output.",
+        "observed_visual_effect": "Screenshots show the external xterm and the disabled-profile Warp terminal with WARPCTRL_DISABLED_SENTINEL_f61caf49 and WARPCTRL_DISABLED_INPUT_SENTINEL_f61caf49 visible.",
+        "result": "pass",
+        "unexpected_ui_changes": "None."
+      }
+    },
+    {
+      "ordinal": "028",
+      "title": "disabled project list",
+      "command": "/workspace/warpctrl-validation/underlying-data-reads/target/debug/warpctrl --output-format json project list",
+      "context": "outside_warp_external_xterm",
+      "permission_state": "outside-Warp control enabled; metadata reads enabled; underlying-data reads disabled; app-state/config/underlying-data mutations disabled",
+      "proof_setup_question": "What is the best way to show the impact of this CLI command?",
+      "proof_setup_answer": "Separate isolated Warp profile with underlying-data reads disabled. Visible terminal state contains WARPCTRL_DISABLED_SENTINEL_f61caf49 block output and WARPCTRL_DISABLED_INPUT_SENTINEL_f61caf49 in the input box.",
+      "expected_result": "Because project.list is metadata read, it should still succeed with metadata reads enabled and underlying-data reads disabled.",
+      "actual_result": "Returned one active project /tmp/warpctrl-validation/underlying-data-reads/home_underlying_disabled; exit 0.",
+      "exit_code": 0,
+      "status": "pass",
+      "required_command": true,
+      "screenshot_paths": [
+        "screenshots/028__outside-staggered__disabled_project_list__terminal_ui.png"
+      ],
+      "log_paths": [
+        "logs/028__disabled_project_list.log"
+      ],
+      "setup_screenshot_paths": [
+        "screenshots/020__disabled_setup__terminal_state.png"
+      ],
+      "visual_inspection": {
+        "expected_visual_effect": "The Warp window should show a disabled-profile sentinel terminal/input state while the external terminal shows denial or metadata-read output.",
+        "observed_visual_effect": "Screenshots show the external xterm and the disabled-profile Warp terminal with WARPCTRL_DISABLED_SENTINEL_f61caf49 and WARPCTRL_DISABLED_INPUT_SENTINEL_f61caf49 visible.",
+        "result": "pass",
+        "unexpected_ui_changes": "None."
+      }
+    },
+    {
+      "ordinal": "008",
+      "title": "exploratory root help",
+      "command": "/workspace/warpctrl-validation/underlying-data-reads/target/debug/warpctrl --help",
+      "context": "outside_warp_external_xterm",
+      "permission_state": "outside-Warp control enabled; metadata reads enabled; underlying-data reads enabled; app-state/config/underlying-data mutations disabled",
+      "proof_setup_question": "What is the best way to show the impact of this CLI command?",
+      "proof_setup_answer": "Warp was launched in an isolated Xvfb/Openbox session with onboarding precompleted. Recognizable commands created terminal blocks/history, and input text WARPCTRL_INPUT_SENTINEL_f61caf49 was left in the input box. The setup screenshot shows the sentinel block output, pwd output, history sentinel, and input sentinel.",
+      "expected_result": "Show root CLI help to confirm syntax.",
+      "actual_result": "Printed root help; exit 0.",
+      "exit_code": 0,
+      "status": "pass",
+      "required_command": false,
+      "screenshot_paths": [
+        "screenshots/008__outside-staggered__exploratory_root_help__terminal_ui.png"
+      ],
+      "log_paths": [
+        "logs/008__exploratory_root_help.log"
+      ],
+      "setup_screenshot_paths": [
+        "screenshots/007__enabled_setup__terminal_state.png"
+      ]
+    },
+    {
+      "ordinal": "009",
+      "title": "exploratory file help",
+      "command": "/workspace/warpctrl-validation/underlying-data-reads/target/debug/warpctrl file --help",
+      "context": "outside_warp_external_xterm",
+      "permission_state": "outside-Warp control enabled; metadata reads enabled; underlying-data reads enabled; app-state/config/underlying-data mutations disabled",
+      "proof_setup_question": "What is the best way to show the impact of this CLI command?",
+      "proof_setup_answer": "Warp was launched in an isolated Xvfb/Openbox session with onboarding precompleted. Recognizable commands created terminal blocks/history, and input text WARPCTRL_INPUT_SENTINEL_f61caf49 was left in the input box. The setup screenshot shows the sentinel block output, pwd output, history sentinel, and input sentinel.",
+      "expected_result": "Show file subcommands to determine whether file context can be created.",
+      "actual_result": "Printed file help showing only `list`; exit 0.",
+      "exit_code": 0,
+      "status": "pass",
+      "required_command": false,
+      "screenshot_paths": [
+        "screenshots/009__outside-staggered__exploratory_help_file_commands__terminal_ui.png"
+      ],
+      "log_paths": [
+        "logs/009__exploratory_help_file_commands.log"
+      ],
+      "setup_screenshot_paths": [
+        "screenshots/007__enabled_setup__terminal_state.png"
+      ]
+    },
+    {
+      "ordinal": "019",
+      "title": "exploratory file open help",
+      "command": "/workspace/warpctrl-validation/underlying-data-reads/target/debug/warpctrl file open --help",
+      "context": "outside_warp_external_xterm",
+      "permission_state": "outside-Warp control enabled; metadata reads enabled; underlying-data reads enabled; app-state/config/underlying-data mutations disabled",
+      "proof_setup_question": "What is the best way to show the impact of this CLI command?",
+      "proof_setup_answer": "Warp was launched in an isolated Xvfb/Openbox session with onboarding precompleted. Recognizable commands created terminal blocks/history, and input text WARPCTRL_INPUT_SENTINEL_f61caf49 was left in the input box. The setup screenshot shows the sentinel block output, pwd output, history sentinel, and input sentinel.",
+      "expected_result": "Determine whether file.open setup command exists in CLI.",
+      "actual_result": "Returned unrecognized subcommand `open`; exit 2.",
+      "exit_code": 2,
+      "status": "pass",
+      "required_command": false,
+      "screenshot_paths": [
+        "screenshots/019__outside-staggered__exploratory_help_file_open_command__terminal_ui.png"
+      ],
+      "log_paths": [
+        "logs/019__exploratory_help_file_open_command.log"
+      ],
+      "setup_screenshot_paths": [
+        "screenshots/007__enabled_setup__terminal_state.png"
+      ],
+      "notes": "Expected exploratory parser failure; this explains why file.list stayed empty."
+    },
+    {
+      "ordinal": "010",
+      "title": "initial block list focus attempt",
+      "command": "/workspace/warpctrl-validation/underlying-data-reads/target/debug/warpctrl --output-format json block list --limit 5",
+      "context": "outside_warp_external_xterm",
+      "permission_state": "outside-Warp control enabled; metadata reads enabled; underlying-data reads enabled; app-state/config/underlying-data mutations disabled",
+      "proof_setup_question": "What is the best way to show the impact of this CLI command?",
+      "proof_setup_answer": "Warp was launched in an isolated Xvfb/Openbox session with onboarding precompleted. Recognizable commands created terminal blocks/history, and input text WARPCTRL_INPUT_SENTINEL_f61caf49 was left in the input box. The setup screenshot shows the sentinel block output, pwd output, history sentinel, and input sentinel.",
+      "expected_result": "Attempt active-window read with Warp visible.",
+      "actual_result": "Returned missing_target because Warp app active-window state had not updated while xterm owned focus; exit 1.",
+      "exit_code": 1,
+      "status": "pass",
+      "required_command": false,
+      "screenshot_paths": [
+        "screenshots/010__outside-staggered__enabled_block_list__terminal_ui.png"
+      ],
+      "log_paths": [
+        "logs/010__enabled_block_list.log"
+      ],
+      "setup_screenshot_paths": [
+        "screenshots/007__enabled_setup__terminal_state.png"
+      ],
+      "visual_inspection": {
+        "expected_visual_effect": "The screenshot should show the focus conflict: xterm visible with missing_target while Warp target state is visible behind it.",
+        "observed_visual_effect": "Screenshot shows xterm output missing_target and Warp terminal visible behind it; subsequent delayed/refocused cases resolved the issue.",
+        "result": "pass",
+        "unexpected_ui_changes": "None."
+      },
+      "notes": "Exploratory focus-model attempt; superseded by delayed/refocus strategy in case 011."
+    }
+  ]
+}

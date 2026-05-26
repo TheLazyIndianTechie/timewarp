@@ -1,0 +1,4 @@
+total 60
+drwx------  2 root root    60 May 26 23:06 .
+drwxr-xr-x 10 root root   200 May 26 23:06 ..
+-rw-------  1 root root 57979 May 26 23:06 inst_ddc7abe8289e4e289c953f8cf595fbe4.json

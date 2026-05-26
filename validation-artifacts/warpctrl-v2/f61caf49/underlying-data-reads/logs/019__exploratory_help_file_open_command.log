@@ -1,0 +1,7 @@
+error: unrecognized subcommand 'open'
+
+Usage: warpctrl file [OPTIONS] <COMMAND>
+
+For more information, try '--help'.
+
+EXIT_STATUS=2
