@@ -13,7 +13,9 @@ use crate::ai::agent_conversations_model::AgentConversationsModel;
 use crate::ai::ambient_agents::task::{
     AgentConfigSnapshot, HarnessConfig, TaskPrincipalInfo, TaskStatusErrorCode, TaskStatusMessage,
 };
-use crate::ai::ambient_agents::{AmbientAgentTask, AmbientAgentTaskId, AmbientAgentTaskState};
+use crate::ai::ambient_agents::{
+    AgentSource, AmbientAgentTask, AmbientAgentTaskId, AmbientAgentTaskState,
+};
 use crate::ai::blocklist::history_model::BlocklistAIHistoryModel;
 use crate::auth::user::TEST_USER_UID;
 use crate::auth::{AuthStateProvider, UserUid};
@@ -343,6 +345,38 @@ fn missing_task_returns_error() {
                 ctx,
             );
             assert_eq!(state, Err(CloudConversationContinuationError::MissingTask));
+        });
+    });
+}
+
+#[test]
+fn github_action_source_returns_error_without_tombstone_fallback() {
+    App::test((), |mut app| async move {
+        let TestHandles {
+            terminal_view_id,
+            task_id,
+        } = setup_owned_task_without_server_metadata(&mut app);
+        AgentConversationsModel::handle(&app).update(&mut app, |model, _| {
+            let mut task = ambient_agent_task(
+                task_id,
+                CONVERSATION_TOKEN,
+                AmbientAgentTaskState::Succeeded,
+            )
+            .with_creator(TEST_USER_UID);
+            task.source = Some(AgentSource::GitHubAction);
+            model.insert_task_for_test(task);
+        });
+
+        app.update(|ctx| {
+            let error =
+                resolve_cloud_conversation_continuation_ui_state(terminal_view_id, task_id, ctx)
+                    .unwrap_err();
+
+            assert_eq!(
+                error,
+                CloudConversationContinuationError::SourceDoesNotSupportContinuation
+            );
+            assert!(!error.should_fallback_to_tombstone());
         });
     });
 }

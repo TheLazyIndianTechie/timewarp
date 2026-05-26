@@ -31,7 +31,7 @@ use super::sharer::Sharer;
 use super::viewer::Viewer;
 use super::{ConversationEndedTombstoneEvent, ConversationEndedTombstoneView};
 use crate::ai::agent_conversations_model::AgentConversationsModel;
-use crate::ai::ambient_agents::AmbientAgentTaskId;
+use crate::ai::ambient_agents::{AgentSource, AmbientAgentTaskId};
 use crate::ai::blocklist::BlocklistAIHistoryModel;
 use crate::auth::UserUid;
 use crate::context_chips::ContextChipKind;
@@ -143,6 +143,29 @@ impl TerminalView {
                 .should_fallback_to_tombstone()
                 .then_some(CloudConversationContinuationUiState::Tombstone { cta: None }),
         }
+    }
+
+    pub(in crate::terminal::view) fn is_github_action_ambient_agent_session_from_model(
+        &self,
+        model: &TerminalModel,
+        ctx: &AppContext,
+    ) -> bool {
+        if self
+            .ambient_agent_view_model
+            .as_ref()
+            .is_some_and(|model| model.as_ref(ctx).is_github_action_source())
+        {
+            return true;
+        }
+
+        let Some(task_id) = self.ambient_agent_task_id_for_details_panel_from_model(model, ctx)
+        else {
+            return false;
+        };
+
+        AgentConversationsModel::as_ref(ctx)
+            .get_task_data(&task_id)
+            .is_some_and(|task| task.source == Some(AgentSource::GitHubAction))
     }
 
     pub(crate) fn owned_ambient_agent_task_id(
@@ -884,6 +907,15 @@ impl TerminalView {
         if !FeatureFlag::HandoffCloudCloud.is_enabled() {
             self.insert_conversation_ended_tombstone_with_cta(None, ctx);
             return;
+        }
+        {
+            let model = self.model.lock();
+            if self.is_github_action_ambient_agent_session_from_model(&model, ctx) {
+                drop(model);
+                self.remove_conversation_ended_tombstone(ctx);
+                self.pending_cloud_followup_task_id = None;
+                return;
+            }
         }
         let Some(state) = self.cloud_conversation_continuation_ui_state(ctx) else {
             return;
@@ -1771,6 +1803,15 @@ impl TerminalView {
         &mut self,
         ctx: &mut ViewContext<Self>,
     ) {
+        {
+            let model = self.model.lock();
+            if self.is_github_action_ambient_agent_session_from_model(&model, ctx) {
+                drop(model);
+                self.remove_conversation_ended_tombstone(ctx);
+                self.pending_cloud_followup_task_id = None;
+                return;
+            }
+        }
         if !FeatureFlag::HandoffCloudCloud.is_enabled() {
             self.insert_conversation_ended_tombstone_with_cta(None, ctx);
             return;

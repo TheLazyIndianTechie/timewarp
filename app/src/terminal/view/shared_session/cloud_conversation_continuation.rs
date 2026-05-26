@@ -7,8 +7,8 @@ use crate::ai::agent::conversation::{
 };
 use crate::ai::agent_conversations_model::AgentConversationsModel;
 use crate::ai::ambient_agents::{
-    conversation_output_status_from_conversation, AmbientAgentTask, AmbientAgentTaskId,
-    AmbientConversationStatus,
+    conversation_output_status_from_conversation, AgentSource, AmbientAgentTask,
+    AmbientAgentTaskId, AmbientConversationStatus,
 };
 use crate::ai::blocklist::BlocklistAIHistoryModel;
 use crate::auth::AuthStateProvider;
@@ -34,13 +34,17 @@ pub(in crate::terminal::view) enum CloudConversationContinuationError {
     ActiveTaskExecution,
     MissingConversationToken,
     MissingServerConversationMetadata,
+    SourceDoesNotSupportContinuation,
     UnknownHarness,
     UnknownConversationAccess,
 }
 
 impl CloudConversationContinuationError {
     pub(in crate::terminal::view) fn should_fallback_to_tombstone(self) -> bool {
-        !matches!(self, Self::ActiveTaskExecution)
+        !matches!(
+            self,
+            Self::ActiveTaskExecution | Self::SourceDoesNotSupportContinuation
+        )
     }
 }
 
@@ -59,6 +63,9 @@ pub(in crate::terminal::view) fn resolve_cloud_conversation_continuation_ui_stat
     let Some(task) = AgentConversationsModel::as_ref(app).get_task_data(&task_id) else {
         return Err(CloudConversationContinuationError::MissingTask);
     };
+    if task.source == Some(AgentSource::GitHubAction) {
+        return Err(CloudConversationContinuationError::SourceDoesNotSupportContinuation);
+    }
     if task.has_active_execution() {
         return Err(CloudConversationContinuationError::ActiveTaskExecution);
     }

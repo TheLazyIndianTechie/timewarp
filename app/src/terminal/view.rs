@@ -7431,6 +7431,9 @@ impl TerminalView {
         if self.conversation_ended_tombstone_view_id.is_some() {
             return false;
         }
+        if self.is_github_action_ambient_agent_session_from_model(model, app) {
+            return false;
+        }
         if self.has_active_cli_agent_input_session(app) {
             return true;
         }
