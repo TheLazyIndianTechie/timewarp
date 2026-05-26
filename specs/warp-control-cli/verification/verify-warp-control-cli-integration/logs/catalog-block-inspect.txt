@@ -1,0 +1,23 @@
+$ HOME=/tmp/warpctrl-verify/home /workspace/warp/target/debug/warpctrl --output-format json action inspect block.inspect
+{
+  "kind": "block.inspect",
+  "name": "block.inspect",
+  "implementation_status": "implemented",
+  "risk_tier": "read_only_terminal_data",
+  "state_data_category": "underlying_data_read",
+  "requires_authenticated_user": false,
+  "authenticated_user": {
+    "required": false
+  },
+  "allowed_invocation_contexts": [
+    "outside_warp"
+  ],
+  "permission_category": "read_underlying_data",
+  "target_scope": "block",
+  "parameter_spec": "none",
+  "result_spec": "content"
+}
+
+(exit 0)
+
+Screenshot label: catalog-block-inspect

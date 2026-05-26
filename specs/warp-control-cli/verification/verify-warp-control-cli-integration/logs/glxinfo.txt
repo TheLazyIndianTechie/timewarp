@@ -1,0 +1,3 @@
+Error: couldn't find RGB GLX visual or fbconfig
+name of display: :99
+

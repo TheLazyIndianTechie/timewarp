@@ -1,0 +1,6 @@
+XGetInputFocus returned the focused window of 1. This is likely a bug in the X server.
+X Error of failed request:  BadWindow (invalid Window parameter)
+  Major opcode of failed request:  20 (X_GetProperty)
+  Resource id in failed request:  0x1
+  Serial number of failed request:  20
+  Current serial number in output stream:  20

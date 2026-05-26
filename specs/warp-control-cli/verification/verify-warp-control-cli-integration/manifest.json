@@ -1,0 +1,160 @@
+{
+  "agent_name": "Verify Warp Control CLI Integration",
+  "branch_verified": "origin/zach/warp-cli-integration-fanin",
+  "commit_verified": "492fde34",
+  "repo": "warpdotdev/warp",
+  "checkout_path": "/workspace/warp",
+  "build": {
+    "commands": [
+      "cargo build -p warp --bin warpctrl --features warp/warp_control_cli",
+      "cargo build -p warp --bin warp --features warp/warp_control_cli"
+    ],
+    "actual": "Both required builds passed after installing missing sandbox dependencies: Rust 1.92.0 via rustup, protobuf-compiler/pkg-config, warp-channel-config helper, and X11/GL runtime packages."
+  },
+  "app_launch": {
+    "binary": "/workspace/warp/target/debug/warp",
+    "method": "Launched built Warp app on DISPLAY=:100 using a fresh Xvfb server with GLX/llvmpipe; authenticated with STAGING_USER_WARP_API_KEY; isolated HOME/XDG_* under /tmp/warpctrl-verify.",
+    "initial_ui_screenshot": "screenshots/app-initial.png",
+    "metadata_only_ui_screenshot": "screenshots/app-metadata-only-settings-enabled-2.png",
+    "underlying_enabled_ui_screenshot": "screenshots/app-underlying-enabled.png"
+  },
+  "permission_setup": [
+    {
+      "phase": "default_off",
+      "settings": "Fresh isolated profile; outside-Warp local control default false.",
+      "discovery": "Live discovery record had outside_warp_control_enabled=false and endpoint=null."
+    },
+    {
+      "phase": "metadata_only",
+      "settings": "Preseeded private preferences equivalent to Settings > Scripting toggles: LocalControlAllowOutsideWarp=true and LocalControlOutsideWarpMetadataReads=true; LocalControlOutsideWarpUnderlyingDataReads unset/false; relaunched Warp.",
+      "discovery": "Live discovery record advertised an outside-Warp endpoint."
+    },
+    {
+      "phase": "underlying_enabled",
+      "settings": "Preseeded LocalControlOutsideWarpUnderlyingDataReads=true in addition to outside-Warp control and metadata reads; relaunched Warp.",
+      "discovery": "Live discovery record advertised an outside-Warp endpoint."
+    }
+  ],
+  "ui_notes": "The Settings UI was available visually, but reliable X input was impeded by first-run onboarding/agent focus in the headless Xvfb environment. The same private keys toggled by Settings > Scripting were preseeded in the isolated profile and Warp was relaunched between phases.",
+  "commands": [
+    {
+      "command": "warpctrl --output-format json block inspect --block active",
+      "phase": "default_off",
+      "invocation_context": "outside_warp from external xterm",
+      "required_permission_category": "read_underlying_data plus outside-Warp control",
+      "expected_result": "Denied because outside-Warp control is default-off.",
+      "actual_result": "Denied with local_control_disabled: outside-Warp local control credential broker is disabled for this instance.",
+      "terminal_screenshot": "screenshots/deny-block-inspect.png",
+      "log": "logs/deny-block-inspect.txt"
+    },
+    {
+      "command": "warpctrl --output-format json block inspect --block active",
+      "phase": "metadata_only",
+      "invocation_context": "outside_warp from external xterm",
+      "required_permission_category": "read_underlying_data",
+      "expected_result": "Denied because outside-Warp underlying-data reads are disabled while outside control is enabled.",
+      "actual_result": "Denied with insufficient_permissions: block.inspect requires a local-control permission that is disabled.",
+      "terminal_screenshot": "screenshots/deny-underlying-block-inspect.png",
+      "log": "logs/deny-underlying-block-inspect.txt"
+    },
+    {
+      "command": "warpctrl --output-format json window list",
+      "phase": "metadata_only_helper",
+      "invocation_context": "outside_warp from external xterm",
+      "required_permission_category": "read_metadata",
+      "expected_result": "Return visible Warp windows to help diagnose selectors.",
+      "actual_result": "Succeeded; returned one window with title New agent conversation and window_id 0.",
+      "terminal_screenshot": "screenshots/helper-window-list.png",
+      "log": "logs/helper-window-list.txt"
+    },
+    {
+      "command": "warpctrl --output-format json block list --limit 5",
+      "phase": "metadata_only",
+      "invocation_context": "outside_warp from external xterm; Warp window refocused during invocation",
+      "required_permission_category": "read_metadata",
+      "expected_result": "Return block metadata because block.list is categorized as metadata read, not underlying-data read.",
+      "actual_result": "Succeeded; returned two blocks with block ids precmd-17797603471627-0 and precmd-17797603471627-1.",
+      "terminal_screenshot": "screenshots/metadata-block-list-active.png",
+      "log": "logs/metadata-block-list-active.txt"
+    },
+    {
+      "command": "warpctrl --output-format json block list --limit 5",
+      "phase": "metadata_only_initial_attempt",
+      "invocation_context": "outside_warp from external xterm",
+      "required_permission_category": "read_metadata",
+      "expected_result": "Return block metadata if Warp is the active window.",
+      "actual_result": "Failed with missing_target because the screenshot xterm stole active-window focus; superseded by focus-coordinated success screenshot.",
+      "terminal_screenshot": "screenshots/metadata-block-list.png",
+      "log": "logs/metadata-block-list.txt"
+    },
+    {
+      "command": "warpctrl --output-format json block list --window-index 0 --limit 5",
+      "phase": "metadata_only_selector_attempt",
+      "invocation_context": "outside_warp from external xterm",
+      "required_permission_category": "read_metadata",
+      "expected_result": "Check whether explicit window selectors can avoid focus dependency.",
+      "actual_result": "Failed with invalid_selector: block.list only supports the active window selector.",
+      "terminal_screenshot": "screenshots/metadata-block-list-window0.png",
+      "log": "logs/metadata-block-list-window0.txt"
+    },
+    {
+      "command": "warpctrl --output-format json block inspect --block-index 1",
+      "phase": "underlying_enabled",
+      "invocation_context": "outside_warp from external xterm; Warp window refocused during invocation",
+      "required_permission_category": "read_underlying_data",
+      "expected_result": "Return block details after underlying-data-read permission is enabled.",
+      "actual_result": "Failed with unsupported_action: block.inspect is not implemented by this local-control bridge. This conflicts with catalog metadata that reports block.inspect implementation_status=implemented.",
+      "terminal_screenshot": "screenshots/success-block-inspect.png",
+      "log": "logs/success-block-inspect.txt"
+    },
+    {
+      "command": "warpctrl --output-format json block output --block-index 1 --plain",
+      "phase": "underlying_enabled",
+      "invocation_context": "outside_warp from external xterm; Warp window refocused during invocation",
+      "required_permission_category": "read_underlying_data",
+      "expected_result": "Return block output after underlying-data-read permission is enabled.",
+      "actual_result": "Succeeded; returned block metadata and an empty plain output string for the selected restored precmd block.",
+      "terminal_screenshot": "screenshots/success-block-output.png",
+      "log": "logs/success-block-output.txt"
+    },
+    {
+      "command": "warpctrl --output-format json input get",
+      "phase": "underlying_enabled",
+      "invocation_context": "outside_warp from external xterm; Warp window refocused during invocation",
+      "required_permission_category": "read_underlying_data",
+      "expected_result": "Return staged input buffer after underlying-data-read permission is enabled.",
+      "actual_result": "Succeeded; returned session_id 177976048613780, empty text, cursor_offset 0.",
+      "terminal_screenshot": "screenshots/success-input-get.png",
+      "log": "logs/success-input-get.txt"
+    },
+    {
+      "command": "warpctrl --output-format json history list --limit 5",
+      "phase": "underlying_enabled",
+      "invocation_context": "outside_warp from external xterm; Warp window refocused during invocation",
+      "required_permission_category": "read_underlying_data",
+      "expected_result": "Return command history after underlying-data-read permission is enabled.",
+      "actual_result": "Succeeded; returned an empty entries array for the disposable/restored session state.",
+      "terminal_screenshot": "screenshots/success-history-list.png",
+      "log": "logs/success-history-list.txt"
+    },
+    {
+      "command": "warpctrl --output-format json action inspect block.inspect",
+      "phase": "catalog_check",
+      "invocation_context": "local catalog read",
+      "required_permission_category": "none for local catalog; action metadata category is read_underlying_data",
+      "expected_result": "Return catalog metadata for block.inspect.",
+      "actual_result": "Succeeded; catalog reports implementation_status=implemented, risk_tier=read_only_terminal_data, state_data_category=underlying_data_read, permission_category=read_underlying_data.",
+      "terminal_screenshot": "screenshots/catalog-block-inspect.png",
+      "log": "logs/catalog-block-inspect.txt"
+    }
+  ],
+  "findings": [
+    "Default-off outside-Warp behavior is verified: no broker/endpoint is exposed and underlying-data reads fail closed.",
+    "With outside-Warp control enabled but underlying-data reads disabled, block.inspect fails with insufficient_permissions as expected.",
+    "With underlying-data reads enabled, block.output, input.get, and history.list succeed in JSON mode.",
+    "block.inspect is advertised by the catalog as implemented but the app bridge returns unsupported_action after permissions are enabled; this should be reviewed before declaring the slice ready.",
+    "block.list is categorized as read_metadata rather than read_underlying_data; it succeeds when metadata reads are enabled and returns block ids/session ids without enabling underlying-data reads.",
+    "block.list currently requires the active Warp window selector; external terminals used for screenshots steal focus unless Warp is explicitly refocused before invocation. Explicit --window-index 0 is rejected for block.list."
+  ],
+  "skips": []
+}

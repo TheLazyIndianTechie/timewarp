@@ -1,0 +1,11 @@
+$ HOME=/tmp/warpctrl-verify/home /workspace/warp/target/debug/warpctrl --output-format json input get
+(waiting for Warp focus before invocation)
+{
+  "cursor_offset": 0,
+  "session_id": "177976048613780",
+  "text": ""
+}
+
+(exit 0)
+
+Screenshot label: success-input-get

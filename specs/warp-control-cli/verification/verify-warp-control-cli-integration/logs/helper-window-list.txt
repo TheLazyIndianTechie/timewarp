@@ -1,0 +1,15 @@
+$ HOME=/tmp/warpctrl-verify/home /workspace/warp/target/debug/warpctrl --output-format json window list
+{
+  "action": "window.list",
+  "windows": [
+    {
+      "is_active": false,
+      "title": "New agent conversation",
+      "window_id": "0"
+    }
+  ]
+}
+
+(exit 0)
+
+Screenshot label: helper-window-list

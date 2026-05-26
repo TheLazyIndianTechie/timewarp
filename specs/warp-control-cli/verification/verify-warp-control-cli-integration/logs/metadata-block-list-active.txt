@@ -1,0 +1,21 @@
+$ HOME=/tmp/warpctrl-verify/home /workspace/warp/target/debug/warpctrl --output-format json block list --limit 5
+(waiting for Warp focus before invocation)
+{
+  "blocks": [
+    {
+      "block_id": "precmd-17797603471627-0",
+      "command": "\nThe programs included with the Debian GNU/Linux system are free software;\nthe exact distribution terms for each program are described in the\nindividual files in /usr/share/doc/*/copyright.\n\nDebian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent\npermitted by applicable law.",
+      "index": 1,
+      "session_id": "17797603471627"
+    },
+    {
+      "block_id": "precmd-17797603471627-1",
+      "index": 2,
+      "session_id": "17797603471627"
+    }
+  ]
+}
+
+(exit 0)
+
+Screenshot label: metadata-block-list-active

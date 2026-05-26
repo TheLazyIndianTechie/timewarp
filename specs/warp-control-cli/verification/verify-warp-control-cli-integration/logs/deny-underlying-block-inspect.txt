@@ -1,0 +1,12 @@
+$ HOME=/tmp/warpctrl-verify/home /workspace/warp/target/debug/warpctrl --output-format json block inspect --block active
+{
+  "ok": false,
+  "error": {
+    "code": "insufficient_permissions",
+    "message": "block.inspect requires a local-control permission that is disabled"
+  }
+}
+
+(exit 1)
+
+Screenshot label: deny-underlying-block-inspect

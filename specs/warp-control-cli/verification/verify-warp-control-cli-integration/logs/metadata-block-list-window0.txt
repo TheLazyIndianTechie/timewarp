@@ -1,0 +1,12 @@
+$ HOME=/tmp/warpctrl-verify/home /workspace/warp/target/debug/warpctrl --output-format json block list --window-index 0 --limit 5
+{
+  "ok": false,
+  "error": {
+    "code": "invalid_selector",
+    "message": "block.list only supports the active window selector"
+  }
+}
+
+(exit 1)
+
+Screenshot label: metadata-block-list-window0
