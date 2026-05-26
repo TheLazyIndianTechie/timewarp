@@ -1,0 +1,1976 @@
+{
+  "keybindings": [
+    {
+      "description": "Accept Autosuggestion",
+      "name": "editor_view:insert_autosuggestion"
+    },
+    {
+      "description": "Accept Prompt Suggestion",
+      "keystroke": "Alt Shift ⏎",
+      "name": "terminal:accept_prompt_suggestions",
+      "normalized_keystroke": "alt-shift-enter"
+    },
+    {
+      "description": "Activate Next Pane",
+      "group": "navigation",
+      "keystroke": "Ctrl Shift }",
+      "name": "pane_group:navigate_next",
+      "normalized_keystroke": "ctrl-shift-}"
+    },
+    {
+      "description": "Activate Next Tab",
+      "group": "navigation",
+      "keystroke": "Ctrl Pagedown",
+      "name": "workspace:activate_next_tab",
+      "normalized_keystroke": "ctrl-pagedown"
+    },
+    {
+      "description": "Activate Previous Pane",
+      "group": "navigation",
+      "keystroke": "Ctrl Shift {",
+      "name": "pane_group:navigate_prev",
+      "normalized_keystroke": "ctrl-shift-{"
+    },
+    {
+      "description": "Activate Previous Tab",
+      "keystroke": "Ctrl Pageup",
+      "name": "workspace:activate_prev_tab",
+      "normalized_keystroke": "ctrl-pageup"
+    },
+    {
+      "description": "Add Cursor Above",
+      "keystroke": "Ctrl Shift ↑",
+      "name": "editor_view:add_cursor_above",
+      "normalized_keystroke": "ctrl-shift-up"
+    },
+    {
+      "description": "Add Cursor Below",
+      "keystroke": "Ctrl Shift ↓",
+      "name": "editor_view:add_cursor_below",
+      "normalized_keystroke": "ctrl-shift-down"
+    },
+    {
+      "description": "Add Repository",
+      "group": "folders",
+      "keystroke": "Alt N",
+      "name": "welcome_view:open_project",
+      "normalized_keystroke": "alt-n"
+    },
+    {
+      "description": "Add Selection for Next Occurrence",
+      "keystroke": "Ctrl G",
+      "name": "editor_view:add_next_occurrence",
+      "normalized_keystroke": "ctrl-g"
+    },
+    {
+      "description": "Attach Selected Block as Agent Context",
+      "group": "warp_ai",
+      "keystroke": "Ctrl Shift Space",
+      "name": "terminal:ask_ai_assistant",
+      "normalized_keystroke": "ctrl-shift-space"
+    },
+    {
+      "description": "Attach Selected Text as Agent Context",
+      "group": "warp_ai",
+      "keystroke": "Ctrl Shift Space",
+      "name": "terminal:ask_ai_assistant",
+      "normalized_keystroke": "ctrl-shift-space"
+    },
+    {
+      "description": "Backward Tabulation Within an Executing Command",
+      "keystroke": "Shift Tab",
+      "name": "terminal:backward_tabulation",
+      "normalized_keystroke": "shift-tab"
+    },
+    {
+      "description": "Bookmark Selected Block",
+      "keystroke": "Ctrl Shift B",
+      "name": "terminal:bookmark_selected_block",
+      "normalized_keystroke": "ctrl-shift-B"
+    },
+    {
+      "description": "Cancel Active Process",
+      "keystroke": "Ctrl C",
+      "name": "terminal:cancel_command",
+      "normalized_keystroke": "ctrl-c"
+    },
+    {
+      "description": "Clear Blocks",
+      "keystroke": "Ctrl Shift K",
+      "name": "terminal:clear_blocks",
+      "normalized_keystroke": "ctrl-shift-K"
+    },
+    {
+      "description": "Clear Command Editor",
+      "keystroke": "Ctrl C",
+      "name": "editor_view:clear_buffer",
+      "normalized_keystroke": "ctrl-c"
+    },
+    {
+      "description": "Clear Screen",
+      "keystroke": "Ctrl L",
+      "name": "input:clear_screen",
+      "normalized_keystroke": "ctrl-l"
+    },
+    {
+      "description": "Clear Selected Lines",
+      "name": "editor_view:clear_lines"
+    },
+    {
+      "description": "Clear and Reset AI Context Menu Query",
+      "keystroke": "Ctrl Shift ⌫",
+      "name": "input:clear_and_reset_ai_context_menu_query",
+      "normalized_keystroke": "ctrl-shift-backspace"
+    },
+    {
+      "description": "Close",
+      "keystroke": "Ctrl Shift W",
+      "name": "Close Env Var Collection",
+      "normalized_keystroke": "ctrl-shift-W"
+    },
+    {
+      "description": "Close",
+      "keystroke": "Ctrl Shift W",
+      "name": "Close Workflow",
+      "normalized_keystroke": "ctrl-shift-W"
+    },
+    {
+      "description": "Close All Tabs",
+      "keystroke": "Ctrl R",
+      "name": "code_view:close_all_tabs",
+      "normalized_keystroke": "ctrl-r"
+    },
+    {
+      "description": "Close Current Session",
+      "keystroke": "Ctrl Shift W",
+      "name": "pane_group:close_current_session",
+      "normalized_keystroke": "ctrl-shift-W"
+    },
+    {
+      "description": "Close Focused Panel",
+      "keystroke": "Ctrl Shift W",
+      "name": "workspace:close_panel",
+      "normalized_keystroke": "ctrl-shift-W"
+    },
+    {
+      "description": "Close Other Tabs",
+      "group": "close",
+      "name": "workspace:close_other_tabs"
+    },
+    {
+      "description": "Close Saved Tabs",
+      "keystroke": "Ctrl R",
+      "name": "code_view:close_saved_tabs",
+      "normalized_keystroke": "ctrl-r"
+    },
+    {
+      "description": "Close Tabs to the Right",
+      "group": "close",
+      "name": "workspace:close_tabs_right_active_tab"
+    },
+    {
+      "description": "Close Window",
+      "group": "close",
+      "name": "workspace:close_window"
+    },
+    {
+      "description": "Close the Current Tab",
+      "group": "close",
+      "name": "workspace:close_active_tab"
+    },
+    {
+      "description": "Command Search",
+      "keystroke": "Ctrl R",
+      "name": "workspace:show_command_search",
+      "normalized_keystroke": "ctrl-r"
+    },
+    {
+      "description": "Copy",
+      "keystroke": "Ctrl Shift C",
+      "name": "terminal:copy",
+      "normalized_keystroke": "ctrl-shift-C"
+    },
+    {
+      "description": "Copy Access Token to Clipboard",
+      "name": "workspace:copy_access_token_to_clipboard"
+    },
+    {
+      "description": "Copy Command",
+      "name": "terminal:copy_commands"
+    },
+    {
+      "description": "Copy Command Output",
+      "keystroke": "Ctrl Alt Shift C",
+      "name": "terminal:copy_outputs",
+      "normalized_keystroke": "ctrl-alt-shift-C"
+    },
+    {
+      "description": "Copy Command and Output",
+      "keystroke": "Ctrl Shift C",
+      "name": "terminal:copy",
+      "normalized_keystroke": "ctrl-shift-C"
+    },
+    {
+      "description": "Copy Git Branch",
+      "name": "terminal:copy_git_branch"
+    },
+    {
+      "description": "Copy Rich-Text Buffer",
+      "name": "editor_view:debug_copy_buffer"
+    },
+    {
+      "description": "Copy Rich-Text Selection",
+      "name": "editor_view:debug_copy_selection"
+    },
+    {
+      "description": "Copy and Clear Selected Lines",
+      "keystroke": "Ctrl U",
+      "name": "editor_view:clear_and_copy_lines",
+      "normalized_keystroke": "ctrl-u"
+    },
+    {
+      "description": "Crash the App (For Testing Sentry-Native)",
+      "name": "workspace:crash"
+    },
+    {
+      "description": "Create New Personal Environment Variables",
+      "group": "env_var_collections",
+      "name": "workspace:create_personal_env_vars"
+    },
+    {
+      "description": "Create New Project",
+      "keystroke": "Alt Shift N",
+      "name": "project_buttons:create_new_project",
+      "normalized_keystroke": "alt-shift-N"
+    },
+    {
+      "description": "Create New Tab",
+      "keystroke": "Ctrl Shift T",
+      "name": "workspace:new_tab",
+      "normalized_keystroke": "ctrl-shift-T"
+    },
+    {
+      "description": "Create New Team Environment Variables",
+      "group": "env_var_collections",
+      "name": "workspace:create_team_env_vars"
+    },
+    {
+      "description": "Create a New Personal Folder",
+      "group": "folders",
+      "name": "workspace:create_personal_folder"
+    },
+    {
+      "description": "Create a New Personal Notebook",
+      "group": "notebooks",
+      "name": "workspace:create_personal_notebook"
+    },
+    {
+      "description": "Create a New Personal Prompt",
+      "group": "warp_ai",
+      "name": "workspace:create_personal_ai_prompt"
+    },
+    {
+      "description": "Create a New Personal Workflow",
+      "group": "workflows",
+      "name": "workspace:create_personal_workflow"
+    },
+    {
+      "description": "Create a New Team Folder",
+      "group": "folders",
+      "name": "workspace:create_team_folder"
+    },
+    {
+      "description": "Create a New Team Notebook",
+      "group": "notebooks",
+      "name": "workspace:create_team_notebook"
+    },
+    {
+      "description": "Create a New Team Prompt",
+      "group": "warp_ai",
+      "name": "workspace:create_team_ai_prompt"
+    },
+    {
+      "description": "Create a New Team Workflow",
+      "group": "workflows",
+      "name": "workspace:create_team_workflow"
+    },
+    {
+      "description": "Create or Edit Link",
+      "keystroke": "Ctrl K",
+      "name": "editor:edit_link",
+      "normalized_keystroke": "ctrl-k"
+    },
+    {
+      "description": "Cursor at Buffer End",
+      "keystroke": "Ctrl ↓",
+      "name": "editor_view:cursor_at_buffer_end",
+      "normalized_keystroke": "ctrl-down"
+    },
+    {
+      "description": "Cursor at Buffer Start",
+      "keystroke": "Ctrl ↑",
+      "name": "editor_view:cursor_at_buffer_start",
+      "normalized_keystroke": "ctrl-up"
+    },
+    {
+      "description": "Cut All Left",
+      "name": "editor_view:cut_all_left"
+    },
+    {
+      "description": "Cut All Right",
+      "keystroke": "Ctrl K",
+      "name": "editor_view:cut_all_right",
+      "normalized_keystroke": "ctrl-k"
+    },
+    {
+      "description": "Cut Word Left",
+      "keystroke": "Ctrl W",
+      "name": "editor_view:cut_word_left",
+      "normalized_keystroke": "ctrl-w"
+    },
+    {
+      "description": "Cut Word Right",
+      "keystroke": "Alt D",
+      "name": "editor_view:cut_word_right",
+      "normalized_keystroke": "alt-d"
+    },
+    {
+      "description": "De-Select Shell Commands",
+      "keystroke": "Escape",
+      "name": "editor_view:deselect_command",
+      "normalized_keystroke": "escape"
+    },
+    {
+      "description": "Decrease Font Size",
+      "group": "settings",
+      "keystroke": "Ctrl Shift <",
+      "name": "workspace:decrease_font_size",
+      "normalized_keystroke": "ctrl-shift-<"
+    },
+    {
+      "description": "Decrease Notebook Font Size",
+      "group": "settings",
+      "keystroke": "Ctrl -",
+      "name": "notebookview:decrease_font_size",
+      "normalized_keystroke": "ctrl--"
+    },
+    {
+      "description": "Decrease Zoom Level",
+      "group": "settings",
+      "keystroke": "Ctrl -",
+      "name": "workspace:decrease_zoom",
+      "normalized_keystroke": "ctrl--"
+    },
+    {
+      "description": "Delete",
+      "keystroke": "Ctrl D",
+      "name": "editor_view:delete",
+      "normalized_keystroke": "ctrl-d"
+    },
+    {
+      "description": "Delete All Left",
+      "keystroke": "Ctrl Y",
+      "name": "editor_view:delete_all_left",
+      "normalized_keystroke": "ctrl-y"
+    },
+    {
+      "description": "Delete All Right",
+      "name": "editor_view:delete_all_right"
+    },
+    {
+      "description": "Delete Word Left",
+      "keystroke": "Ctrl ⌫",
+      "name": "editor:delete_word_left",
+      "normalized_keystroke": "ctrl-backspace"
+    },
+    {
+      "description": "Delete Word Left Within an Executing Command",
+      "keystroke": "Ctrl ⌫",
+      "name": "terminal:executing_command_delete_word_left",
+      "normalized_keystroke": "ctrl-backspace"
+    },
+    {
+      "description": "Delete Word Right",
+      "keystroke": "Ctrl Delete",
+      "name": "editor:delete_word_right",
+      "normalized_keystroke": "ctrl-delete"
+    },
+    {
+      "description": "Delete to Line End Within an Executing Command",
+      "name": "terminal:executing_command_delete_line_end"
+    },
+    {
+      "description": "Delete to Line Start Within an Executing Command",
+      "name": "terminal:executing_command_delete_line_start"
+    },
+    {
+      "description": "Edit Code Diff",
+      "keystroke": "Ctrl Shift E",
+      "name": "code_diff_view:edit_requested_edit",
+      "normalized_keystroke": "ctrl-shift-E"
+    },
+    {
+      "description": "Edit Prompt",
+      "group": "settings",
+      "name": "workspace:edit_prompt"
+    },
+    {
+      "description": "Edit Requested Command",
+      "keystroke": "Ctrl Shift E",
+      "name": "requested_command:edit",
+      "normalized_keystroke": "ctrl-shift-E"
+    },
+    {
+      "description": "End",
+      "keystroke": "End",
+      "name": "editor_view:end",
+      "normalized_keystroke": "end"
+    },
+    {
+      "description": "Exit Vim Insert Mode",
+      "keystroke": "Ctrl [",
+      "name": "editor_view:vim_exit_insert_mode",
+      "normalized_keystroke": "ctrl-["
+    },
+    {
+      "description": "Expand Selected Blocks Above",
+      "keystroke": "Shift ↑",
+      "name": "terminal:expand_block_selection_above",
+      "normalized_keystroke": "shift-up"
+    },
+    {
+      "description": "Expand Selected Blocks Below",
+      "keystroke": "Shift ↓",
+      "name": "terminal:expand_block_selection_below",
+      "normalized_keystroke": "shift-down"
+    },
+    {
+      "description": "Export All Warp Drive Objects",
+      "group": "settings",
+      "name": "workspace:export_all_warp_drive_objects"
+    },
+    {
+      "description": "Find Within Selected Block",
+      "keystroke": "Ctrl Shift F",
+      "name": "terminal:find",
+      "normalized_keystroke": "ctrl-shift-F"
+    },
+    {
+      "description": "Find in Code Editor",
+      "keystroke": "Ctrl Shift F",
+      "name": "code_editor:find",
+      "normalized_keystroke": "ctrl-shift-F"
+    },
+    {
+      "description": "Find in Notebook",
+      "keystroke": "Ctrl Shift F",
+      "name": "editor:find",
+      "normalized_keystroke": "ctrl-shift-F"
+    },
+    {
+      "description": "Find in Terminal",
+      "keystroke": "Ctrl Shift F",
+      "name": "terminal:find",
+      "normalized_keystroke": "ctrl-shift-F"
+    },
+    {
+      "description": "Find the Next Occurrence of Your Search Query",
+      "keystroke": "F3",
+      "name": "find:find_next_occurrence",
+      "normalized_keystroke": "f3"
+    },
+    {
+      "description": "Find the Previous Occurrence of Your Search Query",
+      "keystroke": "Shift F3",
+      "name": "find:find_prev_occurrence",
+      "normalized_keystroke": "shift-f3"
+    },
+    {
+      "description": "Focus Next Match",
+      "name": "editor:next_find_match"
+    },
+    {
+      "description": "Focus Previous Match",
+      "name": "editor:previous_find_match"
+    },
+    {
+      "description": "Focus Terminal Input",
+      "keystroke": "Ctrl Shift L",
+      "name": "terminal:focus_input",
+      "normalized_keystroke": "ctrl-shift-L"
+    },
+    {
+      "description": "Focus Terminal Input From File",
+      "keystroke": "Ctrl Shift L",
+      "name": "notebookview:focus_terminal_input",
+      "normalized_keystroke": "ctrl-shift-L"
+    },
+    {
+      "description": "Focus Terminal Input From Notebook",
+      "keystroke": "Ctrl Shift L",
+      "name": "notebookview:focus_terminal_input",
+      "normalized_keystroke": "ctrl-shift-L"
+    },
+    {
+      "description": "Focus Terminal Input From Warp AI",
+      "keystroke": "Ctrl Shift L",
+      "name": "ai_assistant_panel:focus_terminal_input",
+      "normalized_keystroke": "ctrl-shift-L"
+    },
+    {
+      "description": "Fold",
+      "keystroke": "Ctrl Alt [",
+      "name": "editor_view:fold",
+      "normalized_keystroke": "ctrl-alt-["
+    },
+    {
+      "description": "Fold Selected Ranges",
+      "keystroke": "Ctrl Alt F",
+      "name": "editor_view:fold_selected_ranges",
+      "normalized_keystroke": "ctrl-alt-f"
+    },
+    {
+      "description": "Go to Line",
+      "keystroke": "Ctrl G",
+      "name": "editor_view:go_to_line",
+      "normalized_keystroke": "ctrl-g"
+    },
+    {
+      "description": "History Search",
+      "name": "input:search_command_history"
+    },
+    {
+      "description": "Home",
+      "keystroke": "Home",
+      "name": "editor_view:home",
+      "normalized_keystroke": "home"
+    },
+    {
+      "description": "Import External Settings",
+      "name": "workspace:open_settings_import_page"
+    },
+    {
+      "description": "Import To Personal Drive",
+      "name": "workspace:import_to_personal_drive"
+    },
+    {
+      "description": "Import To Team Drive",
+      "name": "workspace:import_to_team_drive"
+    },
+    {
+      "description": "Increase Font Size",
+      "group": "settings",
+      "keystroke": "Ctrl Shift >",
+      "name": "workspace:increase_font_size",
+      "normalized_keystroke": "ctrl-shift->"
+    },
+    {
+      "description": "Increase Notebook Font Size",
+      "group": "settings",
+      "keystroke": "Ctrl =",
+      "name": "notebookview:increase_font_size",
+      "normalized_keystroke": "ctrl-="
+    },
+    {
+      "description": "Increase Zoom Level",
+      "group": "settings",
+      "keystroke": "Ctrl =",
+      "name": "workspace:increase_zoom",
+      "normalized_keystroke": "ctrl-="
+    },
+    {
+      "description": "Initiate Project for Warp",
+      "name": "workspace:init_project_rules"
+    },
+    {
+      "description": "Insert Command Correction",
+      "name": "input:insert_command_correction"
+    },
+    {
+      "description": "Insert Last Word of Previous Command",
+      "keystroke": "Meta .",
+      "name": "editor:insert_last_word_previous_command",
+      "normalized_keystroke": "meta-."
+    },
+    {
+      "description": "Insert Newline",
+      "keystroke": "Ctrl J",
+      "name": "editor_view:insert_newline",
+      "normalized_keystroke": "ctrl-j"
+    },
+    {
+      "description": "Insert Non-Expanding Space",
+      "keystroke": "Alt Space",
+      "name": "editor_view:insert_nonexpanding_space",
+      "normalized_keystroke": "alt-space"
+    },
+    {
+      "description": "Inspect Command",
+      "name": "editor_view:inspect_command"
+    },
+    {
+      "description": "Invite People...",
+      "name": "workspace:show_invite_modal"
+    },
+    {
+      "description": "Join Our Slack Community (Opens External Link)",
+      "name": "workspace:link_to_slack"
+    },
+    {
+      "description": "Jump to Latest Agent Task",
+      "group": "warp_ai",
+      "keystroke": "Ctrl Shift G",
+      "name": "workspace:jump_to_latest_toast",
+      "normalized_keystroke": "ctrl-shift-G"
+    },
+    {
+      "description": "Launch Configuration Palette",
+      "name": "workspace:toggle_launch_config_palette"
+    },
+    {
+      "description": "Left Panel: Agent Conversations",
+      "group": "navigation",
+      "keystroke": "Alt 1",
+      "name": "workspace:left_panel_agent_conversations",
+      "normalized_keystroke": "alt-1"
+    },
+    {
+      "description": "Left Panel: Global Search",
+      "group": "navigation",
+      "keystroke": "Alt 3",
+      "name": "workspace:left_panel_global_search",
+      "normalized_keystroke": "alt-3"
+    },
+    {
+      "description": "Left Panel: Project Explorer",
+      "group": "navigation",
+      "keystroke": "Ctrl Shift 2",
+      "name": "workspace:left_panel_project_explorer",
+      "normalized_keystroke": "ctrl-shift-2"
+    },
+    {
+      "description": "Left Panel: Warp Drive",
+      "group": "navigation",
+      "keystroke": "Alt 4",
+      "name": "workspace:left_panel_warp_drive",
+      "normalized_keystroke": "alt-4"
+    },
+    {
+      "description": "Load Agent Mode Conversation (From Debug Link in Clipboard)",
+      "name": "terminal:load_agent_mode_conversation"
+    },
+    {
+      "description": "Log Editor State",
+      "name": "editor_view:log_state"
+    },
+    {
+      "description": "Log Out",
+      "group": "settings",
+      "name": "workspace:log_out"
+    },
+    {
+      "description": "Move Backward One Subword",
+      "name": "editor_view:move_backward_one_subword"
+    },
+    {
+      "description": "Move Backward One Word",
+      "keystroke": "Ctrl ←",
+      "name": "editor_view:move_backward_one_word",
+      "normalized_keystroke": "ctrl-left"
+    },
+    {
+      "description": "Move Cursor Down",
+      "keystroke": "Ctrl N",
+      "name": "editor_view:down",
+      "normalized_keystroke": "ctrl-n"
+    },
+    {
+      "description": "Move Cursor End Within an Executing Command",
+      "name": "terminal:executing_command_move_cursor_end"
+    },
+    {
+      "description": "Move Cursor Home Within an Executing Command",
+      "name": "terminal:executing_command_move_cursor_home"
+    },
+    {
+      "description": "Move Cursor Left",
+      "keystroke": "Ctrl B",
+      "name": "editor_view:left",
+      "normalized_keystroke": "ctrl-b"
+    },
+    {
+      "description": "Move Cursor One Word to the Left Within an Executing Command",
+      "keystroke": "Ctrl ←",
+      "name": "terminal:executing_command_move_cursor_word_left",
+      "normalized_keystroke": "ctrl-left"
+    },
+    {
+      "description": "Move Cursor One Word to the Right Within an Executing Command",
+      "keystroke": "Ctrl →",
+      "name": "terminal:executing_command_move_cursor_word_right",
+      "normalized_keystroke": "ctrl-right"
+    },
+    {
+      "description": "Move Cursor Right",
+      "keystroke": "Ctrl F",
+      "name": "editor_view:right",
+      "normalized_keystroke": "ctrl-f"
+    },
+    {
+      "description": "Move Cursor Up",
+      "keystroke": "Ctrl P",
+      "name": "editor_view:up",
+      "normalized_keystroke": "ctrl-p"
+    },
+    {
+      "description": "Move Cursor to the Bottom",
+      "keystroke": "Ctrl End",
+      "name": "editor_view:cmd_down",
+      "normalized_keystroke": "ctrl-end"
+    },
+    {
+      "description": "Move Cursor to the Top",
+      "keystroke": "Ctrl Home",
+      "name": "editor_view:cmd_up",
+      "normalized_keystroke": "ctrl-home"
+    },
+    {
+      "description": "Move Forward One Subword",
+      "name": "editor_view:move_forward_one_subword"
+    },
+    {
+      "description": "Move Forward One Word",
+      "keystroke": "Ctrl →",
+      "name": "editor_view:move_forward_one_word",
+      "normalized_keystroke": "ctrl-right"
+    },
+    {
+      "description": "Move Tab Left",
+      "group": "navigation",
+      "keystroke": "Ctrl Shift Pageup",
+      "name": "workspace:move_tab_left",
+      "normalized_keystroke": "ctrl-shift-pageup"
+    },
+    {
+      "description": "Move Tab Right",
+      "group": "navigation",
+      "keystroke": "Ctrl Shift Pagedown",
+      "name": "workspace:move_tab_right",
+      "normalized_keystroke": "ctrl-shift-pagedown"
+    },
+    {
+      "description": "Move to End of Line",
+      "name": "editor_view:move_to_line_end"
+    },
+    {
+      "description": "Move to End of Paragraph",
+      "name": "editor_view:move_to_paragraph_end"
+    },
+    {
+      "description": "Move to Line End",
+      "name": "editor_view:move_to_line_end"
+    },
+    {
+      "description": "Move to Line Start",
+      "name": "editor_view:move_to_line_start"
+    },
+    {
+      "description": "Move to Start of Line",
+      "name": "editor_view:move_to_line_start"
+    },
+    {
+      "description": "Move to Start of Paragraph",
+      "name": "editor_view:move_to_paragraph_start"
+    },
+    {
+      "description": "Move to the End of the Buffer",
+      "keystroke": "Shift Meta >",
+      "name": "editor_view:move_to_buffer_end",
+      "normalized_keystroke": "shift-meta->"
+    },
+    {
+      "description": "Move to the End of the Paragraph",
+      "keystroke": "Meta E",
+      "name": "editor_view:move_to_paragraph_end",
+      "normalized_keystroke": "meta-e"
+    },
+    {
+      "description": "Move to the Start of the Buffer",
+      "keystroke": "Shift Meta <",
+      "name": "editor_view:move_to_buffer_start",
+      "normalized_keystroke": "shift-meta-<"
+    },
+    {
+      "description": "Move to the Start of the Paragraph",
+      "keystroke": "Meta A",
+      "name": "editor_view:move_to_paragraph_start",
+      "normalized_keystroke": "meta-a"
+    },
+    {
+      "description": "New Agent Pane",
+      "group": "warp_ai",
+      "keystroke": "Ctrl Space",
+      "name": "workspace:toggle_ai_assistant",
+      "normalized_keystroke": "ctrl-space"
+    },
+    {
+      "description": "New Agent Tab",
+      "group": "warp_ai",
+      "name": "workspace:new_agent_tab"
+    },
+    {
+      "description": "New Cloud Agent Tab",
+      "group": "warp_ai",
+      "name": "workspace:new_ambient_agent_tab"
+    },
+    {
+      "description": "New Terminal Tab",
+      "name": "workspace:new_terminal_tab"
+    },
+    {
+      "description": "Open AI Command Suggestions",
+      "group": "warp_ai",
+      "keystroke": "Ctrl `",
+      "name": "input:toggle_natural_language_command_search",
+      "normalized_keystroke": "ctrl-`"
+    },
+    {
+      "description": "Open AI Rules",
+      "group": "warp_ai",
+      "name": "workspace:open_ai_fact_collection"
+    },
+    {
+      "description": "Open Block Context Menu",
+      "name": "terminal:open_block_list_context_menu_via_keybinding"
+    },
+    {
+      "description": "Open Completions Menu",
+      "keystroke": "Tab",
+      "name": "input:open_completion_suggestions",
+      "normalized_keystroke": "tab"
+    },
+    {
+      "description": "Open Global Search",
+      "keystroke": "Alt Shift F",
+      "name": "workspace:open_global_search",
+      "normalized_keystroke": "alt-shift-F"
+    },
+    {
+      "description": "Open Keybindings Editor",
+      "group": "keyboard_shortcuts",
+      "name": "workspace:show_keybinding_settings"
+    },
+    {
+      "description": "Open Left Panel",
+      "keystroke": "Ctrl Shift |",
+      "name": "workspace:toggle_left_panel",
+      "normalized_keystroke": "ctrl-shift-|"
+    },
+    {
+      "description": "Open MCP Servers",
+      "group": "warp_ai",
+      "name": "workspace:open_mcp_servers"
+    },
+    {
+      "description": "Open Repository",
+      "group": "folders",
+      "keystroke": "Alt Shift O",
+      "name": "project_buttons:open_repository",
+      "normalized_keystroke": "alt-shift-O"
+    },
+    {
+      "description": "Open Repository",
+      "group": "folders",
+      "keystroke": "Alt Shift O",
+      "name": "workspace:open_repository",
+      "normalized_keystroke": "alt-shift-O"
+    },
+    {
+      "description": "Open Settings",
+      "group": "settings",
+      "keystroke": "Ctrl ,",
+      "name": "workspace:show_settings",
+      "normalized_keystroke": "ctrl-,"
+    },
+    {
+      "description": "Open Settings File",
+      "group": "settings",
+      "name": "workspace:open_settings_file"
+    },
+    {
+      "description": "Open Settings: AI",
+      "group": "settings",
+      "name": "workspace:show_ai_settings_page"
+    },
+    {
+      "description": "Open Settings: About",
+      "group": "settings",
+      "name": "workspace:show_settings_about_page"
+    },
+    {
+      "description": "Open Settings: Account",
+      "group": "settings",
+      "name": "workspace:show_settings_account_page"
+    },
+    {
+      "description": "Open Settings: Appearance",
+      "group": "settings",
+      "name": "workspace:show_settings_appearance_page"
+    },
+    {
+      "description": "Open Settings: Billing and Usage",
+      "group": "settings",
+      "name": "workspace:show_settings_billing_and_usage_page"
+    },
+    {
+      "description": "Open Settings: Code",
+      "group": "settings",
+      "name": "workspace:show_settings_code_page"
+    },
+    {
+      "description": "Open Settings: Environments",
+      "group": "settings",
+      "name": "workspace:show_settings_environments_page"
+    },
+    {
+      "description": "Open Settings: Features",
+      "group": "settings",
+      "name": "workspace:show_settings_features_page"
+    },
+    {
+      "description": "Open Settings: Keyboard Shortcuts",
+      "group": "keyboard_shortcuts",
+      "name": "workspace:show_settings_keyboard_shortcuts_page"
+    },
+    {
+      "description": "Open Settings: MCP Servers",
+      "group": "settings",
+      "name": "workspace:show_mcp_servers_settings_page"
+    },
+    {
+      "description": "Open Settings: Privacy",
+      "group": "settings",
+      "name": "workspace:show_settings_privacy_page"
+    },
+    {
+      "description": "Open Settings: Referrals",
+      "group": "settings",
+      "name": "workspace:show_settings_referrals_page"
+    },
+    {
+      "description": "Open Settings: Shared Blocks",
+      "group": "settings",
+      "name": "workspace:show_settings_shared_blocks_page"
+    },
+    {
+      "description": "Open Settings: Teams",
+      "group": "settings",
+      "name": "workspace:show_settings_teams_page"
+    },
+    {
+      "description": "Open Settings: Warpify",
+      "group": "settings",
+      "name": "workspace:show_settings_warpify_page"
+    },
+    {
+      "description": "Open Tab Configs Menu",
+      "keystroke": "Ctrl Alt Shift T",
+      "name": "workspace:toggle_tab_configs_menu",
+      "normalized_keystroke": "ctrl-alt-shift-T"
+    },
+    {
+      "description": "Open Theme Picker",
+      "group": "settings",
+      "name": "workspace:show_theme_chooser"
+    },
+    {
+      "description": "Open View Tree Debugger",
+      "name": "workspace:open_view_tree_debug_view"
+    },
+    {
+      "description": "Paste",
+      "keystroke": "Ctrl Shift V",
+      "name": "terminal:paste",
+      "normalized_keystroke": "ctrl-shift-V"
+    },
+    {
+      "description": "Quit Warp",
+      "group": "close",
+      "name": "workspace:terminate_app"
+    },
+    {
+      "description": "Reinput Selected Commands",
+      "name": "terminal:reinput_commands"
+    },
+    {
+      "description": "Reinput Selected Commands as Root",
+      "name": "terminal:reinput_commands_with_sudo"
+    },
+    {
+      "description": "Reload File",
+      "name": "notebookview:reload_file"
+    },
+    {
+      "description": "Remove the Previous Character",
+      "keystroke": "Ctrl H",
+      "name": "editor_view:backspace",
+      "normalized_keystroke": "ctrl-h"
+    },
+    {
+      "description": "Rename the Current Pane",
+      "group": "settings",
+      "name": "workspace:rename_active_pane"
+    },
+    {
+      "description": "Rename the Current Tab",
+      "group": "settings",
+      "name": "workspace:rename_active_tab"
+    },
+    {
+      "description": "Reopen Closed Session",
+      "keystroke": "Ctrl Alt T",
+      "name": "app:reopen_closed_session",
+      "normalized_keystroke": "ctrl-alt-t"
+    },
+    {
+      "description": "Reset Font Size to Default",
+      "group": "settings",
+      "name": "workspace:reset_font_size"
+    },
+    {
+      "description": "Reset Notebook Font Size",
+      "group": "settings",
+      "keystroke": "Ctrl 0",
+      "name": "notebookview:reset_font_size",
+      "normalized_keystroke": "ctrl-0"
+    },
+    {
+      "description": "Reset Zoom Level to Default",
+      "group": "settings",
+      "name": "workspace:reset_zoom"
+    },
+    {
+      "description": "Resize Pane > Move Divider Down",
+      "name": "pane_group:resize_down"
+    },
+    {
+      "description": "Resize Pane > Move Divider Left",
+      "name": "pane_group:resize_left"
+    },
+    {
+      "description": "Resize Pane > Move Divider Right",
+      "name": "pane_group:resize_right"
+    },
+    {
+      "description": "Resize Pane > Move Divider Up",
+      "name": "pane_group:resize_up"
+    },
+    {
+      "description": "Restart Warp AI",
+      "keystroke": "Ctrl Shift K",
+      "name": "ai_assistant_panel:reset_context",
+      "normalized_keystroke": "ctrl-shift-K"
+    },
+    {
+      "description": "Run Selected Commands",
+      "keystroke": "Ctrl ⏎",
+      "name": "editor_view:run_commands",
+      "normalized_keystroke": "ctrl-enter"
+    },
+    {
+      "description": "Save All Unsaved Files in Code Review",
+      "keystroke": "Ctrl S",
+      "name": "code_review:save_all_unsaved_files",
+      "normalized_keystroke": "ctrl-s"
+    },
+    {
+      "description": "Save File",
+      "keystroke": "Ctrl S",
+      "name": "code_view:save",
+      "normalized_keystroke": "ctrl-s"
+    },
+    {
+      "description": "Save File As",
+      "keystroke": "Ctrl Shift S",
+      "name": "code_view:save_as",
+      "normalized_keystroke": "ctrl-shift-S"
+    },
+    {
+      "description": "Save New Launch Configuration",
+      "name": "workspace:open_launch_config_save_modal"
+    },
+    {
+      "description": "Save Workflow",
+      "keystroke": "Ctrl S",
+      "name": "workflowview:save",
+      "normalized_keystroke": "ctrl-s"
+    },
+    {
+      "description": "Scroll Down Half a Page (Vim)",
+      "keystroke": "Ctrl D",
+      "name": "editor_view:vim_scroll_half_page_down",
+      "normalized_keystroke": "ctrl-d"
+    },
+    {
+      "description": "Scroll Terminal Output Down One Line",
+      "name": "terminal:scroll_down_one_line"
+    },
+    {
+      "description": "Scroll Terminal Output Down One Page",
+      "keystroke": "Pagedown",
+      "name": "terminal:scroll_down_one_page",
+      "normalized_keystroke": "pagedown"
+    },
+    {
+      "description": "Scroll Terminal Output Up One Line",
+      "name": "terminal:scroll_up_one_line"
+    },
+    {
+      "description": "Scroll Terminal Output Up One Page",
+      "keystroke": "Pageup",
+      "name": "terminal:scroll_up_one_page",
+      "normalized_keystroke": "pageup"
+    },
+    {
+      "description": "Scroll Up Half a Page (Vim)",
+      "keystroke": "Ctrl U",
+      "name": "editor_view:vim_scroll_half_page_up",
+      "normalized_keystroke": "ctrl-u"
+    },
+    {
+      "description": "Scroll to Bottom of Selected Block",
+      "keystroke": "Ctrl Shift ↓",
+      "name": "terminal:scroll_to_bottom_of_selected_block",
+      "normalized_keystroke": "ctrl-shift-down"
+    },
+    {
+      "description": "Scroll to Top of Selected Block",
+      "keystroke": "Ctrl Shift ↑",
+      "name": "terminal:scroll_to_top_of_selected_block",
+      "normalized_keystroke": "ctrl-shift-up"
+    },
+    {
+      "description": "Search Warp Drive",
+      "name": "workspace:search_drive"
+    },
+    {
+      "description": "Select All",
+      "keystroke": "Ctrl A",
+      "name": "editor_view:select_all",
+      "normalized_keystroke": "ctrl-a"
+    },
+    {
+      "description": "Select All Blocks",
+      "name": "terminal:select_all_blocks"
+    },
+    {
+      "description": "Select Down",
+      "name": "editor_view:select_down"
+    },
+    {
+      "description": "Select Next Block",
+      "keystroke": "Ctrl ↓",
+      "name": "terminal:select_next_block",
+      "normalized_keystroke": "ctrl-down"
+    },
+    {
+      "description": "Select Next Command",
+      "keystroke": "Ctrl ↓",
+      "name": "editor_view:select_next_command",
+      "normalized_keystroke": "ctrl-down"
+    },
+    {
+      "description": "Select One Character to the Left",
+      "name": "editor_view:select_left"
+    },
+    {
+      "description": "Select One Character to the Right",
+      "name": "editor_view:select_right"
+    },
+    {
+      "description": "Select One Subword to the Left",
+      "name": "editor_view:select_left_by_subword"
+    },
+    {
+      "description": "Select One Subword to the Right",
+      "name": "editor_view:select_right_by_subword"
+    },
+    {
+      "description": "Select One Word to the Left",
+      "keystroke": "Shift Meta B",
+      "name": "editor_view:select_left_by_word",
+      "normalized_keystroke": "shift-meta-B"
+    },
+    {
+      "description": "Select One Word to the Right",
+      "keystroke": "Shift Meta F",
+      "name": "editor_view:select_right_by_word",
+      "normalized_keystroke": "shift-meta-F"
+    },
+    {
+      "description": "Select Previous Block",
+      "keystroke": "Ctrl ↑",
+      "name": "terminal:select_previous_block",
+      "normalized_keystroke": "ctrl-up"
+    },
+    {
+      "description": "Select Previous Command",
+      "keystroke": "Ctrl ↑",
+      "name": "editor_view:select_previous_command",
+      "normalized_keystroke": "ctrl-up"
+    },
+    {
+      "description": "Select Shell Command at Cursor",
+      "keystroke": "Escape",
+      "name": "editor_view:select_command",
+      "normalized_keystroke": "escape"
+    },
+    {
+      "description": "Select To Line End",
+      "name": "editor_view:select_to_line_end"
+    },
+    {
+      "description": "Select To Line Start",
+      "name": "editor_view:select_to_line_start"
+    },
+    {
+      "description": "Select Up",
+      "name": "editor_view:select_up"
+    },
+    {
+      "description": "Select and Move to the Bottom",
+      "keystroke": "Ctrl Shift End",
+      "name": "editor_view:move_to_and_select_buffer_end",
+      "normalized_keystroke": "ctrl-shift-end"
+    },
+    {
+      "description": "Select and Move to the Top",
+      "keystroke": "Ctrl Shift Home",
+      "name": "editor_view:move_to_and_select_buffer_start",
+      "normalized_keystroke": "ctrl-shift-home"
+    },
+    {
+      "description": "Select the Closest Bookmark Down",
+      "keystroke": "Alt ↓",
+      "name": "terminal:select_bookmark_down",
+      "normalized_keystroke": "alt-down"
+    },
+    {
+      "description": "Select the Closest Bookmark Up",
+      "keystroke": "Alt ↑",
+      "name": "terminal:select_bookmark_up",
+      "normalized_keystroke": "alt-up"
+    },
+    {
+      "description": "Select to End of Line",
+      "name": "editor:select_to_line_end"
+    },
+    {
+      "description": "Select to End of Paragraph",
+      "name": "editor:select_to_paragraph_end"
+    },
+    {
+      "description": "Select to Start of Line",
+      "name": "editor:select_to_line_start"
+    },
+    {
+      "description": "Select to Start of Paragraph",
+      "name": "editor:select_to_paragraph_start"
+    },
+    {
+      "description": "Send Feedback (Opens External Link)",
+      "name": "workspace:send_feedback"
+    },
+    {
+      "description": "Set Input Mode to Agent Mode",
+      "group": "warp_ai",
+      "keystroke": "Ctrl I",
+      "name": "input:set_mode_agent",
+      "normalized_keystroke": "ctrl-i"
+    },
+    {
+      "description": "Set Input Mode to Terminal Mode",
+      "group": "warp_ai",
+      "keystroke": "Ctrl I",
+      "name": "input:set_mode_terminal",
+      "normalized_keystroke": "ctrl-i"
+    },
+    {
+      "description": "Setup Guide",
+      "name": "terminal:onboarding_flow"
+    },
+    {
+      "description": "Share Current Session",
+      "name": "terminal:share_current_session"
+    },
+    {
+      "description": "Share Pane",
+      "name": "pane:share_pane_contents"
+    },
+    {
+      "description": "Share Selected Block",
+      "name": "terminal:open_share_block_modal"
+    },
+    {
+      "description": "Show Find Bar in Code Review",
+      "keystroke": "Ctrl F",
+      "name": "code_review:show_find_bar",
+      "normalized_keystroke": "ctrl-f"
+    },
+    {
+      "description": "Show Warp Network Log",
+      "name": "input:insert_network_logging_workflow"
+    },
+    {
+      "description": "Slash command: /add-mcp",
+      "name": "/add-mcp"
+    },
+    {
+      "description": "Slash command: /add-prompt",
+      "name": "/add-prompt"
+    },
+    {
+      "description": "Slash command: /add-rule",
+      "name": "/add-rule"
+    },
+    {
+      "description": "Slash command: /agent",
+      "keystroke": "Ctrl Shift ⏎",
+      "name": "/agent",
+      "normalized_keystroke": "ctrl-shift-enter"
+    },
+    {
+      "description": "Slash command: /cloud-agent",
+      "keystroke": "Ctrl Alt ⏎",
+      "name": "/cloud-agent",
+      "normalized_keystroke": "ctrl-alt-enter"
+    },
+    {
+      "description": "Slash command: /compact",
+      "name": "/compact"
+    },
+    {
+      "description": "Slash command: /compact-and",
+      "name": "/compact-and"
+    },
+    {
+      "description": "Slash command: /continue-locally",
+      "name": "/continue-locally"
+    },
+    {
+      "description": "Slash command: /conversations",
+      "keystroke": "Ctrl Shift Y",
+      "name": "/conversations",
+      "normalized_keystroke": "ctrl-shift-Y"
+    },
+    {
+      "description": "Slash command: /cost",
+      "name": "/cost"
+    },
+    {
+      "description": "Slash command: /create-environment",
+      "name": "/create-environment"
+    },
+    {
+      "description": "Slash command: /create-new-project",
+      "name": "/create-new-project"
+    },
+    {
+      "description": "Slash command: /environment",
+      "name": "/environment"
+    },
+    {
+      "description": "Slash command: /export-to-clipboard",
+      "name": "/export-to-clipboard"
+    },
+    {
+      "description": "Slash command: /export-to-file",
+      "name": "/export-to-file"
+    },
+    {
+      "description": "Slash command: /feedback",
+      "name": "/feedback"
+    },
+    {
+      "description": "Slash command: /fork",
+      "name": "/fork"
+    },
+    {
+      "description": "Slash command: /fork-and-compact",
+      "name": "/fork-and-compact"
+    },
+    {
+      "description": "Slash command: /fork-from",
+      "name": "/fork-from"
+    },
+    {
+      "description": "Slash command: /handoff",
+      "name": "/handoff"
+    },
+    {
+      "description": "Slash command: /harness",
+      "name": "/harness"
+    },
+    {
+      "description": "Slash command: /host",
+      "name": "/host"
+    },
+    {
+      "description": "Slash command: /index",
+      "name": "/index"
+    },
+    {
+      "description": "Slash command: /init",
+      "name": "/init"
+    },
+    {
+      "description": "Slash command: /model",
+      "name": "/model"
+    },
+    {
+      "description": "Slash command: /new",
+      "name": "/new"
+    },
+    {
+      "description": "Slash command: /open-code-review",
+      "name": "/open-code-review"
+    },
+    {
+      "description": "Slash command: /open-file",
+      "name": "/open-file"
+    },
+    {
+      "description": "Slash command: /open-mcp-servers",
+      "name": "/open-mcp-servers"
+    },
+    {
+      "description": "Slash command: /open-project-rules",
+      "name": "/open-project-rules"
+    },
+    {
+      "description": "Slash command: /open-repo",
+      "keystroke": "Ctrl Alt O",
+      "name": "/open-repo",
+      "normalized_keystroke": "ctrl-alt-o"
+    },
+    {
+      "description": "Slash command: /open-rules",
+      "name": "/open-rules"
+    },
+    {
+      "description": "Slash command: /open-settings-file",
+      "name": "/open-settings-file"
+    },
+    {
+      "description": "Slash command: /open-skill",
+      "name": "/open-skill"
+    },
+    {
+      "description": "Slash command: /orchestrate",
+      "name": "/orchestrate"
+    },
+    {
+      "description": "Slash command: /plan",
+      "name": "/plan"
+    },
+    {
+      "description": "Slash command: /profile",
+      "name": "/profile"
+    },
+    {
+      "description": "Slash command: /prompts",
+      "name": "/prompts"
+    },
+    {
+      "description": "Slash command: /rename-tab",
+      "name": "/rename-tab"
+    },
+    {
+      "description": "Slash command: /rewind",
+      "name": "/rewind"
+    },
+    {
+      "description": "Slash command: /set-tab-color",
+      "name": "/set-tab-color"
+    },
+    {
+      "description": "Slash command: /skills",
+      "name": "/skills"
+    },
+    {
+      "description": "Slash command: /usage",
+      "name": "/usage"
+    },
+    {
+      "description": "Split Pane Down",
+      "keystroke": "Ctrl Shift E",
+      "name": "pane_group:add_down",
+      "normalized_keystroke": "ctrl-shift-E"
+    },
+    {
+      "description": "Split Pane Left",
+      "name": "pane_group:add_left"
+    },
+    {
+      "description": "Split Pane Right",
+      "keystroke": "Ctrl Shift D",
+      "name": "pane_group:add_right",
+      "normalized_keystroke": "ctrl-shift-D"
+    },
+    {
+      "description": "Split Pane Up",
+      "name": "pane_group:add_up"
+    },
+    {
+      "description": "Stop Sharing Current Session",
+      "name": "terminal:stop_sharing_current_session"
+    },
+    {
+      "description": "Stop Synchronizing Any Panes",
+      "group": "settings",
+      "name": "workspace:disable_terminal_input_syncing"
+    },
+    {
+      "description": "Switch Focus to Left Panel",
+      "keystroke": "Ctrl Shift (",
+      "name": "workspace:shift_focus_left",
+      "normalized_keystroke": "ctrl-shift-("
+    },
+    {
+      "description": "Switch Focus to Right Panel",
+      "keystroke": "Ctrl Shift )",
+      "name": "workspace:shift_focus_right",
+      "normalized_keystroke": "ctrl-shift-)"
+    },
+    {
+      "description": "Switch Panes Down",
+      "keystroke": "Ctrl Alt ↓",
+      "name": "pane_group:navigate_down",
+      "normalized_keystroke": "ctrl-alt-down"
+    },
+    {
+      "description": "Switch Panes Left",
+      "keystroke": "Ctrl Alt ←",
+      "name": "pane_group:navigate_left",
+      "normalized_keystroke": "ctrl-alt-left"
+    },
+    {
+      "description": "Switch Panes Right",
+      "keystroke": "Ctrl Alt →",
+      "name": "pane_group:navigate_right",
+      "normalized_keystroke": "ctrl-alt-right"
+    },
+    {
+      "description": "Switch Panes Up",
+      "keystroke": "Ctrl Alt ↑",
+      "name": "pane_group:navigate_up",
+      "normalized_keystroke": "ctrl-alt-up"
+    },
+    {
+      "description": "Switch to 1st Tab",
+      "group": "navigation",
+      "keystroke": "Ctrl 1",
+      "name": "workspace:activate_first_tab",
+      "normalized_keystroke": "ctrl-1"
+    },
+    {
+      "description": "Switch to 2nd Tab",
+      "group": "navigation",
+      "keystroke": "Ctrl 2",
+      "name": "workspace:activate_second_tab",
+      "normalized_keystroke": "ctrl-2"
+    },
+    {
+      "description": "Switch to 3rd Tab",
+      "group": "navigation",
+      "keystroke": "Ctrl 3",
+      "name": "workspace:activate_third_tab",
+      "normalized_keystroke": "ctrl-3"
+    },
+    {
+      "description": "Switch to 4th Tab",
+      "group": "navigation",
+      "keystroke": "Ctrl 4",
+      "name": "workspace:activate_fourth_tab",
+      "normalized_keystroke": "ctrl-4"
+    },
+    {
+      "description": "Switch to 5th Tab",
+      "group": "navigation",
+      "keystroke": "Ctrl 5",
+      "name": "workspace:activate_fifth_tab",
+      "normalized_keystroke": "ctrl-5"
+    },
+    {
+      "description": "Switch to 6th Tab",
+      "group": "navigation",
+      "keystroke": "Ctrl 6",
+      "name": "workspace:activate_sixth_tab",
+      "normalized_keystroke": "ctrl-6"
+    },
+    {
+      "description": "Switch to 7th Tab",
+      "group": "navigation",
+      "keystroke": "Ctrl 7",
+      "name": "workspace:activate_seventh_tab",
+      "normalized_keystroke": "ctrl-7"
+    },
+    {
+      "description": "Switch to 8th Tab",
+      "group": "navigation",
+      "keystroke": "Ctrl 8",
+      "name": "workspace:activate_eighth_tab",
+      "normalized_keystroke": "ctrl-8"
+    },
+    {
+      "description": "Switch to Last Tab",
+      "group": "navigation",
+      "keystroke": "Ctrl 9",
+      "name": "workspace:activate_last_tab",
+      "normalized_keystroke": "ctrl-9"
+    },
+    {
+      "description": "Take Control of Running Command",
+      "keystroke": "Ctrl I",
+      "name": "input:set_mode_terminal",
+      "normalized_keystroke": "ctrl-i"
+    },
+    {
+      "description": "Terminal Session",
+      "group": "terminal",
+      "keystroke": "Ctrl Shift T",
+      "name": "workspace:new_tab",
+      "normalized_keystroke": "ctrl-shift-T"
+    },
+    {
+      "description": "Toggle Agent Conversation List View",
+      "group": "warp_ai",
+      "keystroke": "Ctrl Shift A",
+      "name": "workspace:toggle_conversation_list_view",
+      "normalized_keystroke": "ctrl-shift-A"
+    },
+    {
+      "description": "Toggle Auto-Execute Mode",
+      "group": "warp_ai",
+      "keystroke": "Ctrl Shift I",
+      "name": "terminal:toggle_autoexecute_mode",
+      "normalized_keystroke": "ctrl-shift-I"
+    },
+    {
+      "description": "Toggle Block Filter on Selected or Last Block",
+      "name": "terminal:toggle_block_filter_on_selected_or_last_block"
+    },
+    {
+      "description": "Toggle CLI Agent Rich Input",
+      "keystroke": "Ctrl G",
+      "name": "terminal:open_cli_agent_rich_input",
+      "normalized_keystroke": "ctrl-g"
+    },
+    {
+      "description": "Toggle Case-Sensitive Search",
+      "name": "editor:toggle_case_sensitive_find"
+    },
+    {
+      "description": "Toggle Code Review",
+      "keystroke": "Ctrl Shift +",
+      "name": "workspace:toggle_right_panel",
+      "normalized_keystroke": "ctrl-shift-+"
+    },
+    {
+      "description": "Toggle Command Palette",
+      "group": "settings",
+      "keystroke": "Ctrl Shift P",
+      "name": "workspace:toggle_command_palette",
+      "normalized_keystroke": "ctrl-shift-P"
+    },
+    {
+      "description": "Toggle Comment",
+      "keystroke": "Ctrl /",
+      "name": "editor_view:toggle_comment",
+      "normalized_keystroke": "ctrl-/"
+    },
+    {
+      "description": "Toggle Conversation Details Panel",
+      "group": "warp_ai",
+      "name": "terminal:toggle_conversation_details_panel"
+    },
+    {
+      "description": "Toggle Files Palette",
+      "keystroke": "Ctrl Shift O",
+      "name": "workspace:toggle_files_palette",
+      "normalized_keystroke": "ctrl-shift-O"
+    },
+    {
+      "description": "Toggle Fullscreen",
+      "group": "navigation",
+      "keystroke": "F11",
+      "name": "root_view:toggle_fullscreen",
+      "normalized_keystroke": "f11"
+    },
+    {
+      "description": "Toggle Hide CLI Responses",
+      "group": "warp_ai",
+      "keystroke": "Ctrl G",
+      "name": "terminal:toggle_hide_cli_responses",
+      "normalized_keystroke": "ctrl-g"
+    },
+    {
+      "description": "Toggle Inline Code Styling",
+      "name": "editor_view:inline_code"
+    },
+    {
+      "description": "Toggle Keyboard Shortcuts",
+      "group": "keyboard_shortcuts",
+      "keystroke": "Ctrl /",
+      "name": "workspace:toggle_keybindings_page",
+      "normalized_keystroke": "ctrl-/"
+    },
+    {
+      "description": "Toggle Maximize Active Pane",
+      "name": "pane_group:toggle_maximize_pane"
+    },
+    {
+      "description": "Toggle Maximize Code Review Panel",
+      "name": "workspace:toggle_maximize_code_review_panel"
+    },
+    {
+      "description": "Toggle Mouse Reporting",
+      "group": "settings",
+      "name": "workspace:toggle_mouse_reporting"
+    },
+    {
+      "description": "Toggle Navigation Palette",
+      "group": "navigation",
+      "name": "workspace:toggle_navigation_palette"
+    },
+    {
+      "description": "Toggle Notification Mailbox",
+      "group": "warp_ai",
+      "keystroke": "Ctrl Shift U",
+      "name": "workspace:toggle_notification_mailbox",
+      "normalized_keystroke": "ctrl-shift-U"
+    },
+    {
+      "description": "Toggle PTY Recording for Session",
+      "name": "terminal:toggle_session_recording"
+    },
+    {
+      "description": "Toggle Project Explorer",
+      "name": "workspace:toggle_project_explorer"
+    },
+    {
+      "description": "Toggle Regular Expression Search",
+      "name": "editor:toggle_regex_find"
+    },
+    {
+      "description": "Toggle Rich-Text Debug Mode",
+      "name": "editor_view:toggle_debug_mode"
+    },
+    {
+      "description": "Toggle Sticky Command Header",
+      "group": "settings",
+      "name": "workspace:toggle_block_snackbar"
+    },
+    {
+      "description": "Toggle Sticky Command Header in Active Pane",
+      "name": "terminal:toggle_snackbar_in_active_pane"
+    },
+    {
+      "description": "Toggle Strikethrough Styling",
+      "keystroke": "Ctrl Shift X",
+      "name": "editor_view:strikethrough",
+      "normalized_keystroke": "ctrl-shift-X"
+    },
+    {
+      "description": "Toggle Synchronizing All Panes in All Tabs",
+      "group": "settings",
+      "name": "workspace:toggle_sync_all_terminal_inputs_in_all_tabs"
+    },
+    {
+      "description": "Toggle Synchronizing All Panes in Current Tab",
+      "group": "settings",
+      "keystroke": "Ctrl Alt I",
+      "name": "workspace:toggle_sync_terminal_inputs_in_tab",
+      "normalized_keystroke": "ctrl-alt-i"
+    },
+    {
+      "description": "Toggle Team Workflows Modal",
+      "keystroke": "Ctrl Shift S",
+      "name": "terminal:toggle_teams_modal",
+      "normalized_keystroke": "ctrl-shift-S"
+    },
+    {
+      "description": "Toggle Underline Styling",
+      "keystroke": "Ctrl U",
+      "name": "editor_view:underline",
+      "normalized_keystroke": "ctrl-u"
+    },
+    {
+      "description": "Toggle Vertical Tabs Panel",
+      "group": "navigation",
+      "keystroke": "Ctrl Shift B",
+      "name": "workspace:toggle_vertical_tabs_panel",
+      "normalized_keystroke": "ctrl-shift-B"
+    },
+    {
+      "description": "Toggle Warp Drive",
+      "name": "workspace:toggle_warp_drive"
+    },
+    {
+      "description": "Toggle the Agent Management View",
+      "group": "warp_ai",
+      "keystroke": "Ctrl Shift M",
+      "name": "workspace:toggle_agent_management_view",
+      "normalized_keystroke": "ctrl-shift-M"
+    },
+    {
+      "description": "Trigger Auto Detection",
+      "group": "warp_ai",
+      "keystroke": "Alt Shift I",
+      "name": "input:enable_auto_detection",
+      "normalized_keystroke": "alt-shift-I"
+    },
+    {
+      "description": "Trigger a Panic (For Testing Sentry-Rust)",
+      "name": "workspace:panic"
+    },
+    {
+      "description": "Turn Notifications Off",
+      "group": "notifications",
+      "name": "workspace:toggle_notifications_off"
+    },
+    {
+      "description": "Turn Notifications On",
+      "group": "notifications",
+      "name": "workspace:toggle_notifications_on"
+    },
+    {
+      "description": "Unfold",
+      "keystroke": "Ctrl Alt ]",
+      "name": "editor_view:unfold",
+      "normalized_keystroke": "ctrl-alt-]"
+    },
+    {
+      "description": "View Privacy Policy (Opens External Link)",
+      "name": "workspace:link_to_privacy_policy"
+    },
+    {
+      "description": "View User Docs (Opens External Link)",
+      "name": "workspace:link_to_user_docs"
+    },
+    {
+      "description": "View Warp Logs",
+      "name": "workspace:view_logs"
+    },
+    {
+      "description": "Warpify Ssh Session",
+      "keystroke": "Ctrl I",
+      "name": "terminal:warpify_ssh_session",
+      "normalized_keystroke": "ctrl-i"
+    },
+    {
+      "description": "Warpify Subshell",
+      "keystroke": "Ctrl I",
+      "name": "terminal:warpify_subshell",
+      "normalized_keystroke": "ctrl-i"
+    },
+    {
+      "description": "Workflows",
+      "keystroke": "Ctrl Shift R",
+      "name": "input:toggle_workflows",
+      "normalized_keystroke": "ctrl-shift-R"
+    },
+    {
+      "description": "[Debug] Enter Onboarding State",
+      "group": "settings",
+      "keystroke": "Shift F12",
+      "name": "root_view:enter_onboarding_state",
+      "normalized_keystroke": "shift-f12"
+    },
+    {
+      "description": "[Debug] Generate Codebase Index",
+      "group": "warp_ai",
+      "name": "terminal:generate_codebase_index"
+    },
+    {
+      "description": "[Debug] Install OpenCode Warp Plugin",
+      "name": "workspace:install_opencode_warp_plugin"
+    },
+    {
+      "description": "[Debug] Log Review Comment Send Status for Active Tab",
+      "name": "workspace:log_review_comment_send_status_for_active_tab"
+    },
+    {
+      "description": "[Debug] Onboarding Callout: Modality - No Project",
+      "name": "terminal:agent_onboarding_flow_modality_no_project"
+    },
+    {
+      "description": "[Debug] Onboarding Callout: Modality - Project",
+      "name": "terminal:agent_onboarding_flow_modality_project"
+    },
+    {
+      "description": "[Debug] Onboarding Callout: Modality - Terminal",
+      "name": "terminal:agent_onboarding_flow_modality_terminal"
+    },
+    {
+      "description": "[Debug] Onboarding Callout: WarpInput - No Project",
+      "name": "terminal:agent_onboarding_flow_universal_input_no_project"
+    },
+    {
+      "description": "[Debug] Onboarding Callout: WarpInput - Project",
+      "name": "terminal:agent_onboarding_flow_universal_input_project"
+    },
+    {
+      "description": "[Debug] Onboarding Callout: WarpInput - Terminal",
+      "name": "terminal:agent_onboarding_flow_legacy_terminal"
+    },
+    {
+      "description": "[Debug] Open Build Plan Migration Modal",
+      "name": "workspace:open_build_plan_migration_modal"
+    },
+    {
+      "description": "[Debug] Open OpenWarp Launch Modal",
+      "name": "workspace:open_openwarp_launch_modal"
+    },
+    {
+      "description": "[Debug] Open Orchestration Launch Modal",
+      "name": "workspace:open_orchestration_launch_modal"
+    },
+    {
+      "description": "[Debug] Open Oz Launch Modal",
+      "name": "workspace:open_oz_launch_modal"
+    },
+    {
+      "description": "[Debug] Open Session Config Modal",
+      "name": "workspace:open_session_config_modal"
+    },
+    {
+      "description": "[Debug] Reset Build Plan Migration Modal State",
+      "name": "workspace:reset_build_plan_migration_modal_state"
+    },
+    {
+      "description": "[Debug] Reset OpenWarp Launch Modal State",
+      "name": "workspace:reset_openwarp_launch_modal_state"
+    },
+    {
+      "description": "[Debug] Reset Orchestration Launch Modal State",
+      "name": "workspace:reset_orchestration_launch_modal_state"
+    },
+    {
+      "description": "[Debug] Reset Oz Launch Modal State",
+      "name": "workspace:reset_oz_launch_modal_state"
+    },
+    {
+      "description": "[Debug] Start HOA Onboarding Flow",
+      "name": "workspace:show_hoa_onboarding_flow"
+    },
+    {
+      "description": "[Debug] Un-Dismiss AWS Login Banner",
+      "name": "workspace:debug_reset_aws_bedrock_login_banner_dismissed"
+    },
+    {
+      "description": "[Debug] Use Local OpenCode Warp Plugin (Testing Only)",
+      "name": "workspace:use_local_opencode_warp_plugin"
+    }
+  ]
+}

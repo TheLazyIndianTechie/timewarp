@@ -1,0 +1,8 @@
+{
+  "action": "setting.set",
+  "setting": {
+    "key": "terminal.input.syntax_highlighting",
+    "value": true,
+    "value_type": "bool"
+  }
+}

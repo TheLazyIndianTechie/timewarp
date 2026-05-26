@@ -1,0 +1,54 @@
+{
+  "settings": [
+    {
+      "key": "accessibility.accessibility_verbosity",
+      "value": "Verbose",
+      "value_type": "string"
+    },
+    {
+      "key": "appearance.text.font_name",
+      "value": "Hack",
+      "value_type": "string"
+    },
+    {
+      "key": "appearance.text.font_size",
+      "value": 13.0,
+      "value_type": "number"
+    },
+    {
+      "key": "appearance.themes.dark_theme",
+      "value": "Dark",
+      "value_type": "string"
+    },
+    {
+      "key": "appearance.themes.light_theme",
+      "value": "Light",
+      "value_type": "string"
+    },
+    {
+      "key": "appearance.themes.system_theme",
+      "value": false,
+      "value_type": "bool"
+    },
+    {
+      "key": "appearance.themes.theme",
+      "value": "Light",
+      "value_type": "string"
+    },
+    {
+      "key": "appearance.window.zoom_level",
+      "value": 100,
+      "value_type": "number"
+    },
+    {
+      "key": "terminal.input.error_underlining_enabled",
+      "value": true,
+      "value_type": "bool"
+    },
+    {
+      "key": "terminal.input.syntax_highlighting",
+      "value": true,
+      "value_type": "bool"
+    }
+  ]
+}

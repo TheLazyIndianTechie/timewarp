@@ -1,0 +1,8 @@
+{
+  "action": "setting.set",
+  "setting": {
+    "key": "appearance.text.font_size",
+    "value": 13.0,
+    "value_type": "number"
+  }
+}

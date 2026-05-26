@@ -1,0 +1,2776 @@
+{
+  "artifact_root": "validation-artifacts/warpctrl-v2/c4bb6fdc/metadata-config-mutations",
+  "blockers": [],
+  "builds": [
+    {
+      "command": "cargo build -p warp --bin warp --features gui,warp_control_cli",
+      "logs": [
+        "logs/build_app_stdout.log",
+        "logs/build_app_stderr.log"
+      ],
+      "note": "Built successfully; graphical validation used warp-oss because the non-bundled local-channel binary requires the internal warp-channel-config helper at runtime.",
+      "status": "pass",
+      "target": "warp GUI local-channel binary"
+    },
+    {
+      "command": "cargo build -p warp --bin warp-oss --features gui,warp_control_cli",
+      "logs": [
+        "logs/build_app_warp_oss_stdout.log",
+        "logs/build_app_warp_oss_stderr.log"
+      ],
+      "note": "Used for graphical validation; self-contained in this checkout and compiled with warp_control_cli.",
+      "status": "pass",
+      "target": "warp GUI OSS binary"
+    },
+    {
+      "command": "cargo build -p warp --bin warpctrl --features standalone,warp_control_cli",
+      "logs": [
+        "logs/build_warpctrl_stdout.log",
+        "logs/build_warpctrl_stderr.log"
+      ],
+      "status": "pass",
+      "target": "standalone warpctrl binary"
+    }
+  ],
+  "commands": [
+    {
+      "actual_result": {
+        "themes": [
+          {
+            "is_current": false,
+            "name": "Adeberry"
+          },
+          {
+            "is_current": false,
+            "name": "Cyber Wave"
+          },
+          {
+            "is_current": true,
+            "name": "Dark"
+          },
+          {
+            "is_current": false,
+            "name": "Dark City"
+          },
+          {
+            "is_current": false,
+            "name": "Dracula"
+          },
+          {
+            "is_current": false,
+            "name": "Fancy Dracula"
+          },
+          {
+            "is_current": false,
+            "name": "Gruvbox Dark"
+          },
+          {
+            "is_current": false,
+            "name": "Gruvbox Light"
+          },
+          {
+            "is_current": false,
+            "name": "Jellyfish"
+          },
+          {
+            "is_current": false,
+            "name": "Koi"
+          },
+          {
+            "is_current": false,
+            "name": "Leafy"
+          },
+          {
+            "is_current": false,
+            "name": "Light"
+          },
+          {
+            "is_current": false,
+            "name": "Marble"
+          },
+          {
+            "is_current": false,
+            "name": "Phenomenon"
+          },
+          {
+            "is_current": false,
+            "name": "Pink City"
+          },
+          {
+            "is_current": false,
+            "name": "Red Rock"
+          },
+          {
+            "is_current": false,
+            "name": "Referred to Warp"
+          },
+          {
+            "is_current": false,
+            "name": "Snowy"
+          },
+          {
+            "is_current": false,
+            "name": "Solar Flare"
+          },
+          {
+            "is_current": false,
+            "name": "Solarized Dark"
+          },
+          {
+            "is_current": false,
+            "name": "Solarized Light"
+          },
+          {
+            "is_current": false,
+            "name": "Warp Referral"
+          },
+          {
+            "is_current": false,
+            "name": "Willow Dream"
+          }
+        ]
+      },
+      "command": "$WARPCTRL --output-format json theme list",
+      "command_family": "metadata",
+      "context": "outside-warp external xterm",
+      "exit_code": 0,
+      "expected_result": "returns JSON theme list",
+      "log_paths": [
+        "logs/008__theme_list__stdout.json",
+        "logs/008__theme_list__stderr.log",
+        "logs/008__theme_list__exit_code.txt"
+      ],
+      "notes": [],
+      "ordinal": "008",
+      "permission_state": "outside_warp_control + metadata_reads + metadata_configuration_mutations",
+      "required_matrix_command": true,
+      "screenshot_paths": [
+        "screenshots/008__outside-staggered__metadata__theme_list__terminal_ui.png"
+      ],
+      "skip_or_blocker_reason": null,
+      "status": "pass"
+    },
+    {
+      "actual_result": {
+        "dark_theme": "Dark",
+        "follow_system_theme": false,
+        "light_theme": "Light",
+        "name": "Dark"
+      },
+      "command": "$WARPCTRL --output-format json theme get",
+      "command_family": "metadata",
+      "context": "outside-warp external xterm",
+      "exit_code": 0,
+      "expected_result": "returns JSON current theme state",
+      "log_paths": [
+        "logs/009__theme_get__stdout.json",
+        "logs/009__theme_get__stderr.log",
+        "logs/009__theme_get__exit_code.txt"
+      ],
+      "notes": [],
+      "ordinal": "009",
+      "permission_state": "outside_warp_control + metadata_reads + metadata_configuration_mutations",
+      "required_matrix_command": true,
+      "screenshot_paths": [
+        "screenshots/009__outside-staggered__metadata__theme_get__terminal_ui.png"
+      ],
+      "skip_or_blocker_reason": null,
+      "status": "pass"
+    },
+    {
+      "actual_result": {
+        "action": "theme.set",
+        "ok": true
+      },
+      "command": "$WARPCTRL --output-format json theme set \"Light\"",
+      "command_family": "metadata-config",
+      "context": "outside-warp external xterm",
+      "exit_code": 0,
+      "expected_result": "sets current theme and returns ok",
+      "log_paths": [
+        "logs/010__theme_set__stdout.json",
+        "logs/010__theme_set__stderr.log",
+        "logs/010__theme_set__exit_code.txt"
+      ],
+      "notes": [],
+      "ordinal": "010",
+      "permission_state": "outside_warp_control + metadata_reads + metadata_configuration_mutations",
+      "required_matrix_command": true,
+      "screenshot_paths": [
+        "screenshots/010__outside-staggered__metadata-config__theme_set__terminal_ui.png"
+      ],
+      "skip_or_blocker_reason": null,
+      "status": "pass",
+      "visible_state_evidence": "combined terminal+Warp staggered screenshot; before state available from preceding command/setup screenshots and after state in this command screenshot"
+    },
+    {
+      "actual_result": {
+        "action": "theme.system.set",
+        "ok": true
+      },
+      "command": "$WARPCTRL --output-format json theme system-set true",
+      "command_family": "metadata-config",
+      "context": "outside-warp external xterm",
+      "exit_code": 0,
+      "expected_result": "enables follow system theme",
+      "log_paths": [
+        "logs/011__theme_system_set_true__stdout.json",
+        "logs/011__theme_system_set_true__stderr.log",
+        "logs/011__theme_system_set_true__exit_code.txt"
+      ],
+      "notes": [],
+      "ordinal": "011",
+      "permission_state": "outside_warp_control + metadata_reads + metadata_configuration_mutations",
+      "required_matrix_command": true,
+      "screenshot_paths": [
+        "screenshots/011__outside-staggered__metadata-config__theme_system_set_true__terminal_ui.png"
+      ],
+      "skip_or_blocker_reason": null,
+      "status": "pass",
+      "visible_state_evidence": "combined terminal+Warp staggered screenshot; before state available from preceding command/setup screenshots and after state in this command screenshot"
+    },
+    {
+      "actual_result": {
+        "action": "theme.system.set",
+        "ok": true
+      },
+      "command": "$WARPCTRL --output-format json theme system-set false",
+      "command_family": "metadata-config",
+      "context": "outside-warp external xterm",
+      "exit_code": 0,
+      "expected_result": "disables follow system theme",
+      "log_paths": [
+        "logs/012__theme_system_set_false__stdout.json",
+        "logs/012__theme_system_set_false__stderr.log",
+        "logs/012__theme_system_set_false__exit_code.txt"
+      ],
+      "notes": [],
+      "ordinal": "012",
+      "permission_state": "outside_warp_control + metadata_reads + metadata_configuration_mutations",
+      "required_matrix_command": true,
+      "screenshot_paths": [
+        "screenshots/012__outside-staggered__metadata-config__theme_system_set_false__terminal_ui.png"
+      ],
+      "skip_or_blocker_reason": null,
+      "status": "pass",
+      "visible_state_evidence": "combined terminal+Warp staggered screenshot; before state available from preceding command/setup screenshots and after state in this command screenshot"
+    },
+    {
+      "actual_result": {
+        "action": "theme.light.set",
+        "ok": true
+      },
+      "command": "$WARPCTRL --output-format json theme light-set \"Light\"",
+      "command_family": "metadata-config",
+      "context": "outside-warp external xterm",
+      "exit_code": 0,
+      "expected_result": "sets configured light theme",
+      "log_paths": [
+        "logs/013__theme_light_set__stdout.json",
+        "logs/013__theme_light_set__stderr.log",
+        "logs/013__theme_light_set__exit_code.txt"
+      ],
+      "notes": [],
+      "ordinal": "013",
+      "permission_state": "outside_warp_control + metadata_reads + metadata_configuration_mutations",
+      "required_matrix_command": true,
+      "screenshot_paths": [
+        "screenshots/013__outside-staggered__metadata-config__theme_light_set__terminal_ui.png"
+      ],
+      "skip_or_blocker_reason": null,
+      "status": "pass",
+      "visible_state_evidence": "combined terminal+Warp staggered screenshot; before state available from preceding command/setup screenshots and after state in this command screenshot"
+    },
+    {
+      "actual_result": {
+        "action": "theme.dark.set",
+        "ok": true
+      },
+      "command": "$WARPCTRL --output-format json theme dark-set \"Dark\"",
+      "command_family": "metadata-config",
+      "context": "outside-warp external xterm",
+      "exit_code": 0,
+      "expected_result": "sets configured dark theme",
+      "log_paths": [
+        "logs/014__theme_dark_set__stdout.json",
+        "logs/014__theme_dark_set__stderr.log",
+        "logs/014__theme_dark_set__exit_code.txt"
+      ],
+      "notes": [],
+      "ordinal": "014",
+      "permission_state": "outside_warp_control + metadata_reads + metadata_configuration_mutations",
+      "required_matrix_command": true,
+      "screenshot_paths": [
+        "screenshots/014__outside-staggered__metadata-config__theme_dark_set__terminal_ui.png"
+      ],
+      "skip_or_blocker_reason": null,
+      "status": "pass",
+      "visible_state_evidence": "combined terminal+Warp staggered screenshot; before state available from preceding command/setup screenshots and after state in this command screenshot"
+    },
+    {
+      "actual_result": {
+        "dark_theme": "Dark",
+        "follow_system_theme": false,
+        "font_size": 13,
+        "light_theme": "Light",
+        "theme": "Light",
+        "ui_zoom_percent": 100
+      },
+      "command": "$WARPCTRL --output-format json appearance get",
+      "command_family": "metadata",
+      "context": "outside-warp external xterm",
+      "exit_code": 0,
+      "expected_result": "returns JSON appearance state",
+      "log_paths": [
+        "logs/015__appearance_get__stdout.json",
+        "logs/015__appearance_get__stderr.log",
+        "logs/015__appearance_get__exit_code.txt"
+      ],
+      "notes": [],
+      "ordinal": "015",
+      "permission_state": "outside_warp_control + metadata_reads + metadata_configuration_mutations",
+      "required_matrix_command": true,
+      "screenshot_paths": [
+        "screenshots/015__outside-staggered__metadata__appearance_get__terminal_ui.png"
+      ],
+      "skip_or_blocker_reason": null,
+      "status": "pass"
+    },
+    {
+      "actual_result": {
+        "action": "appearance.font_size.increase",
+        "ok": true
+      },
+      "command": "$WARPCTRL --output-format json appearance font-size-increase",
+      "command_family": "metadata-config",
+      "context": "outside-warp external xterm",
+      "exit_code": 0,
+      "expected_result": "increases font size",
+      "log_paths": [
+        "logs/016__appearance_font_size_increase__stdout.json",
+        "logs/016__appearance_font_size_increase__stderr.log",
+        "logs/016__appearance_font_size_increase__exit_code.txt"
+      ],
+      "notes": [],
+      "ordinal": "016",
+      "permission_state": "outside_warp_control + metadata_reads + metadata_configuration_mutations",
+      "required_matrix_command": true,
+      "screenshot_paths": [
+        "screenshots/016__outside-staggered__metadata-config__appearance_font_size_increase__terminal_ui.png"
+      ],
+      "skip_or_blocker_reason": null,
+      "status": "pass",
+      "visible_state_evidence": "combined terminal+Warp staggered screenshot; before state available from preceding command/setup screenshots and after state in this command screenshot"
+    },
+    {
+      "actual_result": {
+        "action": "appearance.font_size.decrease",
+        "ok": true
+      },
+      "command": "$WARPCTRL --output-format json appearance font-size-decrease",
+      "command_family": "metadata-config",
+      "context": "outside-warp external xterm",
+      "exit_code": 0,
+      "expected_result": "decreases font size",
+      "log_paths": [
+        "logs/017__appearance_font_size_decrease__stdout.json",
+        "logs/017__appearance_font_size_decrease__stderr.log",
+        "logs/017__appearance_font_size_decrease__exit_code.txt"
+      ],
+      "notes": [],
+      "ordinal": "017",
+      "permission_state": "outside_warp_control + metadata_reads + metadata_configuration_mutations",
+      "required_matrix_command": true,
+      "screenshot_paths": [
+        "screenshots/017__outside-staggered__metadata-config__appearance_font_size_decrease__terminal_ui.png"
+      ],
+      "skip_or_blocker_reason": null,
+      "status": "pass",
+      "visible_state_evidence": "combined terminal+Warp staggered screenshot; before state available from preceding command/setup screenshots and after state in this command screenshot"
+    },
+    {
+      "actual_result": {
+        "action": "appearance.font_size.reset",
+        "ok": true
+      },
+      "command": "$WARPCTRL --output-format json appearance font-size-reset",
+      "command_family": "metadata-config",
+      "context": "outside-warp external xterm",
+      "exit_code": 0,
+      "expected_result": "resets font size",
+      "log_paths": [
+        "logs/018__appearance_font_size_reset__stdout.json",
+        "logs/018__appearance_font_size_reset__stderr.log",
+        "logs/018__appearance_font_size_reset__exit_code.txt"
+      ],
+      "notes": [],
+      "ordinal": "018",
+      "permission_state": "outside_warp_control + metadata_reads + metadata_configuration_mutations",
+      "required_matrix_command": true,
+      "screenshot_paths": [
+        "screenshots/018__outside-staggered__metadata-config__appearance_font_size_reset__terminal_ui.png"
+      ],
+      "skip_or_blocker_reason": null,
+      "status": "pass",
+      "visible_state_evidence": "combined terminal+Warp staggered screenshot; before state available from preceding command/setup screenshots and after state in this command screenshot"
+    },
+    {
+      "actual_result": {
+        "action": "appearance.zoom.increase",
+        "ok": true
+      },
+      "command": "$WARPCTRL --output-format json appearance zoom-increase",
+      "command_family": "metadata-config",
+      "context": "outside-warp external xterm",
+      "exit_code": 0,
+      "expected_result": "increases UI zoom",
+      "log_paths": [
+        "logs/019__appearance_zoom_increase__stdout.json",
+        "logs/019__appearance_zoom_increase__stderr.log",
+        "logs/019__appearance_zoom_increase__exit_code.txt"
+      ],
+      "notes": [],
+      "ordinal": "019",
+      "permission_state": "outside_warp_control + metadata_reads + metadata_configuration_mutations",
+      "required_matrix_command": true,
+      "screenshot_paths": [
+        "screenshots/019__outside-staggered__metadata-config__appearance_zoom_increase__terminal_ui.png"
+      ],
+      "skip_or_blocker_reason": null,
+      "status": "pass",
+      "visible_state_evidence": "combined terminal+Warp staggered screenshot; before state available from preceding command/setup screenshots and after state in this command screenshot"
+    },
+    {
+      "actual_result": {
+        "action": "appearance.zoom.decrease",
+        "ok": true
+      },
+      "command": "$WARPCTRL --output-format json appearance zoom-decrease",
+      "command_family": "metadata-config",
+      "context": "outside-warp external xterm",
+      "exit_code": 0,
+      "expected_result": "decreases UI zoom",
+      "log_paths": [
+        "logs/020__appearance_zoom_decrease__stdout.json",
+        "logs/020__appearance_zoom_decrease__stderr.log",
+        "logs/020__appearance_zoom_decrease__exit_code.txt"
+      ],
+      "notes": [],
+      "ordinal": "020",
+      "permission_state": "outside_warp_control + metadata_reads + metadata_configuration_mutations",
+      "required_matrix_command": true,
+      "screenshot_paths": [
+        "screenshots/020__outside-staggered__metadata-config__appearance_zoom_decrease__terminal_ui.png"
+      ],
+      "skip_or_blocker_reason": null,
+      "status": "pass",
+      "visible_state_evidence": "combined terminal+Warp staggered screenshot; before state available from preceding command/setup screenshots and after state in this command screenshot"
+    },
+    {
+      "actual_result": {
+        "action": "appearance.zoom.reset",
+        "ok": true
+      },
+      "command": "$WARPCTRL --output-format json appearance zoom-reset",
+      "command_family": "metadata-config",
+      "context": "outside-warp external xterm",
+      "exit_code": 0,
+      "expected_result": "resets UI zoom",
+      "log_paths": [
+        "logs/021__appearance_zoom_reset__stdout.json",
+        "logs/021__appearance_zoom_reset__stderr.log",
+        "logs/021__appearance_zoom_reset__exit_code.txt"
+      ],
+      "notes": [],
+      "ordinal": "021",
+      "permission_state": "outside_warp_control + metadata_reads + metadata_configuration_mutations",
+      "required_matrix_command": true,
+      "screenshot_paths": [
+        "screenshots/021__outside-staggered__metadata-config__appearance_zoom_reset__terminal_ui.png"
+      ],
+      "skip_or_blocker_reason": null,
+      "status": "pass",
+      "visible_state_evidence": "combined terminal+Warp staggered screenshot; before state available from preceding command/setup screenshots and after state in this command screenshot"
+    },
+    {
+      "actual_result": {
+        "settings": [
+          {
+            "key": "accessibility.accessibility_verbosity",
+            "value": "Verbose",
+            "value_type": "string"
+          },
+          {
+            "key": "appearance.text.font_name",
+            "value": "Hack",
+            "value_type": "string"
+          },
+          {
+            "key": "appearance.text.font_size",
+            "value": 13.0,
+            "value_type": "number"
+          },
+          {
+            "key": "appearance.themes.dark_theme",
+            "value": "Dark",
+            "value_type": "string"
+          },
+          {
+            "key": "appearance.themes.light_theme",
+            "value": "Light",
+            "value_type": "string"
+          },
+          {
+            "key": "appearance.themes.system_theme",
+            "value": false,
+            "value_type": "bool"
+          },
+          {
+            "key": "appearance.themes.theme",
+            "value": "Light",
+            "value_type": "string"
+          },
+          {
+            "key": "appearance.window.zoom_level",
+            "value": 100,
+            "value_type": "number"
+          },
+          {
+            "key": "terminal.input.error_underlining_enabled",
+            "value": true,
+            "value_type": "bool"
+          },
+          {
+            "key": "terminal.input.syntax_highlighting",
+            "value": true,
+            "value_type": "bool"
+          }
+        ]
+      },
+      "command": "$WARPCTRL --output-format json setting list",
+      "command_family": "metadata",
+      "context": "outside-warp external xterm",
+      "exit_code": 0,
+      "expected_result": "returns allowlisted settings",
+      "log_paths": [
+        "logs/022__setting_list__stdout.json",
+        "logs/022__setting_list__stderr.log",
+        "logs/022__setting_list__exit_code.txt"
+      ],
+      "notes": [],
+      "ordinal": "022",
+      "permission_state": "outside_warp_control + metadata_reads + metadata_configuration_mutations",
+      "required_matrix_command": true,
+      "screenshot_paths": [
+        "screenshots/022__outside-staggered__metadata__setting_list__terminal_ui.png"
+      ],
+      "skip_or_blocker_reason": null,
+      "status": "pass"
+    },
+    {
+      "actual_result": {
+        "setting": {
+          "key": "appearance.text.font_size",
+          "value": 13.0,
+          "value_type": "number"
+        }
+      },
+      "command": "$WARPCTRL --output-format json setting get appearance.text.font_size",
+      "command_family": "metadata",
+      "context": "outside-warp external xterm",
+      "exit_code": 0,
+      "expected_result": "returns safe setting value",
+      "log_paths": [
+        "logs/023__setting_get_font_size__stdout.json",
+        "logs/023__setting_get_font_size__stderr.log",
+        "logs/023__setting_get_font_size__exit_code.txt"
+      ],
+      "notes": [],
+      "ordinal": "023",
+      "permission_state": "outside_warp_control + metadata_reads + metadata_configuration_mutations",
+      "required_matrix_command": true,
+      "screenshot_paths": [
+        "screenshots/023__outside-staggered__metadata__setting_get_font_size__terminal_ui.png"
+      ],
+      "skip_or_blocker_reason": null,
+      "status": "pass"
+    },
+    {
+      "actual_result": {
+        "action": "setting.set",
+        "setting": {
+          "key": "appearance.text.font_size",
+          "value": 13.0,
+          "value_type": "number"
+        }
+      },
+      "command": "$WARPCTRL --output-format json setting set appearance.text.font_size 13",
+      "command_family": "metadata-config",
+      "context": "outside-warp external xterm",
+      "exit_code": 0,
+      "expected_result": "sets safe font-size setting to original/test value",
+      "log_paths": [
+        "logs/024__setting_set_font_size_original__stdout.json",
+        "logs/024__setting_set_font_size_original__stderr.log",
+        "logs/024__setting_set_font_size_original__exit_code.txt"
+      ],
+      "notes": [],
+      "ordinal": "024",
+      "permission_state": "outside_warp_control + metadata_reads + metadata_configuration_mutations",
+      "required_matrix_command": true,
+      "screenshot_paths": [
+        "screenshots/024__outside-staggered__metadata-config__setting_set_font_size_original__terminal_ui.png"
+      ],
+      "skip_or_blocker_reason": null,
+      "status": "pass",
+      "visible_state_evidence": "combined terminal+Warp staggered screenshot; before state available from preceding command/setup screenshots and after state in this command screenshot"
+    },
+    {
+      "actual_result": {
+        "action": "setting.toggle",
+        "setting": {
+          "key": "terminal.input.syntax_highlighting",
+          "value": false,
+          "value_type": "bool"
+        }
+      },
+      "command": "$WARPCTRL --output-format json setting toggle terminal.input.syntax_highlighting",
+      "command_family": "metadata-config",
+      "context": "outside-warp external xterm",
+      "exit_code": 0,
+      "expected_result": "toggles safe boolean setting",
+      "log_paths": [
+        "logs/025__setting_toggle_syntax_highlighting__stdout.json",
+        "logs/025__setting_toggle_syntax_highlighting__stderr.log",
+        "logs/025__setting_toggle_syntax_highlighting__exit_code.txt"
+      ],
+      "notes": [],
+      "ordinal": "025",
+      "permission_state": "outside_warp_control + metadata_reads + metadata_configuration_mutations",
+      "required_matrix_command": true,
+      "screenshot_paths": [
+        "screenshots/025__outside-staggered__metadata-config__setting_toggle_syntax_highlighting__terminal_ui.png"
+      ],
+      "skip_or_blocker_reason": null,
+      "status": "pass"
+    },
+    {
+      "actual_result": {
+        "keybindings": [
+          {
+            "description": "Accept Autosuggestion",
+            "name": "editor_view:insert_autosuggestion"
+          },
+          {
+            "description": "Accept Prompt Suggestion",
+            "keystroke": "Alt Shift \u23ce",
+            "name": "terminal:accept_prompt_suggestions",
+            "normalized_keystroke": "alt-shift-enter"
+          },
+          {
+            "description": "Activate Next Pane",
+            "group": "navigation",
+            "keystroke": "Ctrl Shift }",
+            "name": "pane_group:navigate_next",
+            "normalized_keystroke": "ctrl-shift-}"
+          },
+          {
+            "description": "Activate Next Tab",
+            "group": "navigation",
+            "keystroke": "Ctrl Pagedown",
+            "name": "workspace:activate_next_tab",
+            "normalized_keystroke": "ctrl-pagedown"
+          },
+          {
+            "description": "Activate Previous Pane",
+            "group": "navigation",
+            "keystroke": "Ctrl Shift {",
+            "name": "pane_group:navigate_prev",
+            "normalized_keystroke": "ctrl-shift-{"
+          },
+          {
+            "description": "Activate Previous Tab",
+            "keystroke": "Ctrl Pageup",
+            "name": "workspace:activate_prev_tab",
+            "normalized_keystroke": "ctrl-pageup"
+          },
+          {
+            "description": "Add Cursor Above",
+            "keystroke": "Ctrl Shift \u2191",
+            "name": "editor_view:add_cursor_above",
+            "normalized_keystroke": "ctrl-shift-up"
+          },
+          {
+            "description": "Add Cursor Below",
+            "keystroke": "Ctrl Shift \u2193",
+            "name": "editor_view:add_cursor_below",
+            "normalized_keystroke": "ctrl-shift-down"
+          },
+          {
+            "description": "Add Repository",
+            "group": "folders",
+            "keystroke": "Alt N",
+            "name": "welcome_view:open_project",
+            "normalized_keystroke": "alt-n"
+          },
+          {
+            "description": "Add Selection for Next Occurrence",
+            "keystroke": "Ctrl G",
+            "name": "editor_view:add_next_occurrence",
+            "normalized_keystroke": "ctrl-g"
+          },
+          {
+            "description": "Attach Selected Block as Agent Context",
+            "group": "warp_ai",
+            "keystroke": "Ctrl Shift Space",
+            "name": "terminal:ask_ai_assistant",
+            "normalized_keystroke": "ctrl-shift-space"
+          },
+          {
+            "description": "Attach Selected Text as Agent Context",
+            "group": "warp_ai",
+            "keystroke": "Ctrl Shift Space",
+            "name": "terminal:ask_ai_assistant",
+            "normalized_keystroke": "ctrl-shift-space"
+          },
+          {
+            "description": "Backward Tabulation Within an Executing Command",
+            "keystroke": "Shift Tab",
+            "name": "terminal:backward_tabulation",
+            "normalized_keystroke": "shift-tab"
+          },
+          {
+            "description": "Bookmark Selected Block",
+            "keystroke": "Ctrl Shift B",
+            "name": "terminal:bookmark_selected_block",
+            "normalized_keystroke": "ctrl-shift-B"
+          },
+          {
+            "description": "Cancel Active Process",
+            "keystroke": "Ctrl C",
+            "name": "terminal:cancel_command",
+            "normalized_keystroke": "ctrl-c"
+          },
+          {
+            "description": "Clear Blocks",
+            "keystroke": "Ctrl Shift K",
+            "name": "terminal:clear_blocks",
+            "normalized_keystroke": "ctrl-shift-K"
+          },
+          {
+            "description": "Clear Command Editor",
+            "keystroke": "Ctrl C",
+            "name": "editor_view:clear_buffer",
+            "normalized_keystroke": "ctrl-c"
+          },
+          {
+            "description": "Clear Screen",
+            "keystroke": "Ctrl L",
+            "name": "input:clear_screen",
+            "normalized_keystroke": "ctrl-l"
+          },
+          {
+            "description": "Clear Selected Lines",
+            "name": "editor_view:clear_lines"
+          },
+          {
+            "description": "Clear and Reset AI Context Menu Query",
+            "keystroke": "Ctrl Shift \u232b",
+            "name": "input:clear_and_reset_ai_context_menu_query",
+            "normalized_keystroke": "ctrl-shift-backspace"
+          },
+          {
+            "description": "Close",
+            "keystroke": "Ctrl Shift W",
+            "name": "Close Env Var Collection",
+            "normalized_keystroke": "ctrl-shift-W"
+          },
+          {
+            "description": "Close",
+            "keystroke": "Ctrl Shift W",
+            "name": "Close Workflow",
+            "normalized_keystroke": "ctrl-shift-W"
+          },
+          {
+            "description": "Close All Tabs",
+            "keystroke": "Ctrl R",
+            "name": "code_view:close_all_tabs",
+            "normalized_keystroke": "ctrl-r"
+          },
+          {
+            "description": "Close Current Session",
+            "keystroke": "Ctrl Shift W",
+            "name": "pane_group:close_current_session",
+            "normalized_keystroke": "ctrl-shift-W"
+          },
+          {
+            "description": "Close Focused Panel",
+            "keystroke": "Ctrl Shift W",
+            "name": "workspace:close_panel",
+            "normalized_keystroke": "ctrl-shift-W"
+          },
+          {
+            "description": "Close Other Tabs",
+            "group": "close",
+            "name": "workspace:close_other_tabs"
+          },
+          {
+            "description": "Close Saved Tabs",
+            "keystroke": "Ctrl R",
+            "name": "code_view:close_saved_tabs",
+            "normalized_keystroke": "ctrl-r"
+          },
+          {
+            "description": "Close Tabs to the Right",
+            "group": "close",
+            "name": "workspace:close_tabs_right_active_tab"
+          },
+          {
+            "description": "Close Window",
+            "group": "close",
+            "name": "workspace:close_window"
+          },
+          {
+            "description": "Close the Current Tab",
+            "group": "close",
+            "name": "workspace:close_active_tab"
+          },
+          {
+            "description": "Command Search",
+            "keystroke": "Ctrl R",
+            "name": "workspace:show_command_search",
+            "normalized_keystroke": "ctrl-r"
+          },
+          {
+            "description": "Copy",
+            "keystroke": "Ctrl Shift C",
+            "name": "terminal:copy",
+            "normalized_keystroke": "ctrl-shift-C"
+          },
+          {
+            "description": "Copy Access Token to Clipboard",
+            "name": "workspace:copy_access_token_to_clipboard"
+          },
+          {
+            "description": "Copy Command",
+            "name": "terminal:copy_commands"
+          },
+          {
+            "description": "Copy Command Output",
+            "keystroke": "Ctrl Alt Shift C",
+            "name": "terminal:copy_outputs",
+            "normalized_keystroke": "ctrl-alt-shift-C"
+          },
+          {
+            "description": "Copy Command and Output",
+            "keystroke": "Ctrl Shift C",
+            "name": "terminal:copy",
+            "normalized_keystroke": "ctrl-shift-C"
+          },
+          {
+            "description": "Copy Git Branch",
+            "name": "terminal:copy_git_branch"
+          },
+          {
+            "description": "Copy Rich-Text Buffer",
+            "name": "editor_view:debug_copy_buffer"
+          },
+          {
+            "description": "Copy Rich-Text Selection",
+            "name": "editor_view:debug_copy_selection"
+          },
+          {
+            "description": "Copy and Clear Selected Lines",
+            "keystroke": "Ctrl U",
+            "name": "editor_view:clear_and_copy_lines",
+            "normalized_keystroke": "ctrl-u"
+          },
+          {
+            "description": "Crash the App (For Testing Sentry-Native)",
+            "name": "workspace:crash"
+          },
+          {
+            "description": "Create New Personal Environment Variables",
+            "group": "env_var_collections",
+            "name": "workspace:create_personal_env_vars"
+          },
+          {
+            "description": "Create New Project",
+            "keystroke": "Alt Shift N",
+            "name": "project_buttons:create_new_project",
+            "normalized_keystroke": "alt-shift-N"
+          },
+          {
+            "description": "Create New Tab",
+            "keystroke": "Ctrl Shift T",
+            "name": "workspace:new_tab",
+            "normalized_keystroke": "ctrl-shift-T"
+          },
+          {
+            "description": "Create New Team Environment Variables",
+            "group": "env_var_collections",
+            "name": "workspace:create_team_env_vars"
+          },
+          {
+            "description": "Create a New Personal Folder",
+            "group": "folders",
+            "name": "workspace:create_personal_folder"
+          },
+          {
+            "description": "Create a New Personal Notebook",
+            "group": "notebooks",
+            "name": "workspace:create_personal_notebook"
+          },
+          {
+            "description": "Create a New Personal Prompt",
+            "group": "warp_ai",
+            "name": "workspace:create_personal_ai_prompt"
+          },
+          {
+            "description": "Create a New Personal Workflow",
+            "group": "workflows",
+            "name": "workspace:create_personal_workflow"
+          },
+          {
+            "description": "Create a New Team Folder",
+            "group": "folders",
+            "name": "workspace:create_team_folder"
+          },
+          {
+            "description": "Create a New Team Notebook",
+            "group": "notebooks",
+            "name": "workspace:create_team_notebook"
+          },
+          {
+            "description": "Create a New Team Prompt",
+            "group": "warp_ai",
+            "name": "workspace:create_team_ai_prompt"
+          },
+          {
+            "description": "Create a New Team Workflow",
+            "group": "workflows",
+            "name": "workspace:create_team_workflow"
+          },
+          {
+            "description": "Create or Edit Link",
+            "keystroke": "Ctrl K",
+            "name": "editor:edit_link",
+            "normalized_keystroke": "ctrl-k"
+          },
+          {
+            "description": "Cursor at Buffer End",
+            "keystroke": "Ctrl \u2193",
+            "name": "editor_view:cursor_at_buffer_end",
+            "normalized_keystroke": "ctrl-down"
+          },
+          {
+            "description": "Cursor at Buffer Start",
+            "keystroke": "Ctrl \u2191",
+            "name": "editor_view:cursor_at_buffer_start",
+            "normalized_keystroke": "ctrl-up"
+          },
+          {
+            "description": "Cut All Left",
+            "name": "editor_view:cut_all_left"
+          },
+          {
+            "description": "Cut All Right",
+            "keystroke": "Ctrl K",
+            "name": "editor_view:cut_all_right",
+            "normalized_keystroke": "ctrl-k"
+          },
+          {
+            "description": "Cut Word Left",
+            "keystroke": "Ctrl W",
+            "name": "editor_view:cut_word_left",
+            "normalized_keystroke": "ctrl-w"
+          },
+          {
+            "description": "Cut Word Right",
+            "keystroke": "Alt D",
+            "name": "editor_view:cut_word_right",
+            "normalized_keystroke": "alt-d"
+          },
+          {
+            "description": "De-Select Shell Commands",
+            "keystroke": "Escape",
+            "name": "editor_view:deselect_command",
+            "normalized_keystroke": "escape"
+          },
+          {
+            "description": "Decrease Font Size",
+            "group": "settings",
+            "keystroke": "Ctrl Shift <",
+            "name": "workspace:decrease_font_size",
+            "normalized_keystroke": "ctrl-shift-<"
+          },
+          {
+            "description": "Decrease Notebook Font Size",
+            "group": "settings",
+            "keystroke": "Ctrl -",
+            "name": "notebookview:decrease_font_size",
+            "normalized_keystroke": "ctrl--"
+          },
+          {
+            "description": "Decrease Zoom Level",
+            "group": "settings",
+            "keystroke": "Ctrl -",
+            "name": "workspace:decrease_zoom",
+            "normalized_keystroke": "ctrl--"
+          },
+          {
+            "description": "Delete",
+            "keystroke": "Ctrl D",
+            "name": "editor_view:delete",
+            "normalized_keystroke": "ctrl-d"
+          },
+          {
+            "description": "Delete All Left",
+            "keystroke": "Ctrl Y",
+            "name": "editor_view:delete_all_left",
+            "normalized_keystroke": "ctrl-y"
+          },
+          {
+            "description": "Delete All Right",
+            "name": "editor_view:delete_all_right"
+          },
+          {
+            "description": "Delete Word Left",
+            "keystroke": "Ctrl \u232b",
+            "name": "editor:delete_word_left",
+            "normalized_keystroke": "ctrl-backspace"
+          },
+          {
+            "description": "Delete Word Left Within an Executing Command",
+            "keystroke": "Ctrl \u232b",
+            "name": "terminal:executing_command_delete_word_left",
+            "normalized_keystroke": "ctrl-backspace"
+          },
+          {
+            "description": "Delete Word Right",
+            "keystroke": "Ctrl Delete",
+            "name": "editor:delete_word_right",
+            "normalized_keystroke": "ctrl-delete"
+          },
+          {
+            "description": "Delete to Line End Within an Executing Command",
+            "name": "terminal:executing_command_delete_line_end"
+          },
+          {
+            "description": "Delete to Line Start Within an Executing Command",
+            "name": "terminal:executing_command_delete_line_start"
+          },
+          {
+            "description": "Edit Code Diff",
+            "keystroke": "Ctrl Shift E",
+            "name": "code_diff_view:edit_requested_edit",
+            "normalized_keystroke": "ctrl-shift-E"
+          },
+          {
+            "description": "Edit Prompt",
+            "group": "settings",
+            "name": "workspace:edit_prompt"
+          },
+          {
+            "description": "Edit Requested Command",
+            "keystroke": "Ctrl Shift E",
+            "name": "requested_command:edit",
+            "normalized_keystroke": "ctrl-shift-E"
+          },
+          {
+            "description": "End",
+            "keystroke": "End",
+            "name": "editor_view:end",
+            "normalized_keystroke": "end"
+          },
+          {
+            "description": "Exit Vim Insert Mode",
+            "keystroke": "Ctrl [",
+            "name": "editor_view:vim_exit_insert_mode",
+            "normalized_keystroke": "ctrl-["
+          },
+          {
+            "description": "Expand Selected Blocks Above",
+            "keystroke": "Shift \u2191",
+            "name": "terminal:expand_block_selection_above",
+            "normalized_keystroke": "shift-up"
+          },
+          {
+            "description": "Expand Selected Blocks Below",
+            "keystroke": "Shift \u2193",
+            "name": "terminal:expand_block_selection_below",
+            "normalized_keystroke": "shift-down"
+          },
+          {
+            "description": "Export All Warp Drive Objects",
+            "group": "settings",
+            "name": "workspace:export_all_warp_drive_objects"
+          },
+          {
+            "description": "Find Within Selected Block",
+            "keystroke": "Ctrl Shift F",
+            "name": "terminal:find",
+            "normalized_keystroke": "ctrl-shift-F"
+          },
+          {
+            "description": "Find in Code Editor",
+            "keystroke": "Ctrl Shift F",
+            "name": "code_editor:find",
+            "normalized_keystroke": "ctrl-shift-F"
+          },
+          {
+            "description": "Find in Notebook",
+            "keystroke": "Ctrl Shift F",
+            "name": "editor:find",
+            "normalized_keystroke": "ctrl-shift-F"
+          },
+          {
+            "description": "Find in Terminal",
+            "keystroke": "Ctrl Shift F",
+            "name": "terminal:find",
+            "normalized_keystroke": "ctrl-shift-F"
+          },
+          {
+            "description": "Find the Next Occurrence of Your Search Query",
+            "keystroke": "F3",
+            "name": "find:find_next_occurrence",
+            "normalized_keystroke": "f3"
+          },
+          {
+            "description": "Find the Previous Occurrence of Your Search Query",
+            "keystroke": "Shift F3",
+            "name": "find:find_prev_occurrence",
+            "normalized_keystroke": "shift-f3"
+          },
+          {
+            "description": "Focus Next Match",
+            "name": "editor:next_find_match"
+          },
+          {
+            "description": "Focus Previous Match",
+            "name": "editor:previous_find_match"
+          },
+          {
+            "description": "Focus Terminal Input",
+            "keystroke": "Ctrl Shift L",
+            "name": "terminal:focus_input",
+            "normalized_keystroke": "ctrl-shift-L"
+          },
+          {
+            "description": "Focus Terminal Input From File",
+            "keystroke": "Ctrl Shift L",
+            "name": "notebookview:focus_terminal_input",
+            "normalized_keystroke": "ctrl-shift-L"
+          },
+          {
+            "description": "Focus Terminal Input From Notebook",
+            "keystroke": "Ctrl Shift L",
+            "name": "notebookview:focus_terminal_input",
+            "normalized_keystroke": "ctrl-shift-L"
+          },
+          {
+            "description": "Focus Terminal Input From Warp AI",
+            "keystroke": "Ctrl Shift L",
+            "name": "ai_assistant_panel:focus_terminal_input",
+            "normalized_keystroke": "ctrl-shift-L"
+          },
+          {
+            "description": "Fold",
+            "keystroke": "Ctrl Alt [",
+            "name": "editor_view:fold",
+            "normalized_keystroke": "ctrl-alt-["
+          },
+          {
+            "description": "Fold Selected Ranges",
+            "keystroke": "Ctrl Alt F",
+            "name": "editor_view:fold_selected_ranges",
+            "normalized_keystroke": "ctrl-alt-f"
+          },
+          {
+            "description": "Go to Line",
+            "keystroke": "Ctrl G",
+            "name": "editor_view:go_to_line",
+            "normalized_keystroke": "ctrl-g"
+          },
+          {
+            "description": "History Search",
+            "name": "input:search_command_history"
+          },
+          {
+            "description": "Home",
+            "keystroke": "Home",
+            "name": "editor_view:home",
+            "normalized_keystroke": "home"
+          },
+          {
+            "description": "Import External Settings",
+            "name": "workspace:open_settings_import_page"
+          },
+          {
+            "description": "Import To Personal Drive",
+            "name": "workspace:import_to_personal_drive"
+          },
+          {
+            "description": "Import To Team Drive",
+            "name": "workspace:import_to_team_drive"
+          },
+          {
+            "description": "Increase Font Size",
+            "group": "settings",
+            "keystroke": "Ctrl Shift >",
+            "name": "workspace:increase_font_size",
+            "normalized_keystroke": "ctrl-shift->"
+          },
+          {
+            "description": "Increase Notebook Font Size",
+            "group": "settings",
+            "keystroke": "Ctrl =",
+            "name": "notebookview:increase_font_size",
+            "normalized_keystroke": "ctrl-="
+          },
+          {
+            "description": "Increase Zoom Level",
+            "group": "settings",
+            "keystroke": "Ctrl =",
+            "name": "workspace:increase_zoom",
+            "normalized_keystroke": "ctrl-="
+          },
+          {
+            "description": "Initiate Project for Warp",
+            "name": "workspace:init_project_rules"
+          },
+          {
+            "description": "Insert Command Correction",
+            "name": "input:insert_command_correction"
+          },
+          {
+            "description": "Insert Last Word of Previous Command",
+            "keystroke": "Meta .",
+            "name": "editor:insert_last_word_previous_command",
+            "normalized_keystroke": "meta-."
+          },
+          {
+            "description": "Insert Newline",
+            "keystroke": "Ctrl J",
+            "name": "editor_view:insert_newline",
+            "normalized_keystroke": "ctrl-j"
+          },
+          {
+            "description": "Insert Non-Expanding Space",
+            "keystroke": "Alt Space",
+            "name": "editor_view:insert_nonexpanding_space",
+            "normalized_keystroke": "alt-space"
+          },
+          {
+            "description": "Inspect Command",
+            "name": "editor_view:inspect_command"
+          },
+          {
+            "description": "Invite People...",
+            "name": "workspace:show_invite_modal"
+          },
+          {
+            "description": "Join Our Slack Community (Opens External Link)",
+            "name": "workspace:link_to_slack"
+          },
+          {
+            "description": "Jump to Latest Agent Task",
+            "group": "warp_ai",
+            "keystroke": "Ctrl Shift G",
+            "name": "workspace:jump_to_latest_toast",
+            "normalized_keystroke": "ctrl-shift-G"
+          },
+          {
+            "description": "Launch Configuration Palette",
+            "name": "workspace:toggle_launch_config_palette"
+          },
+          {
+            "description": "Left Panel: Agent Conversations",
+            "group": "navigation",
+            "keystroke": "Alt 1",
+            "name": "workspace:left_panel_agent_conversations",
+            "normalized_keystroke": "alt-1"
+          },
+          {
+            "description": "Left Panel: Global Search",
+            "group": "navigation",
+            "keystroke": "Alt 3",
+            "name": "workspace:left_panel_global_search",
+            "normalized_keystroke": "alt-3"
+          },
+          {
+            "description": "Left Panel: Project Explorer",
+            "group": "navigation",
+            "keystroke": "Ctrl Shift 2",
+            "name": "workspace:left_panel_project_explorer",
+            "normalized_keystroke": "ctrl-shift-2"
+          },
+          {
+            "description": "Left Panel: Warp Drive",
+            "group": "navigation",
+            "keystroke": "Alt 4",
+            "name": "workspace:left_panel_warp_drive",
+            "normalized_keystroke": "alt-4"
+          },
+          {
+            "description": "Load Agent Mode Conversation (From Debug Link in Clipboard)",
+            "name": "terminal:load_agent_mode_conversation"
+          },
+          {
+            "description": "Log Editor State",
+            "name": "editor_view:log_state"
+          },
+          {
+            "description": "Log Out",
+            "group": "settings",
+            "name": "workspace:log_out"
+          },
+          {
+            "description": "Move Backward One Subword",
+            "name": "editor_view:move_backward_one_subword"
+          },
+          {
+            "description": "Move Backward One Word",
+            "keystroke": "Ctrl \u2190",
+            "name": "editor_view:move_backward_one_word",
+            "normalized_keystroke": "ctrl-left"
+          },
+          {
+            "description": "Move Cursor Down",
+            "keystroke": "Ctrl N",
+            "name": "editor_view:down",
+            "normalized_keystroke": "ctrl-n"
+          },
+          {
+            "description": "Move Cursor End Within an Executing Command",
+            "name": "terminal:executing_command_move_cursor_end"
+          },
+          {
+            "description": "Move Cursor Home Within an Executing Command",
+            "name": "terminal:executing_command_move_cursor_home"
+          },
+          {
+            "description": "Move Cursor Left",
+            "keystroke": "Ctrl B",
+            "name": "editor_view:left",
+            "normalized_keystroke": "ctrl-b"
+          },
+          {
+            "description": "Move Cursor One Word to the Left Within an Executing Command",
+            "keystroke": "Ctrl \u2190",
+            "name": "terminal:executing_command_move_cursor_word_left",
+            "normalized_keystroke": "ctrl-left"
+          },
+          {
+            "description": "Move Cursor One Word to the Right Within an Executing Command",
+            "keystroke": "Ctrl \u2192",
+            "name": "terminal:executing_command_move_cursor_word_right",
+            "normalized_keystroke": "ctrl-right"
+          },
+          {
+            "description": "Move Cursor Right",
+            "keystroke": "Ctrl F",
+            "name": "editor_view:right",
+            "normalized_keystroke": "ctrl-f"
+          },
+          {
+            "description": "Move Cursor Up",
+            "keystroke": "Ctrl P",
+            "name": "editor_view:up",
+            "normalized_keystroke": "ctrl-p"
+          },
+          {
+            "description": "Move Cursor to the Bottom",
+            "keystroke": "Ctrl End",
+            "name": "editor_view:cmd_down",
+            "normalized_keystroke": "ctrl-end"
+          },
+          {
+            "description": "Move Cursor to the Top",
+            "keystroke": "Ctrl Home",
+            "name": "editor_view:cmd_up",
+            "normalized_keystroke": "ctrl-home"
+          },
+          {
+            "description": "Move Forward One Subword",
+            "name": "editor_view:move_forward_one_subword"
+          },
+          {
+            "description": "Move Forward One Word",
+            "keystroke": "Ctrl \u2192",
+            "name": "editor_view:move_forward_one_word",
+            "normalized_keystroke": "ctrl-right"
+          },
+          {
+            "description": "Move Tab Left",
+            "group": "navigation",
+            "keystroke": "Ctrl Shift Pageup",
+            "name": "workspace:move_tab_left",
+            "normalized_keystroke": "ctrl-shift-pageup"
+          },
+          {
+            "description": "Move Tab Right",
+            "group": "navigation",
+            "keystroke": "Ctrl Shift Pagedown",
+            "name": "workspace:move_tab_right",
+            "normalized_keystroke": "ctrl-shift-pagedown"
+          },
+          {
+            "description": "Move to End of Line",
+            "name": "editor_view:move_to_line_end"
+          },
+          {
+            "description": "Move to End of Paragraph",
+            "name": "editor_view:move_to_paragraph_end"
+          },
+          {
+            "description": "Move to Line End",
+            "name": "editor_view:move_to_line_end"
+          },
+          {
+            "description": "Move to Line Start",
+            "name": "editor_view:move_to_line_start"
+          },
+          {
+            "description": "Move to Start of Line",
+            "name": "editor_view:move_to_line_start"
+          },
+          {
+            "description": "Move to Start of Paragraph",
+            "name": "editor_view:move_to_paragraph_start"
+          },
+          {
+            "description": "Move to the End of the Buffer",
+            "keystroke": "Shift Meta >",
+            "name": "editor_view:move_to_buffer_end",
+            "normalized_keystroke": "shift-meta->"
+          },
+          {
+            "description": "Move to the End of the Paragraph",
+            "keystroke": "Meta E",
+            "name": "editor_view:move_to_paragraph_end",
+            "normalized_keystroke": "meta-e"
+          },
+          {
+            "description": "Move to the Start of the Buffer",
+            "keystroke": "Shift Meta <",
+            "name": "editor_view:move_to_buffer_start",
+            "normalized_keystroke": "shift-meta-<"
+          },
+          {
+            "description": "Move to the Start of the Paragraph",
+            "keystroke": "Meta A",
+            "name": "editor_view:move_to_paragraph_start",
+            "normalized_keystroke": "meta-a"
+          },
+          {
+            "description": "New Agent Pane",
+            "group": "warp_ai",
+            "keystroke": "Ctrl Space",
+            "name": "workspace:toggle_ai_assistant",
+            "normalized_keystroke": "ctrl-space"
+          },
+          {
+            "description": "New Agent Tab",
+            "group": "warp_ai",
+            "name": "workspace:new_agent_tab"
+          },
+          {
+            "description": "New Cloud Agent Tab",
+            "group": "warp_ai",
+            "name": "workspace:new_ambient_agent_tab"
+          },
+          {
+            "description": "New Terminal Tab",
+            "name": "workspace:new_terminal_tab"
+          },
+          {
+            "description": "Open AI Command Suggestions",
+            "group": "warp_ai",
+            "keystroke": "Ctrl `",
+            "name": "input:toggle_natural_language_command_search",
+            "normalized_keystroke": "ctrl-`"
+          },
+          {
+            "description": "Open AI Rules",
+            "group": "warp_ai",
+            "name": "workspace:open_ai_fact_collection"
+          },
+          {
+            "description": "Open Block Context Menu",
+            "name": "terminal:open_block_list_context_menu_via_keybinding"
+          },
+          {
+            "description": "Open Completions Menu",
+            "keystroke": "Tab",
+            "name": "input:open_completion_suggestions",
+            "normalized_keystroke": "tab"
+          },
+          {
+            "description": "Open Global Search",
+            "keystroke": "Alt Shift F",
+            "name": "workspace:open_global_search",
+            "normalized_keystroke": "alt-shift-F"
+          },
+          {
+            "description": "Open Keybindings Editor",
+            "group": "keyboard_shortcuts",
+            "name": "workspace:show_keybinding_settings"
+          },
+          {
+            "description": "Open Left Panel",
+            "keystroke": "Ctrl Shift |",
+            "name": "workspace:toggle_left_panel",
+            "normalized_keystroke": "ctrl-shift-|"
+          },
+          {
+            "description": "Open MCP Servers",
+            "group": "warp_ai",
+            "name": "workspace:open_mcp_servers"
+          },
+          {
+            "description": "Open Repository",
+            "group": "folders",
+            "keystroke": "Alt Shift O",
+            "name": "project_buttons:open_repository",
+            "normalized_keystroke": "alt-shift-O"
+          },
+          {
+            "description": "Open Repository",
+            "group": "folders",
+            "keystroke": "Alt Shift O",
+            "name": "workspace:open_repository",
+            "normalized_keystroke": "alt-shift-O"
+          },
+          {
+            "description": "Open Settings",
+            "group": "settings",
+            "keystroke": "Ctrl ,",
+            "name": "workspace:show_settings",
+            "normalized_keystroke": "ctrl-,"
+          },
+          {
+            "description": "Open Settings File",
+            "group": "settings",
+            "name": "workspace:open_settings_file"
+          },
+          {
+            "description": "Open Settings: AI",
+            "group": "settings",
+            "name": "workspace:show_ai_settings_page"
+          },
+          {
+            "description": "Open Settings: About",
+            "group": "settings",
+            "name": "workspace:show_settings_about_page"
+          },
+          {
+            "description": "Open Settings: Account",
+            "group": "settings",
+            "name": "workspace:show_settings_account_page"
+          },
+          {
+            "description": "Open Settings: Appearance",
+            "group": "settings",
+            "name": "workspace:show_settings_appearance_page"
+          },
+          {
+            "description": "Open Settings: Billing and Usage",
+            "group": "settings",
+            "name": "workspace:show_settings_billing_and_usage_page"
+          },
+          {
+            "description": "Open Settings: Code",
+            "group": "settings",
+            "name": "workspace:show_settings_code_page"
+          },
+          {
+            "description": "Open Settings: Environments",
+            "group": "settings",
+            "name": "workspace:show_settings_environments_page"
+          },
+          {
+            "description": "Open Settings: Features",
+            "group": "settings",
+            "name": "workspace:show_settings_features_page"
+          },
+          {
+            "description": "Open Settings: Keyboard Shortcuts",
+            "group": "keyboard_shortcuts",
+            "name": "workspace:show_settings_keyboard_shortcuts_page"
+          },
+          {
+            "description": "Open Settings: MCP Servers",
+            "group": "settings",
+            "name": "workspace:show_mcp_servers_settings_page"
+          },
+          {
+            "description": "Open Settings: Privacy",
+            "group": "settings",
+            "name": "workspace:show_settings_privacy_page"
+          },
+          {
+            "description": "Open Settings: Referrals",
+            "group": "settings",
+            "name": "workspace:show_settings_referrals_page"
+          },
+          {
+            "description": "Open Settings: Shared Blocks",
+            "group": "settings",
+            "name": "workspace:show_settings_shared_blocks_page"
+          },
+          {
+            "description": "Open Settings: Teams",
+            "group": "settings",
+            "name": "workspace:show_settings_teams_page"
+          },
+          {
+            "description": "Open Settings: Warpify",
+            "group": "settings",
+            "name": "workspace:show_settings_warpify_page"
+          },
+          {
+            "description": "Open Tab Configs Menu",
+            "keystroke": "Ctrl Alt Shift T",
+            "name": "workspace:toggle_tab_configs_menu",
+            "normalized_keystroke": "ctrl-alt-shift-T"
+          },
+          {
+            "description": "Open Theme Picker",
+            "group": "settings",
+            "name": "workspace:show_theme_chooser"
+          },
+          {
+            "description": "Open View Tree Debugger",
+            "name": "workspace:open_view_tree_debug_view"
+          },
+          {
+            "description": "Paste",
+            "keystroke": "Ctrl Shift V",
+            "name": "terminal:paste",
+            "normalized_keystroke": "ctrl-shift-V"
+          },
+          {
+            "description": "Quit Warp",
+            "group": "close",
+            "name": "workspace:terminate_app"
+          },
+          {
+            "description": "Reinput Selected Commands",
+            "name": "terminal:reinput_commands"
+          },
+          {
+            "description": "Reinput Selected Commands as Root",
+            "name": "terminal:reinput_commands_with_sudo"
+          },
+          {
+            "description": "Reload File",
+            "name": "notebookview:reload_file"
+          },
+          {
+            "description": "Remove the Previous Character",
+            "keystroke": "Ctrl H",
+            "name": "editor_view:backspace",
+            "normalized_keystroke": "ctrl-h"
+          },
+          {
+            "description": "Rename the Current Pane",
+            "group": "settings",
+            "name": "workspace:rename_active_pane"
+          },
+          {
+            "description": "Rename the Current Tab",
+            "group": "settings",
+            "name": "workspace:rename_active_tab"
+          },
+          {
+            "description": "Reopen Closed Session",
+            "keystroke": "Ctrl Alt T",
+            "name": "app:reopen_closed_session",
+            "normalized_keystroke": "ctrl-alt-t"
+          },
+          {
+            "description": "Reset Font Size to Default",
+            "group": "settings",
+            "name": "workspace:reset_font_size"
+          },
+          {
+            "description": "Reset Notebook Font Size",
+            "group": "settings",
+            "keystroke": "Ctrl 0",
+            "name": "notebookview:reset_font_size",
+            "normalized_keystroke": "ctrl-0"
+          },
+          {
+            "description": "Reset Zoom Level to Default",
+            "group": "settings",
+            "name": "workspace:reset_zoom"
+          },
+          {
+            "description": "Resize Pane > Move Divider Down",
+            "name": "pane_group:resize_down"
+          },
+          {
+            "description": "Resize Pane > Move Divider Left",
+            "name": "pane_group:resize_left"
+          },
+          {
+            "description": "Resize Pane > Move Divider Right",
+            "name": "pane_group:resize_right"
+          },
+          {
+            "description": "Resize Pane > Move Divider Up",
+            "name": "pane_group:resize_up"
+          },
+          {
+            "description": "Restart Warp AI",
+            "keystroke": "Ctrl Shift K",
+            "name": "ai_assistant_panel:reset_context",
+            "normalized_keystroke": "ctrl-shift-K"
+          },
+          {
+            "description": "Run Selected Commands",
+            "keystroke": "Ctrl \u23ce",
+            "name": "editor_view:run_commands",
+            "normalized_keystroke": "ctrl-enter"
+          },
+          {
+            "description": "Save All Unsaved Files in Code Review",
+            "keystroke": "Ctrl S",
+            "name": "code_review:save_all_unsaved_files",
+            "normalized_keystroke": "ctrl-s"
+          },
+          {
+            "description": "Save File",
+            "keystroke": "Ctrl S",
+            "name": "code_view:save",
+            "normalized_keystroke": "ctrl-s"
+          },
+          {
+            "description": "Save File As",
+            "keystroke": "Ctrl Shift S",
+            "name": "code_view:save_as",
+            "normalized_keystroke": "ctrl-shift-S"
+          },
+          {
+            "description": "Save New Launch Configuration",
+            "name": "workspace:open_launch_config_save_modal"
+          },
+          {
+            "description": "Save Workflow",
+            "keystroke": "Ctrl S",
+            "name": "workflowview:save",
+            "normalized_keystroke": "ctrl-s"
+          },
+          {
+            "description": "Scroll Down Half a Page (Vim)",
+            "keystroke": "Ctrl D",
+            "name": "editor_view:vim_scroll_half_page_down",
+            "normalized_keystroke": "ctrl-d"
+          },
+          {
+            "description": "Scroll Terminal Output Down One Line",
+            "name": "terminal:scroll_down_one_line"
+          },
+          {
+            "description": "Scroll Terminal Output Down One Page",
+            "keystroke": "Pagedown",
+            "name": "terminal:scroll_down_one_page",
+            "normalized_keystroke": "pagedown"
+          },
+          {
+            "description": "Scroll Terminal Output Up One Line",
+            "name": "terminal:scroll_up_one_line"
+          },
+          {
+            "description": "Scroll Terminal Output Up One Page",
+            "keystroke": "Pageup",
+            "name": "terminal:scroll_up_one_page",
+            "normalized_keystroke": "pageup"
+          },
+          {
+            "description": "Scroll Up Half a Page (Vim)",
+            "keystroke": "Ctrl U",
+            "name": "editor_view:vim_scroll_half_page_up",
+            "normalized_keystroke": "ctrl-u"
+          },
+          {
+            "description": "Scroll to Bottom of Selected Block",
+            "keystroke": "Ctrl Shift \u2193",
+            "name": "terminal:scroll_to_bottom_of_selected_block",
+            "normalized_keystroke": "ctrl-shift-down"
+          },
+          {
+            "description": "Scroll to Top of Selected Block",
+            "keystroke": "Ctrl Shift \u2191",
+            "name": "terminal:scroll_to_top_of_selected_block",
+            "normalized_keystroke": "ctrl-shift-up"
+          },
+          {
+            "description": "Search Warp Drive",
+            "name": "workspace:search_drive"
+          },
+          {
+            "description": "Select All",
+            "keystroke": "Ctrl A",
+            "name": "editor_view:select_all",
+            "normalized_keystroke": "ctrl-a"
+          },
+          {
+            "description": "Select All Blocks",
+            "name": "terminal:select_all_blocks"
+          },
+          {
+            "description": "Select Down",
+            "name": "editor_view:select_down"
+          },
+          {
+            "description": "Select Next Block",
+            "keystroke": "Ctrl \u2193",
+            "name": "terminal:select_next_block",
+            "normalized_keystroke": "ctrl-down"
+          },
+          {
+            "description": "Select Next Command",
+            "keystroke": "Ctrl \u2193",
+            "name": "editor_view:select_next_command",
+            "normalized_keystroke": "ctrl-down"
+          },
+          {
+            "description": "Select One Character to the Left",
+            "name": "editor_view:select_left"
+          },
+          {
+            "description": "Select One Character to the Right",
+            "name": "editor_view:select_right"
+          },
+          {
+            "description": "Select One Subword to the Left",
+            "name": "editor_view:select_left_by_subword"
+          },
+          {
+            "description": "Select One Subword to the Right",
+            "name": "editor_view:select_right_by_subword"
+          },
+          {
+            "description": "Select One Word to the Left",
+            "keystroke": "Shift Meta B",
+            "name": "editor_view:select_left_by_word",
+            "normalized_keystroke": "shift-meta-B"
+          },
+          {
+            "description": "Select One Word to the Right",
+            "keystroke": "Shift Meta F",
+            "name": "editor_view:select_right_by_word",
+            "normalized_keystroke": "shift-meta-F"
+          },
+          {
+            "description": "Select Previous Block",
+            "keystroke": "Ctrl \u2191",
+            "name": "terminal:select_previous_block",
+            "normalized_keystroke": "ctrl-up"
+          },
+          {
+            "description": "Select Previous Command",
+            "keystroke": "Ctrl \u2191",
+            "name": "editor_view:select_previous_command",
+            "normalized_keystroke": "ctrl-up"
+          },
+          {
+            "description": "Select Shell Command at Cursor",
+            "keystroke": "Escape",
+            "name": "editor_view:select_command",
+            "normalized_keystroke": "escape"
+          },
+          {
+            "description": "Select To Line End",
+            "name": "editor_view:select_to_line_end"
+          },
+          {
+            "description": "Select To Line Start",
+            "name": "editor_view:select_to_line_start"
+          },
+          {
+            "description": "Select Up",
+            "name": "editor_view:select_up"
+          },
+          {
+            "description": "Select and Move to the Bottom",
+            "keystroke": "Ctrl Shift End",
+            "name": "editor_view:move_to_and_select_buffer_end",
+            "normalized_keystroke": "ctrl-shift-end"
+          },
+          {
+            "description": "Select and Move to the Top",
+            "keystroke": "Ctrl Shift Home",
+            "name": "editor_view:move_to_and_select_buffer_start",
+            "normalized_keystroke": "ctrl-shift-home"
+          },
+          {
+            "description": "Select the Closest Bookmark Down",
+            "keystroke": "Alt \u2193",
+            "name": "terminal:select_bookmark_down",
+            "normalized_keystroke": "alt-down"
+          },
+          {
+            "description": "Select the Closest Bookmark Up",
+            "keystroke": "Alt \u2191",
+            "name": "terminal:select_bookmark_up",
+            "normalized_keystroke": "alt-up"
+          },
+          {
+            "description": "Select to End of Line",
+            "name": "editor:select_to_line_end"
+          },
+          {
+            "description": "Select to End of Paragraph",
+            "name": "editor:select_to_paragraph_end"
+          },
+          {
+            "description": "Select to Start of Line",
+            "name": "editor:select_to_line_start"
+          },
+          {
+            "description": "Select to Start of Paragraph",
+            "name": "editor:select_to_paragraph_start"
+          },
+          {
+            "description": "Send Feedback (Opens External Link)",
+            "name": "workspace:send_feedback"
+          },
+          {
+            "description": "Set Input Mode to Agent Mode",
+            "group": "warp_ai",
+            "keystroke": "Ctrl I",
+            "name": "input:set_mode_agent",
+            "normalized_keystroke": "ctrl-i"
+          },
+          {
+            "description": "Set Input Mode to Terminal Mode",
+            "group": "warp_ai",
+            "keystroke": "Ctrl I",
+            "name": "input:set_mode_terminal",
+            "normalized_keystroke": "ctrl-i"
+          },
+          {
+            "description": "Setup Guide",
+            "name": "terminal:onboarding_flow"
+          },
+          {
+            "description": "Share Current Session",
+            "name": "terminal:share_current_session"
+          },
+          {
+            "description": "Share Pane",
+            "name": "pane:share_pane_contents"
+          },
+          {
+            "description": "Share Selected Block",
+            "name": "terminal:open_share_block_modal"
+          },
+          {
+            "description": "Show Find Bar in Code Review",
+            "keystroke": "Ctrl F",
+            "name": "code_review:show_find_bar",
+            "normalized_keystroke": "ctrl-f"
+          },
+          {
+            "description": "Show Warp Network Log",
+            "name": "input:insert_network_logging_workflow"
+          },
+          {
+            "description": "Slash command: /add-mcp",
+            "name": "/add-mcp"
+          },
+          {
+            "description": "Slash command: /add-prompt",
+            "name": "/add-prompt"
+          },
+          {
+            "description": "Slash command: /add-rule",
+            "name": "/add-rule"
+          },
+          {
+            "description": "Slash command: /agent",
+            "keystroke": "Ctrl Shift \u23ce",
+            "name": "/agent",
+            "normalized_keystroke": "ctrl-shift-enter"
+          },
+          {
+            "description": "Slash command: /cloud-agent",
+            "keystroke": "Ctrl Alt \u23ce",
+            "name": "/cloud-agent",
+            "normalized_keystroke": "ctrl-alt-enter"
+          },
+          {
+            "description": "Slash command: /compact",
+            "name": "/compact"
+          },
+          {
+            "description": "Slash command: /compact-and",
+            "name": "/compact-and"
+          },
+          {
+            "description": "Slash command: /continue-locally",
+            "name": "/continue-locally"
+          },
+          {
+            "description": "Slash command: /conversations",
+            "keystroke": "Ctrl Shift Y",
+            "name": "/conversations",
+            "normalized_keystroke": "ctrl-shift-Y"
+          },
+          {
+            "description": "Slash command: /cost",
+            "name": "/cost"
+          },
+          {
+            "description": "Slash command: /create-environment",
+            "name": "/create-environment"
+          },
+          {
+            "description": "Slash command: /create-new-project",
+            "name": "/create-new-project"
+          },
+          {
+            "description": "Slash command: /environment",
+            "name": "/environment"
+          },
+          {
+            "description": "Slash command: /export-to-clipboard",
+            "name": "/export-to-clipboard"
+          },
+          {
+            "description": "Slash command: /export-to-file",
+            "name": "/export-to-file"
+          },
+          {
+            "description": "Slash command: /feedback",
+            "name": "/feedback"
+          },
+          {
+            "description": "Slash command: /fork",
+            "name": "/fork"
+          },
+          {
+            "description": "Slash command: /fork-and-compact",
+            "name": "/fork-and-compact"
+          },
+          {
+            "description": "Slash command: /fork-from",
+            "name": "/fork-from"
+          },
+          {
+            "description": "Slash command: /handoff",
+            "name": "/handoff"
+          },
+          {
+            "description": "Slash command: /harness",
+            "name": "/harness"
+          },
+          {
+            "description": "Slash command: /host",
+            "name": "/host"
+          },
+          {
+            "description": "Slash command: /index",
+            "name": "/index"
+          },
+          {
+            "description": "Slash command: /init",
+            "name": "/init"
+          },
+          {
+            "description": "Slash command: /model",
+            "name": "/model"
+          },
+          {
+            "description": "Slash command: /new",
+            "name": "/new"
+          },
+          {
+            "description": "Slash command: /open-code-review",
+            "name": "/open-code-review"
+          },
+          {
+            "description": "Slash command: /open-file",
+            "name": "/open-file"
+          },
+          {
+            "description": "Slash command: /open-mcp-servers",
+            "name": "/open-mcp-servers"
+          },
+          {
+            "description": "Slash command: /open-project-rules",
+            "name": "/open-project-rules"
+          },
+          {
+            "description": "Slash command: /open-repo",
+            "keystroke": "Ctrl Alt O",
+            "name": "/open-repo",
+            "normalized_keystroke": "ctrl-alt-o"
+          },
+          {
+            "description": "Slash command: /open-rules",
+            "name": "/open-rules"
+          },
+          {
+            "description": "Slash command: /open-settings-file",
+            "name": "/open-settings-file"
+          },
+          {
+            "description": "Slash command: /open-skill",
+            "name": "/open-skill"
+          },
+          {
+            "description": "Slash command: /orchestrate",
+            "name": "/orchestrate"
+          },
+          {
+            "description": "Slash command: /plan",
+            "name": "/plan"
+          },
+          {
+            "description": "Slash command: /profile",
+            "name": "/profile"
+          },
+          {
+            "description": "Slash command: /prompts",
+            "name": "/prompts"
+          },
+          {
+            "description": "Slash command: /rename-tab",
+            "name": "/rename-tab"
+          },
+          {
+            "description": "Slash command: /rewind",
+            "name": "/rewind"
+          },
+          {
+            "description": "Slash command: /set-tab-color",
+            "name": "/set-tab-color"
+          },
+          {
+            "description": "Slash command: /skills",
+            "name": "/skills"
+          },
+          {
+            "description": "Slash command: /usage",
+            "name": "/usage"
+          },
+          {
+            "description": "Split Pane Down",
+            "keystroke": "Ctrl Shift E",
+            "name": "pane_group:add_down",
+            "normalized_keystroke": "ctrl-shift-E"
+          },
+          {
+            "description": "Split Pane Left",
+            "name": "pane_group:add_left"
+          },
+          {
+            "description": "Split Pane Right",
+            "keystroke": "Ctrl Shift D",
+            "name": "pane_group:add_right",
+            "normalized_keystroke": "ctrl-shift-D"
+          },
+          {
+            "description": "Split Pane Up",
+            "name": "pane_group:add_up"
+          },
+          {
+            "description": "Stop Sharing Current Session",
+            "name": "terminal:stop_sharing_current_session"
+          },
+          {
+            "description": "Stop Synchronizing Any Panes",
+            "group": "settings",
+            "name": "workspace:disable_terminal_input_syncing"
+          },
+          {
+            "description": "Switch Focus to Left Panel",
+            "keystroke": "Ctrl Shift (",
+            "name": "workspace:shift_focus_left",
+            "normalized_keystroke": "ctrl-shift-("
+          },
+          {
+            "description": "Switch Focus to Right Panel",
+            "keystroke": "Ctrl Shift )",
+            "name": "workspace:shift_focus_right",
+            "normalized_keystroke": "ctrl-shift-)"
+          },
+          {
+            "description": "Switch Panes Down",
+            "keystroke": "Ctrl Alt \u2193",
+            "name": "pane_group:navigate_down",
+            "normalized_keystroke": "ctrl-alt-down"
+          },
+          {
+            "description": "Switch Panes Left",
+            "keystroke": "Ctrl Alt \u2190",
+            "name": "pane_group:navigate_left",
+            "normalized_keystroke": "ctrl-alt-left"
+          },
+          {
+            "description": "Switch Panes Right",
+            "keystroke": "Ctrl Alt \u2192",
+            "name": "pane_group:navigate_right",
+            "normalized_keystroke": "ctrl-alt-right"
+          },
+          {
+            "description": "Switch Panes Up",
+            "keystroke": "Ctrl Alt \u2191",
+            "name": "pane_group:navigate_up",
+            "normalized_keystroke": "ctrl-alt-up"
+          },
+          {
+            "description": "Switch to 1st Tab",
+            "group": "navigation",
+            "keystroke": "Ctrl 1",
+            "name": "workspace:activate_first_tab",
+            "normalized_keystroke": "ctrl-1"
+          },
+          {
+            "description": "Switch to 2nd Tab",
+            "group": "navigation",
+            "keystroke": "Ctrl 2",
+            "name": "workspace:activate_second_tab",
+            "normalized_keystroke": "ctrl-2"
+          },
+          {
+            "description": "Switch to 3rd Tab",
+            "group": "navigation",
+            "keystroke": "Ctrl 3",
+            "name": "workspace:activate_third_tab",
+            "normalized_keystroke": "ctrl-3"
+          },
+          {
+            "description": "Switch to 4th Tab",
+            "group": "navigation",
+            "keystroke": "Ctrl 4",
+            "name": "workspace:activate_fourth_tab",
+            "normalized_keystroke": "ctrl-4"
+          },
+          {
+            "description": "Switch to 5th Tab",
+            "group": "navigation",
+            "keystroke": "Ctrl 5",
+            "name": "workspace:activate_fifth_tab",
+            "normalized_keystroke": "ctrl-5"
+          },
+          {
+            "description": "Switch to 6th Tab",
+            "group": "navigation",
+            "keystroke": "Ctrl 6",
+            "name": "workspace:activate_sixth_tab",
+            "normalized_keystroke": "ctrl-6"
+          },
+          {
+            "description": "Switch to 7th Tab",
+            "group": "navigation",
+            "keystroke": "Ctrl 7",
+            "name": "workspace:activate_seventh_tab",
+            "normalized_keystroke": "ctrl-7"
+          },
+          {
+            "description": "Switch to 8th Tab",
+            "group": "navigation",
+            "keystroke": "Ctrl 8",
+            "name": "workspace:activate_eighth_tab",
+            "normalized_keystroke": "ctrl-8"
+          },
+          {
+            "description": "Switch to Last Tab",
+            "group": "navigation",
+            "keystroke": "Ctrl 9",
+            "name": "workspace:activate_last_tab",
+            "normalized_keystroke": "ctrl-9"
+          },
+          {
+            "description": "Take Control of Running Command",
+            "keystroke": "Ctrl I",
+            "name": "input:set_mode_terminal",
+            "normalized_keystroke": "ctrl-i"
+          },
+          {
+            "description": "Terminal Session",
+            "group": "terminal",
+            "keystroke": "Ctrl Shift T",
+            "name": "workspace:new_tab",
+            "normalized_keystroke": "ctrl-shift-T"
+          },
+          {
+            "description": "Toggle Agent Conversation List View",
+            "group": "warp_ai",
+            "keystroke": "Ctrl Shift A",
+            "name": "workspace:toggle_conversation_list_view",
+            "normalized_keystroke": "ctrl-shift-A"
+          },
+          {
+            "description": "Toggle Auto-Execute Mode",
+            "group": "warp_ai",
+            "keystroke": "Ctrl Shift I",
+            "name": "terminal:toggle_autoexecute_mode",
+            "normalized_keystroke": "ctrl-shift-I"
+          },
+          {
+            "description": "Toggle Block Filter on Selected or Last Block",
+            "name": "terminal:toggle_block_filter_on_selected_or_last_block"
+          },
+          {
+            "description": "Toggle CLI Agent Rich Input",
+            "keystroke": "Ctrl G",
+            "name": "terminal:open_cli_agent_rich_input",
+            "normalized_keystroke": "ctrl-g"
+          },
+          {
+            "description": "Toggle Case-Sensitive Search",
+            "name": "editor:toggle_case_sensitive_find"
+          },
+          {
+            "description": "Toggle Code Review",
+            "keystroke": "Ctrl Shift +",
+            "name": "workspace:toggle_right_panel",
+            "normalized_keystroke": "ctrl-shift-+"
+          },
+          {
+            "description": "Toggle Command Palette",
+            "group": "settings",
+            "keystroke": "Ctrl Shift P",
+            "name": "workspace:toggle_command_palette",
+            "normalized_keystroke": "ctrl-shift-P"
+          },
+          {
+            "description": "Toggle Comment",
+            "keystroke": "Ctrl /",
+            "name": "editor_view:toggle_comment",
+            "normalized_keystroke": "ctrl-/"
+          },
+          {
+            "description": "Toggle Conversation Details Panel",
+            "group": "warp_ai",
+            "name": "terminal:toggle_conversation_details_panel"
+          },
+          {
+            "description": "Toggle Files Palette",
+            "keystroke": "Ctrl Shift O",
+            "name": "workspace:toggle_files_palette",
+            "normalized_keystroke": "ctrl-shift-O"
+          },
+          {
+            "description": "Toggle Fullscreen",
+            "group": "navigation",
+            "keystroke": "F11",
+            "name": "root_view:toggle_fullscreen",
+            "normalized_keystroke": "f11"
+          },
+          {
+            "description": "Toggle Hide CLI Responses",
+            "group": "warp_ai",
+            "keystroke": "Ctrl G",
+            "name": "terminal:toggle_hide_cli_responses",
+            "normalized_keystroke": "ctrl-g"
+          },
+          {
+            "description": "Toggle Inline Code Styling",
+            "name": "editor_view:inline_code"
+          },
+          {
+            "description": "Toggle Keyboard Shortcuts",
+            "group": "keyboard_shortcuts",
+            "keystroke": "Ctrl /",
+            "name": "workspace:toggle_keybindings_page",
+            "normalized_keystroke": "ctrl-/"
+          },
+          {
+            "description": "Toggle Maximize Active Pane",
+            "name": "pane_group:toggle_maximize_pane"
+          },
+          {
+            "description": "Toggle Maximize Code Review Panel",
+            "name": "workspace:toggle_maximize_code_review_panel"
+          },
+          {
+            "description": "Toggle Mouse Reporting",
+            "group": "settings",
+            "name": "workspace:toggle_mouse_reporting"
+          },
+          {
+            "description": "Toggle Navigation Palette",
+            "group": "navigation",
+            "name": "workspace:toggle_navigation_palette"
+          },
+          {
+            "description": "Toggle Notification Mailbox",
+            "group": "warp_ai",
+            "keystroke": "Ctrl Shift U",
+            "name": "workspace:toggle_notification_mailbox",
+            "normalized_keystroke": "ctrl-shift-U"
+          },
+          {
+            "description": "Toggle PTY Recording for Session",
+            "name": "terminal:toggle_session_recording"
+          },
+          {
+            "description": "Toggle Project Explorer",
+            "name": "workspace:toggle_project_explorer"
+          },
+          {
+            "description": "Toggle Regular Expression Search",
+            "name": "editor:toggle_regex_find"
+          },
+          {
+            "description": "Toggle Rich-Text Debug Mode",
+            "name": "editor_view:toggle_debug_mode"
+          },
+          {
+            "description": "Toggle Sticky Command Header",
+            "group": "settings",
+            "name": "workspace:toggle_block_snackbar"
+          },
+          {
+            "description": "Toggle Sticky Command Header in Active Pane",
+            "name": "terminal:toggle_snackbar_in_active_pane"
+          },
+          {
+            "description": "Toggle Strikethrough Styling",
+            "keystroke": "Ctrl Shift X",
+            "name": "editor_view:strikethrough",
+            "normalized_keystroke": "ctrl-shift-X"
+          },
+          {
+            "description": "Toggle Synchronizing All Panes in All Tabs",
+            "group": "settings",
+            "name": "workspace:toggle_sync_all_terminal_inputs_in_all_tabs"
+          },
+          {
+            "description": "Toggle Synchronizing All Panes in Current Tab",
+            "group": "settings",
+            "keystroke": "Ctrl Alt I",
+            "name": "workspace:toggle_sync_terminal_inputs_in_tab",
+            "normalized_keystroke": "ctrl-alt-i"
+          },
+          {
+            "description": "Toggle Team Workflows Modal",
+            "keystroke": "Ctrl Shift S",
+            "name": "terminal:toggle_teams_modal",
+            "normalized_keystroke": "ctrl-shift-S"
+          },
+          {
+            "description": "Toggle Underline Styling",
+            "keystroke": "Ctrl U",
+            "name": "editor_view:underline",
+            "normalized_keystroke": "ctrl-u"
+          },
+          {
+            "description": "Toggle Vertical Tabs Panel",
+            "group": "navigation",
+            "keystroke": "Ctrl Shift B",
+            "name": "workspace:toggle_vertical_tabs_panel",
+            "normalized_keystroke": "ctrl-shift-B"
+          },
+          {
+            "description": "Toggle Warp Drive",
+            "name": "workspace:toggle_warp_drive"
+          },
+          {
+            "description": "Toggle the Agent Management View",
+            "group": "warp_ai",
+            "keystroke": "Ctrl Shift M",
+            "name": "workspace:toggle_agent_management_view",
+            "normalized_keystroke": "ctrl-shift-M"
+          },
+          {
+            "description": "Trigger Auto Detection",
+            "group": "warp_ai",
+            "keystroke": "Alt Shift I",
+            "name": "input:enable_auto_detection",
+            "normalized_keystroke": "alt-shift-I"
+          },
+          {
+            "description": "Trigger a Panic (For Testing Sentry-Rust)",
+            "name": "workspace:panic"
+          },
+          {
+            "description": "Turn Notifications Off",
+            "group": "notifications",
+            "name": "workspace:toggle_notifications_off"
+          },
+          {
+            "description": "Turn Notifications On",
+            "group": "notifications",
+            "name": "workspace:toggle_notifications_on"
+          },
+          {
+            "description": "Unfold",
+            "keystroke": "Ctrl Alt ]",
+            "name": "editor_view:unfold",
+            "normalized_keystroke": "ctrl-alt-]"
+          },
+          {
+            "description": "View Privacy Policy (Opens External Link)",
+            "name": "workspace:link_to_privacy_policy"
+          },
+          {
+            "description": "View User Docs (Opens External Link)",
+            "name": "workspace:link_to_user_docs"
+          },
+          {
+            "description": "View Warp Logs",
+            "name": "workspace:view_logs"
+          },
+          {
+            "description": "Warpify Ssh Session",
+            "keystroke": "Ctrl I",
+            "name": "terminal:warpify_ssh_session",
+            "normalized_keystroke": "ctrl-i"
+          },
+          {
+            "description": "Warpify Subshell",
+            "keystroke": "Ctrl I",
+            "name": "terminal:warpify_subshell",
+            "normalized_keystroke": "ctrl-i"
+          },
+          {
+            "description": "Workflows",
+            "keystroke": "Ctrl Shift R",
+            "name": "input:toggle_workflows",
+            "normalized_keystroke": "ctrl-shift-R"
+          },
+          {
+            "description": "[Debug] Enter Onboarding State",
+            "group": "settings",
+            "keystroke": "Shift F12",
+            "name": "root_view:enter_onboarding_state",
+            "normalized_keystroke": "shift-f12"
+          },
+          {
+            "description": "[Debug] Generate Codebase Index",
+            "group": "warp_ai",
+            "name": "terminal:generate_codebase_index"
+          },
+          {
+            "description": "[Debug] Install OpenCode Warp Plugin",
+            "name": "workspace:install_opencode_warp_plugin"
+          },
+          {
+            "description": "[Debug] Log Review Comment Send Status for Active Tab",
+            "name": "workspace:log_review_comment_send_status_for_active_tab"
+          },
+          {
+            "description": "[Debug] Onboarding Callout: Modality - No Project",
+            "name": "terminal:agent_onboarding_flow_modality_no_project"
+          },
+          {
+            "description": "[Debug] Onboarding Callout: Modality - Project",
+            "name": "terminal:agent_onboarding_flow_modality_project"
+          },
+          {
+            "description": "[Debug] Onboarding Callout: Modality - Terminal",
+            "name": "terminal:agent_onboarding_flow_modality_terminal"
+          },
+          {
+            "description": "[Debug] Onboarding Callout: WarpInput - No Project",
+            "name": "terminal:agent_onboarding_flow_universal_input_no_project"
+          },
+          {
+            "description": "[Debug] Onboarding Callout: WarpInput - Project",
+            "name": "terminal:agent_onboarding_flow_universal_input_project"
+          },
+          {
+            "description": "[Debug] Onboarding Callout: WarpInput - Terminal",
+            "name": "terminal:agent_onboarding_flow_legacy_terminal"
+          },
+          {
+            "description": "[Debug] Open Build Plan Migration Modal",
+            "name": "workspace:open_build_plan_migration_modal"
+          },
+          {
+            "description": "[Debug] Open OpenWarp Launch Modal",
+            "name": "workspace:open_openwarp_launch_modal"
+          },
+          {
+            "description": "[Debug] Open Orchestration Launch Modal",
+            "name": "workspace:open_orchestration_launch_modal"
+          },
+          {
+            "description": "[Debug] Open Oz Launch Modal",
+            "name": "workspace:open_oz_launch_modal"
+          },
+          {
+            "description": "[Debug] Open Session Config Modal",
+            "name": "workspace:open_session_config_modal"
+          },
+          {
+            "description": "[Debug] Reset Build Plan Migration Modal State",
+            "name": "workspace:reset_build_plan_migration_modal_state"
+          },
+          {
+            "description": "[Debug] Reset OpenWarp Launch Modal State",
+            "name": "workspace:reset_openwarp_launch_modal_state"
+          },
+          {
+            "description": "[Debug] Reset Orchestration Launch Modal State",
+            "name": "workspace:reset_orchestration_launch_modal_state"
+          },
+          {
+            "description": "[Debug] Reset Oz Launch Modal State",
+            "name": "workspace:reset_oz_launch_modal_state"
+          },
+          {
+            "description": "[Debug] Start HOA Onboarding Flow",
+            "name": "workspace:show_hoa_onboarding_flow"
+          },
+          {
+            "description": "[Debug] Un-Dismiss AWS Login Banner",
+            "name": "workspace:debug_reset_aws_bedrock_login_banner_dismissed"
+          },
+          {
+            "description": "[Debug] Use Local OpenCode Warp Plugin (Testing Only)",
+            "name": "workspace:use_local_opencode_warp_plugin"
+          }
+        ]
+      },
+      "command": "$WARPCTRL --output-format json keybinding list",
+      "command_family": "metadata",
+      "context": "outside-warp external xterm",
+      "exit_code": 0,
+      "expected_result": "returns keybinding list",
+      "log_paths": [
+        "logs/026__keybinding_list__stdout.json",
+        "logs/026__keybinding_list__stderr.log",
+        "logs/026__keybinding_list__exit_code.txt"
+      ],
+      "notes": [],
+      "ordinal": "026",
+      "permission_state": "outside_warp_control + metadata_reads + metadata_configuration_mutations",
+      "required_matrix_command": true,
+      "screenshot_paths": [
+        "screenshots/026__outside-staggered__metadata__keybinding_list__terminal_ui.png"
+      ],
+      "skip_or_blocker_reason": null,
+      "status": "pass"
+    },
+    {
+      "actual_result": {
+        "error": {
+          "code": "missing_target",
+          "message": "keybinding.get could not find copy"
+        },
+        "ok": false
+      },
+      "command": "$WARPCTRL --output-format json keybinding get copy",
+      "command_family": "metadata",
+      "context": "outside-warp external xterm",
+      "exit_code": 1,
+      "expected_result": "returns copy keybinding metadata or preserves missing_target/parser behavior",
+      "log_paths": [
+        "logs/027__keybinding_get_copy__stdout.json",
+        "logs/027__keybinding_get_copy__stderr.log",
+        "logs/027__keybinding_get_copy__exit_code.txt"
+      ],
+      "notes": [
+        "Preserved known keybinding get copy missing_target behavior exactly: JSON error payload and exit code 1."
+      ],
+      "ordinal": "027",
+      "permission_state": "outside_warp_control + metadata_reads + metadata_configuration_mutations",
+      "required_matrix_command": true,
+      "screenshot_paths": [
+        "screenshots/027__outside-staggered__metadata__keybinding_get_copy__terminal_ui.png"
+      ],
+      "skip_or_blocker_reason": null,
+      "status": "pass"
+    },
+    {
+      "actual_result": {
+        "action": "setting.set",
+        "setting": {
+          "key": "terminal.input.syntax_highlighting",
+          "value": true,
+          "value_type": "bool"
+        }
+      },
+      "command": "$WARPCTRL --output-format json setting set terminal.input.syntax_highlighting true",
+      "command_family": "metadata-config",
+      "context": "outside-warp external xterm",
+      "exit_code": 0,
+      "expected_result": "restores original syntax_highlighting value",
+      "log_paths": [
+        "logs/028__restore_syntax_highlighting__stdout.json",
+        "logs/028__restore_syntax_highlighting__stderr.log",
+        "logs/028__restore_syntax_highlighting__exit_code.txt"
+      ],
+      "notes": [
+        "Extra restoration command; not counted in required matrix."
+      ],
+      "ordinal": "028",
+      "permission_state": "outside_warp_control + metadata_reads + metadata_configuration_mutations",
+      "required_matrix_command": false,
+      "screenshot_paths": [
+        "screenshots/028__outside-staggered__metadata-config__restore_syntax_highlighting__terminal_ui.png"
+      ],
+      "skip_or_blocker_reason": null,
+      "status": "pass"
+    }
+  ],
+  "counts": {
+    "all_attempted_including_restoration": {
+      "fail": 0,
+      "pass": 21,
+      "skip": 0,
+      "total": 21
+    },
+    "required": {
+      "fail": 0,
+      "pass": 20,
+      "skip": 0,
+      "total": 20
+    }
+  },
+  "expected_sha": "c4bb6fdc670d667e78041a9318eda7c6778a22a8",
+  "generated_at_utc": "2026-05-26T22:00:02Z",
+  "runtime": {
+    "app_binary": "target/debug/warp-oss",
+    "app_logs": [
+      "logs/app_stdout.log",
+      "logs/app_stderr.log",
+      "logs/discovery_after_launch.json",
+      "logs/discovery_ls_after_launch.log",
+      "logs/xdotool_windows_validation_layout.log"
+    ],
+    "discovery_dir": "/tmp/warpctrl-validation-discovery-metadata-config-mutations",
+    "display": "Xvfb :77 with Openbox",
+    "home": "/tmp/warpctrl-validation-home-metadata-config-mutations",
+    "permission_enablement_method": "Preseeded Linux private file-backed preferences for an isolated HOME before app launch; equivalent Scripting settings are visible under Settings > Scripting when the feature is enabled.",
+    "permissions_enabled": {
+      "LocalControlAllowOutsideWarp": true,
+      "LocalControlOutsideWarpMetadataConfigurationMutations": true,
+      "LocalControlOutsideWarpMetadataReads": true
+    },
+    "setup_screenshots": [
+      "screenshots/000__launch_probe__terminal_ui.png",
+      "screenshots/001__onboarding_after_get_started__ui.png",
+      "screenshots/0065__onboarding_next_loop__ui.png",
+      "screenshots/007__outside-staggered__setup__xterm_warp.png"
+    ],
+    "warpctrl_binary": "target/debug/warpctrl"
+  },
+  "screenshot_contract": {
+    "combined_staggered_possible": true,
+    "notes": "Each executed warpctrl command has a combined screenshot showing the external xterm command/output and the Warp app window. No paired screenshots were needed."
+  },
+  "selected_test_values": {
+    "dark_theme": "Dark",
+    "light_theme": "Light",
+    "original_font_size": 13,
+    "original_syntax_highlighting": true,
+    "safe_setting_get_and_set_key": "appearance.text.font_size",
+    "safe_setting_toggle_key": "terminal.input.syntax_highlighting",
+    "theme_set": "Light"
+  },
+  "sha_match": true,
+  "skipped_commands": [],
+  "validated_ref": "origin/zach/warpctrl-validation/c4bb6fdc",
+  "validated_sha": "c4bb6fdc670d667e78041a9318eda7c6778a22a8",
+  "validation_name": "metadata-config-mutations"
+}
