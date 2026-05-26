@@ -736,12 +736,15 @@ impl ActionKind {
             | Self::ThemeSystemSet
             | Self::ThemeLightSet
             | Self::ThemeDarkSet
+            | Self::AppearanceGet
             | Self::AppearanceFontSizeIncrease
             | Self::AppearanceFontSizeDecrease
             | Self::AppearanceFontSizeReset
             | Self::AppearanceZoomIncrease
             | Self::AppearanceZoomDecrease
             | Self::AppearanceZoomReset
+            | Self::SettingList
+            | Self::SettingGet
             | Self::SettingSet
             | Self::SettingToggle
             | Self::KeybindingList
@@ -951,6 +954,7 @@ impl ActionKind {
             | Self::ThemeSystemSet
             | Self::ThemeLightSet
             | Self::ThemeDarkSet
+            | Self::AppearanceGet
             | Self::AppearanceFontSizeIncrease
             | Self::AppearanceFontSizeDecrease
             | Self::AppearanceFontSizeReset

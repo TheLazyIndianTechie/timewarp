@@ -255,7 +255,6 @@ pub(crate) fn session_list(
     }))
 }
 
-
 pub(crate) fn capability_list() -> serde_json::Value {
     json!({
         "action": ActionKind::CapabilityList.as_str(),

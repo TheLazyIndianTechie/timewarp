@@ -14,10 +14,9 @@ use super::{
 };
 use crate::settings::{
     AllowInsideWarpAuthenticatedUserActions, AllowOutsideWarpAppStateMutations,
-    AllowOutsideWarpControl,
-    AllowOutsideWarpMetadataConfigurationMutations, AllowOutsideWarpMetadataReads,
-    AllowOutsideWarpUnderlyingDataMutations, AllowOutsideWarpUnderlyingDataReads,
-    LocalControlSettings,
+    AllowOutsideWarpControl, AllowOutsideWarpMetadataConfigurationMutations,
+    AllowOutsideWarpMetadataReads, AllowOutsideWarpUnderlyingDataMutations,
+    AllowOutsideWarpUnderlyingDataReads, LocalControlSettings,
 };
 
 fn settings_with_values(
@@ -52,31 +51,29 @@ fn settings_with_values(
 }
 
 #[test]
-fn drive_object_mutations_require_underlying_data_mutation_permission() {
-    let settings = settings_with_values(true, true, true, false, false);
+fn drive_object_mutations_are_inside_warp_only() {
+    let settings = settings_with_values(true, true, true, false, true);
 
     let err = ensure_settings_allow_action(
         &settings,
         InvocationContext::OutsideWarp,
         ActionKind::DriveObjectCreate,
     )
-    .expect_err("underlying-data mutation permission is disabled");
-    assert_eq!(err.code, ErrorCode::InsufficientPermissions);
-
-    let settings = settings_with_values(true, true, true, false, true);
-    ensure_settings_allow_action(
-        &settings,
-        InvocationContext::OutsideWarp,
-        ActionKind::DriveObjectCreate,
-    )
-    .expect("underlying-data mutation permission allows the action helper");
+    .expect_err("authenticated Drive mutations require inside-Warp invocation");
+    assert_eq!(err.code, ErrorCode::ExecutionContextNotAllowed);
 }
 
 fn settings_with_outside_warp(
     outside_control: bool,
     outside_app_state_mutations: bool,
 ) -> LocalControlSettings {
-    settings_with_values(outside_control, false, outside_app_state_mutations, false, false)
+    settings_with_values(
+        outside_control,
+        false,
+        outside_app_state_mutations,
+        false,
+        false,
+    )
 }
 
 #[test]
@@ -392,7 +389,6 @@ fn disabled_granular_permission_denies_with_insufficient_permissions() {
     .expect_err("read-write permission is disabled");
     assert_eq!(err.code, ErrorCode::InsufficientPermissions);
 }
-
 
 #[test]
 fn disabled_metadata_read_permission_denies_readonly_metadata_actions() {

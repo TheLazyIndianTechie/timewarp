@@ -52,27 +52,21 @@ fn parses_first_slice_app_smoke_metadata_commands() {
 
 #[test]
 fn parses_catalog_metadata_commands() {
-    let args = ControlArgs::try_parse_from([
-        "warpctrl",
-        "action",
-        "inspect",
-        "surface.settings.open",
-    ])
-    .expect("action inspect parses");
+    let args =
+        ControlArgs::try_parse_from(["warpctrl", "action", "inspect", "surface.settings.open"])
+            .expect("action inspect parses");
     let ControlCommand::Action(ActionCatalogCommand::Inspect { action }) = args.command else {
         panic!("expected action inspect command");
     };
     assert_eq!(action, "surface.settings.open");
     assert!(ControlArgs::try_parse_from(["warpctrl", "action", "list", "--stubs-only"]).is_ok());
-    assert!(ControlArgs::try_parse_from([
-        "warpctrl",
-        "capability",
-        "list",
-        "--implemented-only",
-    ])
-    .is_ok());
-    assert!(ControlArgs::try_parse_from(["warpctrl", "capability", "inspect", "tab.create"])
-        .is_ok());
+    assert!(
+        ControlArgs::try_parse_from(["warpctrl", "capability", "list", "--implemented-only",])
+            .is_ok()
+    );
+    assert!(
+        ControlArgs::try_parse_from(["warpctrl", "capability", "inspect", "tab.create"]).is_ok()
+    );
 }
 
 #[test]
@@ -128,13 +122,27 @@ fn parses_completion_generation_command() {
 fn parses_readonly_capability_and_target_commands() {
     assert!(ControlArgs::try_parse_from(["warpctrl", "instance", "inspect"]).is_ok());
     assert!(ControlArgs::try_parse_from(["warpctrl", "capability", "list"]).is_ok());
-    assert!(ControlArgs::try_parse_from(["warpctrl", "capability", "inspect", "tab.create"]).is_ok());
-    assert!(ControlArgs::try_parse_from(["warpctrl", "action", "inspect", "drive.inspect"]).is_ok());
+    assert!(
+        ControlArgs::try_parse_from(["warpctrl", "capability", "inspect", "tab.create"]).is_ok()
+    );
+    assert!(
+        ControlArgs::try_parse_from(["warpctrl", "action", "inspect", "drive.inspect"]).is_ok()
+    );
     assert!(ControlArgs::try_parse_from(["warpctrl", "window", "list"]).is_ok());
-    assert!(ControlArgs::try_parse_from(["warpctrl", "window", "inspect", "--window", "active"]).is_ok());
-    assert!(ControlArgs::try_parse_from(["warpctrl", "tab", "inspect", "--tab-index", "0"]).is_ok());
-    assert!(ControlArgs::try_parse_from(["warpctrl", "pane", "inspect", "--pane", "active"]).is_ok());
-    assert!(ControlArgs::try_parse_from(["warpctrl", "session", "inspect", "--session", "active"]).is_ok());
+    assert!(
+        ControlArgs::try_parse_from(["warpctrl", "window", "inspect", "--window", "active"])
+            .is_ok()
+    );
+    assert!(
+        ControlArgs::try_parse_from(["warpctrl", "tab", "inspect", "--tab-index", "0"]).is_ok()
+    );
+    assert!(
+        ControlArgs::try_parse_from(["warpctrl", "pane", "inspect", "--pane", "active"]).is_ok()
+    );
+    assert!(
+        ControlArgs::try_parse_from(["warpctrl", "session", "inspect", "--session", "active"])
+            .is_ok()
+    );
     assert!(ControlArgs::try_parse_from(["warpctrl", "block", "output", "block_1"]).is_ok());
     assert!(ControlArgs::try_parse_from(["warpctrl", "input", "get"]).is_ok());
     assert!(ControlArgs::try_parse_from(["warpctrl", "history", "list", "--limit", "5"]).is_ok());

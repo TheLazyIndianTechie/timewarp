@@ -12,10 +12,9 @@ use crate::local_control::output::{write_json, write_json_line};
 use crate::local_control::selectors::{instance_selector, target_selector};
 use crate::local_control::{
     ActionCatalogCommand, AppCommand, AppearanceCommand, BlockCommand, CapabilityCommand,
-    CatalogFilterArgs, DriveCommand, DriveWorkflowCommand, FileCommand, HistoryCommand, InputCommand,
-    InstanceCommand,
-    KeybindingCommand, PaneCommand, ProjectCommand, SessionCommand, SettingCommand, TabColorCommand,
-    TabCommand, TargetArgs, ThemeCommand, WindowCommand,
+    CatalogFilterArgs, DriveCommand, DriveWorkflowCommand, FileCommand, HistoryCommand,
+    InputCommand, InstanceCommand, KeybindingCommand, PaneCommand, ProjectCommand, SessionCommand,
+    SettingCommand, TabColorCommand, TabCommand, TargetArgs, ThemeCommand, WindowCommand,
 };
 
 /// Display-oriented projection of a discoverable Warp instance.
@@ -163,9 +162,12 @@ pub(super) fn run_window_command(
         WindowCommand::List(args) => {
             run_action_with_params(args, ActionKind::WindowList, EmptyParams {}, output_format)
         }
-        WindowCommand::Inspect(args) => {
-            run_action_with_params(args, ActionKind::WindowInspect, EmptyParams {}, output_format)
-        }
+        WindowCommand::Inspect(args) => run_action_with_params(
+            args,
+            ActionKind::WindowInspect,
+            EmptyParams {},
+            output_format,
+        ),
     }
 }
 pub(super) fn run_tab_command(
@@ -236,9 +238,12 @@ pub(super) fn run_session_command(
         SessionCommand::List(args) => {
             run_action_with_params(args, ActionKind::SessionList, EmptyParams {}, output_format)
         }
-        SessionCommand::Inspect(args) => {
-            run_action_with_params(args, ActionKind::SessionInspect, EmptyParams {}, output_format)
-        }
+        SessionCommand::Inspect(args) => run_action_with_params(
+            args,
+            ActionKind::SessionInspect,
+            EmptyParams {},
+            output_format,
+        ),
     }
 }
 
@@ -314,7 +319,9 @@ pub(super) fn run_theme_command(
         ThemeCommand::SystemSet(args) => run_action_with_params(
             args.target,
             ActionKind::ThemeSystemSet,
-            ActionParams::BooleanValue { value: args.enabled },
+            ActionParams::BooleanValue {
+                value: args.enabled,
+            },
             output_format,
         ),
         ThemeCommand::LightSet(args) => run_action_with_params(
@@ -377,9 +384,12 @@ pub(super) fn run_appearance_command(
             json!({}),
             output_format,
         ),
-        AppearanceCommand::ZoomReset(args) => {
-            run_action(args, ActionKind::AppearanceZoomReset, json!({}), output_format)
-        }
+        AppearanceCommand::ZoomReset(args) => run_action(
+            args,
+            ActionKind::AppearanceZoomReset,
+            json!({}),
+            output_format,
+        ),
     }
 }
 
@@ -445,7 +455,9 @@ pub(super) fn run_keybinding_command(
         KeybindingCommand::Get(args) => run_action_with_params(
             args.target,
             ActionKind::KeybindingGet,
-            local_control::BindingNameParams { binding_name: args.name },
+            local_control::BindingNameParams {
+                binding_name: args.name,
+            },
             output_format,
         ),
     }
@@ -642,7 +654,6 @@ fn run_action_with_params<T: Serialize>(
         OutputFormat::Pretty | OutputFormat::Text => write_json(&data),
     }
 }
-
 
 fn parse_json_value_or_string(value: String) -> serde_json::Value {
     serde_json::from_str(&value).unwrap_or(serde_json::Value::String(value))

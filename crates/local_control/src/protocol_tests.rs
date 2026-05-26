@@ -301,11 +301,12 @@ fn logged_out_safe_app_state_actions_can_advertise_external_context() {
         ActionImplementationStatus::Implemented
     );
     assert!(!metadata.authenticated_user.required);
-    assert!(metadata
-        .allowed_invocation_contexts
-        .contains(&InvocationContext::OutsideWarp));
+    assert!(
+        metadata
+            .allowed_invocation_contexts
+            .contains(&InvocationContext::OutsideWarp)
+    );
 }
-
 
 #[test]
 fn readonly_capability_targets_are_implemented_with_expected_categories() {
@@ -335,7 +336,10 @@ fn readonly_capability_targets_are_implemented_with_expected_categories() {
             metadata.implementation_status,
             ActionImplementationStatus::Implemented
         );
-        assert_eq!(metadata.permission_category, PermissionCategory::ReadMetadata);
+        assert_eq!(
+            metadata.permission_category,
+            PermissionCategory::ReadMetadata
+        );
         assert!(!metadata.authenticated_user.required);
     }
 
@@ -427,7 +431,10 @@ fn metadata_configuration_mutation_metadata_is_isolated() {
             metadata.permission_category,
             PermissionCategory::MutateMetadataConfiguration
         );
-        assert_ne!(metadata.permission_category, PermissionCategory::MutateAppState);
+        assert_ne!(
+            metadata.permission_category,
+            PermissionCategory::MutateAppState
+        );
         assert_ne!(
             metadata.permission_category,
             PermissionCategory::MutateUnderlyingData

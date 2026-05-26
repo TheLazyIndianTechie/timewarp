@@ -11,15 +11,14 @@ use warp_util::path::LineAndColumnArg;
 use warpui::{ModelContext, SingletonEntity, TypedActionView, ViewHandle};
 
 use crate::cloud_object::model::persistence::CloudModel;
-use crate::cloud_object::CloudObject as _;
 use crate::drive::items::WarpDriveItemId;
+use crate::local_control::LocalControlBridge;
 use crate::palette::PaletteMode;
 use crate::pane_group::{Direction, PaneGroup, PaneGroupAction};
 use crate::server::ids::{ServerId, SyncId};
 use crate::server::telemetry::{PaletteSource, SharingDialogSource};
 use crate::tab::SelectedTabColor;
 use crate::terminal::view::TerminalAction;
-use crate::local_control::LocalControlBridge;
 use crate::workspace::{CommandSearchOptions, InitContent, Workspace, WorkspaceAction};
 
 pub(crate) fn handle(
@@ -31,18 +30,12 @@ pub(crate) fn handle(
 ) -> Result<serde_json::Value, ControlError> {
     match action {
         ActionKind::AppFocus | ActionKind::WindowFocus => focus_window(instance_id, action, ctx),
-        ActionKind::WindowCreate => workspace_action(
-            instance_id,
-            action,
-            WorkspaceAction::AddWindow,
-            ctx,
-        ),
-        ActionKind::WindowClose => workspace_action(
-            instance_id,
-            action,
-            WorkspaceAction::CloseWindow,
-            ctx,
-        ),
+        ActionKind::WindowCreate => {
+            workspace_action(instance_id, action, WorkspaceAction::AddWindow, ctx)
+        }
+        ActionKind::WindowClose => {
+            workspace_action(instance_id, action, WorkspaceAction::CloseWindow, ctx)
+        }
         ActionKind::TabActivate => tab_activate(instance_id, params, target, ctx),
         ActionKind::TabMove => tab_move(instance_id, params, ctx),
         ActionKind::TabClose => tab_close(instance_id, params, ctx),
@@ -62,7 +55,9 @@ pub(crate) fn handle(
         ActionKind::PaneResize => pane_resize(instance_id, params, ctx),
         ActionKind::PaneMaximize => pane_maximize(instance_id, true, ctx),
         ActionKind::PaneUnmaximize => pane_maximize(instance_id, false, ctx),
-        ActionKind::PaneClose => pane_group_action(instance_id, action, PaneGroupAction::RemoveActive, ctx),
+        ActionKind::PaneClose => {
+            pane_group_action(instance_id, action, PaneGroupAction::RemoveActive, ctx)
+        }
         ActionKind::PaneRename => pane_rename(instance_id, params, ctx),
         ActionKind::PaneResetName => pane_reset_name(instance_id, ctx),
         ActionKind::SessionActivate => pane_focus(instance_id, target, ctx),
@@ -72,9 +67,12 @@ pub(crate) fn handle(
         ActionKind::SessionNext => {
             workspace_action(instance_id, action, WorkspaceAction::CycleNextSession, ctx)
         }
-        ActionKind::SessionReopenClosed => {
-            workspace_action(instance_id, action, WorkspaceAction::ReopenClosedSession, ctx)
-        }
+        ActionKind::SessionReopenClosed => workspace_action(
+            instance_id,
+            action,
+            WorkspaceAction::ReopenClosedSession,
+            ctx,
+        ),
         ActionKind::InputInsert => input_text(instance_id, action, params, false, ctx),
         ActionKind::InputReplace => input_text(instance_id, action, params, true, ctx),
         ActionKind::InputClear => workspace_action(
@@ -92,43 +90,30 @@ pub(crate) fn handle(
         ActionKind::SurfaceCommandPaletteOpen => {
             surface_palette_open(instance_id, action, PaletteMode::Command, params, ctx)
         }
-        ActionKind::SurfaceCommandSearchOpen => surface_command_search_open(instance_id, params, ctx),
-        ActionKind::SurfaceWarpDriveOpen => workspace_action(
-            instance_id,
-            action,
-            WorkspaceAction::OpenWarpDrive,
-            ctx,
-        ),
-        ActionKind::SurfaceWarpDriveToggle => workspace_action(
-            instance_id,
-            action,
-            WorkspaceAction::ToggleWarpDrive,
-            ctx,
-        ),
+        ActionKind::SurfaceCommandSearchOpen => {
+            surface_command_search_open(instance_id, params, ctx)
+        }
+        ActionKind::SurfaceWarpDriveOpen => {
+            workspace_action(instance_id, action, WorkspaceAction::OpenWarpDrive, ctx)
+        }
+        ActionKind::SurfaceWarpDriveToggle => {
+            workspace_action(instance_id, action, WorkspaceAction::ToggleWarpDrive, ctx)
+        }
         ActionKind::SurfaceResourceCenterToggle => workspace_action(
             instance_id,
             action,
             WorkspaceAction::ToggleResourceCenter,
             ctx,
         ),
-        ActionKind::SurfaceAiAssistantToggle => workspace_action(
-            instance_id,
-            action,
-            WorkspaceAction::ToggleAIAssistant,
-            ctx,
-        ),
-        ActionKind::SurfaceCodeReviewToggle | ActionKind::SurfaceRightPanelToggle => workspace_action(
-            instance_id,
-            action,
-            WorkspaceAction::ToggleRightPanel,
-            ctx,
-        ),
-        ActionKind::SurfaceLeftPanelToggle => workspace_action(
-            instance_id,
-            action,
-            WorkspaceAction::ToggleLeftPanel,
-            ctx,
-        ),
+        ActionKind::SurfaceAiAssistantToggle => {
+            workspace_action(instance_id, action, WorkspaceAction::ToggleAIAssistant, ctx)
+        }
+        ActionKind::SurfaceCodeReviewToggle | ActionKind::SurfaceRightPanelToggle => {
+            workspace_action(instance_id, action, WorkspaceAction::ToggleRightPanel, ctx)
+        }
+        ActionKind::SurfaceLeftPanelToggle => {
+            workspace_action(instance_id, action, WorkspaceAction::ToggleLeftPanel, ctx)
+        }
         ActionKind::SurfaceVerticalTabsToggle => workspace_action(
             instance_id,
             action,
@@ -139,7 +124,9 @@ pub(crate) fn handle(
         ActionKind::ProjectOpen => project_open(instance_id, params, ctx),
         ActionKind::DriveOpen => drive_open(instance_id, params, ctx),
         ActionKind::DriveNotebookOpen => drive_notebook_open(instance_id, params, ctx),
-        ActionKind::DriveEnvVarCollectionOpen => drive_env_var_collection_open(instance_id, params, ctx),
+        ActionKind::DriveEnvVarCollectionOpen => {
+            drive_env_var_collection_open(instance_id, params, ctx)
+        }
         ActionKind::DriveObjectShareOpen => drive_object_share_open(instance_id, params, ctx),
         _ => Err(ControlError::new(
             ErrorCode::UnsupportedAction,
@@ -289,10 +276,12 @@ fn pane_focus(
     target: &TargetSelector,
     ctx: &mut ModelContext<LocalControlBridge>,
 ) -> Result<serde_json::Value, ControlError> {
-    let pane_target = target
-        .pane
-        .as_ref()
-        .ok_or_else(|| ControlError::new(ErrorCode::InvalidSelector, "pane focus requires a pane target"))?;
+    let pane_target = target.pane.as_ref().ok_or_else(|| {
+        ControlError::new(
+            ErrorCode::InvalidSelector,
+            "pane focus requires a pane target",
+        )
+    })?;
     let workspace = active_workspace(ctx)?;
     let action = workspace.read(ctx, |workspace, ctx| {
         let pane_group = workspace.active_tab_pane_group().as_ref(ctx);
@@ -307,7 +296,10 @@ fn pane_focus(
                     )
                 })?;
                 let pane_id = pane_group.pane_id_from_index(pane_index).ok_or_else(|| {
-                    ControlError::new(ErrorCode::MissingTarget, "pane index did not match a visible pane")
+                    ControlError::new(
+                        ErrorCode::MissingTarget,
+                        "pane index did not match a visible pane",
+                    )
                 })?;
                 Ok(Some(PaneGroupAction::Activate(
                     pane_id,
@@ -665,10 +657,7 @@ fn active_pane_group(
 }
 
 fn action_params(params: &serde_json::Value) -> Result<ActionParams, ControlError> {
-    if params
-        .as_object()
-        .is_some_and(serde_json::Map::is_empty)
-    {
+    if params.as_object().is_some_and(serde_json::Map::is_empty) {
         return Ok(ActionParams::None);
     }
     serde_json::from_value(params.clone()).map_err(|err| {
@@ -724,7 +713,10 @@ fn drive_id_param(
 fn invalid_params<T>(action: ActionKind) -> Result<T, ControlError> {
     Err(ControlError::new(
         ErrorCode::InvalidParams,
-        format!("{} received parameters with the wrong shape", action.as_str()),
+        format!(
+            "{} received parameters with the wrong shape",
+            action.as_str()
+        ),
     ))
 }
 
@@ -743,9 +735,9 @@ fn pane_direction(direction: ControlDirection) -> Result<Direction, ControlError
 
 fn tab_index_from_target(target: &TargetSelector, workspace: &Workspace) -> Option<usize> {
     match target.tab.as_ref() {
-        Some(::local_control::protocol::TabTarget::Index { index }) => {
-            usize::try_from(*index).ok().filter(|index| *index < workspace.tab_count())
-        }
+        Some(::local_control::protocol::TabTarget::Index { index }) => usize::try_from(*index)
+            .ok()
+            .filter(|index| *index < workspace.tab_count()),
         Some(::local_control::protocol::TabTarget::Active) | None => {
             Some(workspace.active_tab_index())
         }

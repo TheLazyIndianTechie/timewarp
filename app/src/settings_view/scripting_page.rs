@@ -11,10 +11,9 @@ use crate::features::FeatureFlag;
 use crate::report_if_error;
 use crate::settings::{
     AllowInsideWarpAuthenticatedUserActions, AllowOutsideWarpAppStateMutations,
-    AllowOutsideWarpControl,
-    AllowOutsideWarpMetadataConfigurationMutations, AllowOutsideWarpMetadataReads,
-    AllowOutsideWarpUnderlyingDataMutations, AllowOutsideWarpUnderlyingDataReads,
-    LocalControlSettings,
+    AllowOutsideWarpControl, AllowOutsideWarpMetadataConfigurationMutations,
+    AllowOutsideWarpMetadataReads, AllowOutsideWarpUnderlyingDataMutations,
+    AllowOutsideWarpUnderlyingDataReads, LocalControlSettings,
 };
 use settings::{Setting as _, ToggleableSetting as _};
 use std::cell::RefCell;

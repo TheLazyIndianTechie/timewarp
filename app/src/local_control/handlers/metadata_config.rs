@@ -8,7 +8,7 @@ use ::local_control::{ActionKind, ControlError, ErrorCode, InstanceId};
 use serde_json::json;
 use settings::Setting as _;
 use warp_core::ui::theme::AnsiColorIdentifier;
-use warpui::{ModelContext, ViewHandle, WindowId};
+use warpui::{ModelContext, SingletonEntity, ViewHandle, WindowId};
 
 use crate::local_control::LocalControlBridge;
 use crate::pane_group::{PaneGroup, PaneId};
@@ -202,8 +202,12 @@ pub(crate) fn appearance_mutation(
     ctx: &mut ModelContext<LocalControlBridge>,
 ) -> Result<serde_json::Value, ControlError> {
     match action_kind {
-        ActionKind::AppearanceFontSizeIncrease => adjust_font_size(FontSizeAdjustment::Increase, ctx)?,
-        ActionKind::AppearanceFontSizeDecrease => adjust_font_size(FontSizeAdjustment::Decrease, ctx)?,
+        ActionKind::AppearanceFontSizeIncrease => {
+            adjust_font_size(FontSizeAdjustment::Increase, ctx)?
+        }
+        ActionKind::AppearanceFontSizeDecrease => {
+            adjust_font_size(FontSizeAdjustment::Decrease, ctx)?
+        }
         ActionKind::AppearanceFontSizeReset => adjust_font_size(FontSizeAdjustment::Reset, ctx)?,
         ActionKind::AppearanceZoomIncrease => adjust_zoom(true, ctx)?,
         ActionKind::AppearanceZoomDecrease => adjust_zoom(false, ctx)?,
@@ -262,14 +266,12 @@ fn rename_title(action: &::local_control::Action) -> Result<String, ControlError
 
 fn color_value(action: &::local_control::Action) -> Result<AnsiColorIdentifier, ControlError> {
     match action_params(action)? {
-        ActionParams::ColorValue { color } => {
-            AnsiColorIdentifier::from_str(&color).map_err(|_| {
-                ControlError::new(
-                    ErrorCode::InvalidParams,
-                    format!("{color} is not a supported tab color"),
-                )
-            })
-        }
+        ActionParams::ColorValue { color } => AnsiColorIdentifier::from_str(&color).map_err(|_| {
+            ControlError::new(
+                ErrorCode::InvalidParams,
+                format!("{color} is not a supported tab color"),
+            )
+        }),
         _ => Err(unexpected_params(action.kind, "color_value")),
     }
 }
@@ -429,20 +431,18 @@ fn select_tab_entries(
     let window_ids = select_window_ids(target, action, ctx)?;
     let entries = tab_entries_for_windows(window_ids, ctx);
     match target.tab.as_ref() {
-        None | Some(TabTarget::Active) => {
-            Ok(entries
-                .into_iter()
-                .filter(|entry| {
-                    workspace_for_window(entry.window_id, action, ctx)
-                        .map(|workspace| {
-                            workspace.read(ctx, |workspace, _| {
-                                entry.index == workspace.active_tab_index()
-                            })
+        None | Some(TabTarget::Active) => Ok(entries
+            .into_iter()
+            .filter(|entry| {
+                workspace_for_window(entry.window_id, action, ctx)
+                    .map(|workspace| {
+                        workspace.read(ctx, |workspace, _| {
+                            entry.index == workspace.active_tab_index()
                         })
-                        .unwrap_or(false)
-                })
-                .collect())
-        }
+                    })
+                    .unwrap_or(false)
+            })
+            .collect()),
         Some(TabTarget::Id { id }) => Ok(entries
             .into_iter()
             .filter(|entry| entry.pane_group.id().to_string() == id.0)
@@ -454,9 +454,9 @@ fn select_tab_entries(
         Some(TabTarget::Title { title }) => Ok(entries
             .into_iter()
             .filter(|entry| {
-                entry
-                    .pane_group
-                    .read(ctx, |pane_group, ctx| pane_group.display_title(ctx) == *title)
+                entry.pane_group.read(ctx, |pane_group, ctx| {
+                    pane_group.display_title(ctx) == *title
+                })
             })
             .collect()),
     }
@@ -561,7 +561,10 @@ fn workspace_for_window(
         .ok_or_else(|| {
             ControlError::new(
                 ErrorCode::MissingTarget,
-                format!("{} requires a workspace in the target window", action.as_str()),
+                format!(
+                    "{} requires a workspace in the target window",
+                    action.as_str()
+                ),
             )
         })
 }
@@ -786,7 +789,9 @@ fn set_allowlisted_setting(
             let verbosity = accessibility_verbosity_value(key, &value)?;
             AccessibilitySettings::handle(ctx)
                 .update(ctx, |accessibility_settings, ctx| {
-                    accessibility_settings.a11y_verbosity.set_value(verbosity, ctx)
+                    accessibility_settings
+                        .a11y_verbosity
+                        .set_value(verbosity, ctx)
                 })
                 .map_err(|err| settings_write_error(ActionKind::SettingSet, err))
         }
@@ -884,7 +889,9 @@ fn rejected_setting_key(key: &str) -> ControlError {
     if DERIVED_OR_COMPOUND_SETTING_KEYS.contains(&key) {
         return ControlError::new(
             ErrorCode::NotAllowlisted,
-            format!("{key} is derived or compound state and is not available through local control"),
+            format!(
+                "{key} is derived or compound state and is not available through local control"
+            ),
         );
     }
     ControlError::new(
@@ -996,11 +1003,7 @@ fn accessibility_verbosity_value(
     }
 }
 
-fn setting_summary(
-    key: &str,
-    value: serde_json::Value,
-    value_type: &str,
-) -> serde_json::Value {
+fn setting_summary(key: &str, value: serde_json::Value, value_type: &str) -> serde_json::Value {
     json!({
         "key": key,
         "value": value,

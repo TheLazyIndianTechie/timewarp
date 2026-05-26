@@ -1,7 +1,7 @@
 //! CLI argument conversion into shared local-control selectors.
 use local_control::protocol::{
-    ControlError, ErrorCode, PaneSelector, PaneTarget, SessionSelector, SessionTarget,
-    TabSelector, TabTarget, TargetSelector, WindowSelector, WindowTarget,
+    ControlError, ErrorCode, PaneSelector, PaneTarget, SessionSelector, SessionTarget, TabSelector,
+    TabTarget, TargetSelector, WindowSelector, WindowTarget,
 };
 use local_control::selection::InstanceSelector;
 

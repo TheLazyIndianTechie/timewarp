@@ -1,8 +1,6 @@
 //! Execution-underlying handlers for local-control actions.
 use ::local_control::protocol::{ActionParams, LocalControlAuditRecord, WorkflowRunParams};
-use ::local_control::{
-    ActionKind, ControlError, ErrorCode, PermissionCategory, RequestEnvelope,
-};
+use ::local_control::{ActionKind, ControlError, ErrorCode, PermissionCategory, RequestEnvelope};
 
 pub(crate) fn run_input(
     request: &RequestEnvelope,

@@ -35,7 +35,5 @@ pub use protocol::{
     PROTOCOL_VERSION, RequestEnvelope, ResponseEnvelope, SettingGetParams, ThemeStateResult,
     WorkflowArgument, WorkflowRunParams,
 };
-pub use selectors::{
-    PaneSelector, SessionSelector, TabSelector, TargetSelector, WindowSelector,
-};
 pub use scripting::{ScriptingGrant, ScriptingIdentitySource, ScriptingScope};
+pub use selectors::{PaneSelector, SessionSelector, TabSelector, TargetSelector, WindowSelector};

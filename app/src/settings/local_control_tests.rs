@@ -2,10 +2,9 @@ use settings::{Setting, SyncToCloud};
 
 use super::{
     AllowInsideWarpAuthenticatedUserActions, AllowOutsideWarpAppStateMutations,
-    AllowOutsideWarpControl,
-    AllowOutsideWarpMetadataConfigurationMutations, AllowOutsideWarpMetadataReads,
-    AllowOutsideWarpUnderlyingDataMutations, AllowOutsideWarpUnderlyingDataReads,
-    LocalControlPermissionCategory, LocalControlSettings,
+    AllowOutsideWarpControl, AllowOutsideWarpMetadataConfigurationMutations,
+    AllowOutsideWarpMetadataReads, AllowOutsideWarpUnderlyingDataMutations,
+    AllowOutsideWarpUnderlyingDataReads, LocalControlPermissionCategory, LocalControlSettings,
 };
 
 fn settings_with_values(outside_enabled: bool) -> LocalControlSettings {

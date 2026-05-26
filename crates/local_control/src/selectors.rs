@@ -64,7 +64,6 @@ pub enum PaneTarget {
     Index { index: u32 },
 }
 
-
 /// Session-level target selector.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]

@@ -2,9 +2,8 @@
 use crate::local_control::handlers::metadata::action_metadata_for_name;
 use ::local_control::protocol::{
     ActionNameParams, ActionParams, BindingNameParams, BlockIdParams, BlockListParams,
-    DriveInspectParams, DriveListParams, HistoryListParams, PaneTarget, SessionTarget, SettingGetParams,
-    TabTarget,
-    TargetSelector, WindowTarget,
+    DriveInspectParams, DriveListParams, HistoryListParams, PaneTarget, SessionTarget,
+    SettingGetParams, TabTarget, TargetSelector, WindowTarget,
 };
 use ::local_control::{ActionKind, ControlError, ErrorCode};
 use warpui::ModelContext;
@@ -76,17 +75,15 @@ pub(crate) fn validate_action_params(action: &::local_control::Action) -> Result
             Ok(())
         }
         ActionKind::SettingGet => action.params_as::<SettingGetParams>().map(|_| ()),
-        ActionKind::KeybindingGet => action
-            .params_as::<BindingNameParams>()
-            .and_then(|params| {
-                if params.binding_name.is_empty() {
-                    return Err(ControlError::new(
-                        ErrorCode::InvalidParams,
-                        "keybinding.get requires a non-empty name",
-                    ));
-                }
-                Ok(())
-            }),
+        ActionKind::KeybindingGet => action.params_as::<BindingNameParams>().and_then(|params| {
+            if params.binding_name.is_empty() {
+                return Err(ControlError::new(
+                    ErrorCode::InvalidParams,
+                    "keybinding.get requires a non-empty name",
+                ));
+            }
+            Ok(())
+        }),
         ActionKind::AppPing
         | ActionKind::InstanceInspect
         | ActionKind::AppVersion
@@ -112,15 +109,17 @@ pub(crate) fn validate_action_params(action: &::local_control::Action) -> Result
         | ActionKind::ProjectActive
         | ActionKind::ProjectList => validate_empty_action_params(action),
         ActionKind::BlockList => action.params_as::<BlockListParams>().map(|_| ()),
-        ActionKind::BlockInspect | ActionKind::BlockOutput => action.params_as::<BlockIdParams>().and_then(|params| {
-            if params.block_id.is_empty() {
-                return Err(ControlError::new(
-                    ErrorCode::InvalidParams,
-                    "block.inspect requires a non-empty block id",
-                ));
-            }
-            Ok(())
-        }),
+        ActionKind::BlockInspect | ActionKind::BlockOutput => {
+            action.params_as::<BlockIdParams>().and_then(|params| {
+                if params.block_id.is_empty() {
+                    return Err(ControlError::new(
+                        ErrorCode::InvalidParams,
+                        "block.inspect requires a non-empty block id",
+                    ));
+                }
+                Ok(())
+            })
+        }
         ActionKind::HistoryList => action.params_as::<HistoryListParams>().map(|_| ()),
         ActionKind::DriveList => action.params_as::<DriveListParams>().map(|_| ()),
         ActionKind::DriveInspect => action.params_as::<DriveInspectParams>().and_then(|params| {

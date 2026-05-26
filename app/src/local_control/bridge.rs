@@ -10,7 +10,8 @@ use ::local_control::{
 use warpui::{Entity, ModelContext, SingletonEntity};
 
 use crate::local_control::handlers::{
-    app_state, data, drive, execution, layout, metadata, metadata_config, product_metadata, settings_surfaces,
+    app_state, data, drive, execution, layout, metadata, metadata_config, product_metadata,
+    settings_surfaces,
 };
 use crate::local_control::permissions::{
     ensure_action_allowed, ensure_authenticated_user_matches, ensure_feature_enabled,
@@ -630,20 +631,15 @@ impl LocalControlBridge {
                     );
                 };
                 let result = match request.action.kind {
-                    ActionKind::InputRun => execution::run_input(
-                        &request,
-                        authenticated_user_subject,
-                    ),
-                    ActionKind::DriveWorkflowRun => execution::run_drive_workflow(
-                        &request,
-                        authenticated_user_subject,
-                    ),
+                    ActionKind::InputRun => {
+                        execution::run_input(&request, authenticated_user_subject)
+                    }
+                    ActionKind::DriveWorkflowRun => {
+                        execution::run_drive_workflow(&request, authenticated_user_subject)
+                    }
                     action => Err(ControlError::new(
                         ErrorCode::UnsupportedAction,
-                        format!(
-                            "{} is not an execution-underlying action",
-                            action.as_str()
-                        ),
+                        format!("{} is not an execution-underlying action", action.as_str()),
                     )),
                 };
                 match result {

@@ -274,7 +274,10 @@ fn scoped_credential_carries_metadata_configuration_permission() {
         grant.permission_category,
         PermissionCategory::MutateMetadataConfiguration
     );
-    assert_ne!(grant.permission_category, PermissionCategory::MutateAppState);
+    assert_ne!(
+        grant.permission_category,
+        PermissionCategory::MutateAppState
+    );
     assert_ne!(
         grant.permission_category,
         PermissionCategory::MutateUnderlyingData

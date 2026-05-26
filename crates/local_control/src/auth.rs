@@ -250,7 +250,8 @@ impl CredentialRequest {
     pub fn verified_terminal_session_id(&self) -> Option<&str> {
         match &self.execution_context_proof {
             Some(ExecutionContextProof::VerifiedWarpTerminal {
-                terminal_session_id, ..
+                terminal_session_id,
+                ..
             }) => Some(terminal_session_id),
             Some(ExecutionContextProof::ExternalClient) | None => None,
         }
@@ -376,8 +377,7 @@ impl CredentialGrant {
             scripting_grant.verify_scope(ScriptingScope::from_permission(
                 metadata.permission_category,
             ))?;
-            if self.authenticated_user.subject.as_deref()
-                != Some(scripting_grant.subject.as_str())
+            if self.authenticated_user.subject.as_deref() != Some(scripting_grant.subject.as_str())
             {
                 return Err(ControlError::new(
                     ErrorCode::AuthenticatedUserRequired,

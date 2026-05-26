@@ -58,7 +58,6 @@ pub(crate) fn theme_list(
     to_control_data(theme_list_result(ctx)?)
 }
 
-
 pub(crate) fn theme_get(
     ctx: &mut ModelContext<LocalControlBridge>,
 ) -> Result<serde_json::Value, ControlError> {
@@ -125,7 +124,6 @@ pub(crate) fn theme_list_result(
     themes.sort_by(|a, b| a.name.cmp(&b.name));
     Ok(ThemeListResult { themes })
 }
-
 
 pub(crate) fn theme_state_result(
     ctx: &mut ModelContext<LocalControlBridge>,

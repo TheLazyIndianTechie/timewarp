@@ -14,15 +14,15 @@
 //! requested action, and only then hands the request to the main-thread
 //! `LocalControlBridge`.
 //!
-//! The Settings > Scripting gates used here are provisional foundation-branch
-//! authority. They are private and local-only, but private preferences are not
-//! equivalent to tamper-resistant secure storage; before outside-Warp control
-//! or broader grants ship, the authoritative enablement bits should move to
-//! protected storage where the platform supports it.
+//! The Settings > Scripting gates used here are private and local-only, but
+//! private preferences are not equivalent to tamper-resistant secure storage;
+//! before outside-Warp control or broader grants ship, the authoritative
+//! enablement bits should move to protected storage where the platform supports
+//! it.
 //!
-//! This foundation branch intentionally keeps raw bearer tokens out of
-//! discovery records: discovery only exposes endpoint metadata and credential
-//! broker references when outside-Warp control is enabled.
+//! Raw bearer tokens are intentionally kept out of discovery records: discovery
+//! only exposes endpoint metadata and credential broker references when
+//! outside-Warp control is enabled.
 mod bridge;
 mod handlers;
 mod permissions;

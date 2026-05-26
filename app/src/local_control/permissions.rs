@@ -113,12 +113,13 @@ pub(super) fn ensure_authenticated_user_matches(
             ),
         ));
     };
-    let current_subject = authenticated_user_subject_for_action(grant.action, ctx)?.ok_or_else(|| {
-        ControlError::new(
-            ErrorCode::AuthenticatedUserUnavailable,
-            format!("{} requires a logged-in Warp user", grant.action.as_str()),
-        )
-    })?;
+    let current_subject =
+        authenticated_user_subject_for_action(grant.action, ctx)?.ok_or_else(|| {
+            ControlError::new(
+                ErrorCode::AuthenticatedUserUnavailable,
+                format!("{} requires a logged-in Warp user", grant.action.as_str()),
+            )
+        })?;
     if subject != &current_subject {
         return Err(ControlError::new(
             ErrorCode::AuthenticatedUserUnavailable,
@@ -178,63 +179,6 @@ pub(crate) fn ensure_settings_allow_action(
                 ));
             }
         }
-    }
-    Ok(())
-}
-
-pub(super) fn authenticated_user_subject_for_action(
-    action: ActionKind,
-    ctx: &mut ModelContext<LocalControlBridge>,
-) -> Result<Option<String>, ControlError> {
-    if !action.metadata().requires_authenticated_user {
-        return Ok(None);
-    }
-    let auth_state = AuthStateProvider::as_ref(ctx).get();
-    if auth_state.is_anonymous_or_logged_out() {
-        return Err(ControlError::new(
-            ErrorCode::AuthenticatedUserUnavailable,
-            format!("{} requires a logged-in Warp user", action.as_str()),
-        ));
-    }
-    auth_state
-        .user_id()
-        .map(|uid| Some(uid.as_string()))
-        .ok_or_else(|| {
-            ControlError::new(
-                ErrorCode::AuthenticatedUserUnavailable,
-                format!("{} requires a logged-in Warp user", action.as_str()),
-            )
-        })
-}
-
-pub(super) fn ensure_authenticated_user_matches(
-    grant: &::local_control::auth::CredentialGrant,
-    ctx: &mut ModelContext<LocalControlBridge>,
-) -> Result<(), ControlError> {
-    if !grant.authenticated_user.required {
-        return Ok(());
-    }
-    let auth_state = AuthStateProvider::as_ref(ctx).get();
-    if auth_state.is_anonymous_or_logged_out() {
-        return Err(ControlError::new(
-            ErrorCode::AuthenticatedUserUnavailable,
-            format!("{} requires a logged-in Warp user", grant.action.as_str()),
-        ));
-    }
-    let subject = auth_state.user_id().map(|uid| uid.as_string()).ok_or_else(|| {
-        ControlError::new(
-            ErrorCode::AuthenticatedUserUnavailable,
-            format!("{} requires a logged-in Warp user", grant.action.as_str()),
-        )
-    })?;
-    if grant.authenticated_user.subject.as_deref() != Some(subject.as_str()) {
-        return Err(ControlError::new(
-            ErrorCode::AuthenticatedUserRequired,
-            format!(
-                "{} credential is bound to a different Warp user",
-                grant.action.as_str()
-            ),
-        ));
     }
     Ok(())
 }

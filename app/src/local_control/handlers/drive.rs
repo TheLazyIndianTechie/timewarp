@@ -1,8 +1,8 @@
 use ::local_control::protocol::{
-    DriveInspectParams, DriveInspectResult, DriveListParams, DriveListResult,
-    DriveMutationAudit, DriveMutationResult, DriveObjectCreateParams, DriveObjectId,
-    DriveObjectInsertParams, DriveObjectSummary, DriveObjectType as ControlDriveObjectType,
-    DriveObjectUpdateParams, PermissionCategory, TargetSelector,
+    DriveInspectParams, DriveInspectResult, DriveListParams, DriveListResult, DriveMutationAudit,
+    DriveMutationResult, DriveObjectCreateParams, DriveObjectId, DriveObjectInsertParams,
+    DriveObjectSummary, DriveObjectType as ControlDriveObjectType, DriveObjectUpdateParams,
+    PermissionCategory, TargetSelector,
 };
 use ::local_control::{ActionKind, ControlError, ErrorCode, RequestEnvelope};
 use serde_json::json;
@@ -25,7 +25,6 @@ use crate::workflows::workflow::Workflow;
 use crate::workflows::{CloudWorkflow, CloudWorkflowModel, WorkflowId};
 use crate::workspaces::user_workspaces::UserWorkspaces;
 
-
 pub(crate) fn drive_list(
     target: &TargetSelector,
     action: &::local_control::Action,
@@ -46,7 +45,7 @@ pub(crate) fn drive_list(
         drive_object_type_rank(left.object_type)
             .cmp(&drive_object_type_rank(right.object_type))
             .then_with(|| left.name.cmp(&right.name))
-            .then_with(|| left.id.cmp(&right.id))
+            .then_with(|| left.id.0.cmp(&right.id.0))
     });
     to_drive_data(DriveListResult { objects })
 }
@@ -150,17 +149,15 @@ pub(crate) fn create_drive_object(
         ControlDriveObjectType::Folder => {
             cloud_model.create_object(
                 sync_id,
-                CloudFolder::new_local(
-                    CloudFolderModel::new(&name, false),
-                    owner,
-                    None,
-                    client_id,
-                ),
+                CloudFolder::new_local(CloudFolderModel::new(&name, false), owner, None, client_id),
                 ctx,
             );
             Ok(())
         }
-        _ => Err(unsupported_object_type(params.object_type, request.action.kind)),
+        _ => Err(unsupported_object_type(
+            params.object_type,
+            request.action.kind,
+        )),
     })?;
     let cloud_model = CloudModel::as_ref(ctx);
     let object = cloud_model.get_by_uid(&sync_id.uid()).ok_or_else(|| {
@@ -267,7 +264,9 @@ pub(crate) fn delete_drive_object(
     })
 }
 
-pub(crate) fn insert_drive_object(request: &RequestEnvelope) -> Result<serde_json::Value, ControlError> {
+pub(crate) fn insert_drive_object(
+    request: &RequestEnvelope,
+) -> Result<serde_json::Value, ControlError> {
     let params = request.action.params_as::<DriveObjectInsertParams>()?;
     validate_drive_request_id(&params.id, request.action.kind)?;
     Err(ControlError::new(
@@ -283,12 +282,14 @@ pub(crate) fn share_drive_object_to_team(
     let id = drive_object_id_params(request)?;
     validate_drive_request_id(&id, request.action.kind)?;
     let subject = authenticated_user_subject(ctx)?;
-    let team_uid = UserWorkspaces::as_ref(ctx).current_team_uid().ok_or_else(|| {
-        ControlError::new(
-            ErrorCode::MissingTarget,
-            "drive.object.share_to_team requires a current Warp team",
-        )
-    })?;
+    let team_uid = UserWorkspaces::as_ref(ctx)
+        .current_team_uid()
+        .ok_or_else(|| {
+            ControlError::new(
+                ErrorCode::MissingTarget,
+                "drive.object.share_to_team requires a current Warp team",
+            )
+        })?;
     let (type_and_id, summary) = {
         let cloud_model = CloudModel::as_ref(ctx);
         let object = drive_object_for_mutation(cloud_model, &id, request.action.kind)?;
@@ -350,15 +351,20 @@ fn authenticated_user_subject(
             "this action requires a logged-in Warp user",
         ));
     }
-    auth_state.user_id().map(|uid| uid.as_string()).ok_or_else(|| {
-        ControlError::new(
-            ErrorCode::AuthenticatedUserUnavailable,
-            "this action requires a logged-in Warp user",
-        )
-    })
+    auth_state
+        .user_id()
+        .map(|uid| uid.as_string())
+        .ok_or_else(|| {
+            ControlError::new(
+                ErrorCode::AuthenticatedUserUnavailable,
+                "this action requires a logged-in Warp user",
+            )
+        })
 }
 
-fn authenticated_user_owner(ctx: &mut ModelContext<LocalControlBridge>) -> Result<Owner, ControlError> {
+fn authenticated_user_owner(
+    ctx: &mut ModelContext<LocalControlBridge>,
+) -> Result<Owner, ControlError> {
     let auth_state = AuthStateProvider::as_ref(ctx).get();
     auth_state
         .user_id()
@@ -424,7 +430,10 @@ fn workflow_from_drive_content(
                 arguments: Vec::new(),
             })
         }
-        _ => Err(unsupported_object_type(object_type, ActionKind::DriveObjectCreate)),
+        _ => Err(unsupported_object_type(
+            object_type,
+            ActionKind::DriveObjectCreate,
+        )),
     }
 }
 
@@ -520,7 +529,10 @@ fn content_value(content: Option<&str>) -> serde_json::Value {
         .unwrap_or(serde_json::Value::Null)
 }
 
-fn required_content(content: Option<&str>, action: ActionKind) -> Result<serde_json::Value, ControlError> {
+fn required_content(
+    content: Option<&str>,
+    action: ActionKind,
+) -> Result<serde_json::Value, ControlError> {
     let Some(content) = content else {
         return Err(ControlError::new(
             ErrorCode::InvalidParams,
@@ -552,7 +564,8 @@ fn required_name(
 }
 
 fn object_name_from_content(content: Option<&str>) -> Option<String> {
-    let value = content.and_then(|content| serde_json::from_str::<serde_json::Value>(content).ok())?;
+    let value =
+        content.and_then(|content| serde_json::from_str::<serde_json::Value>(content).ok())?;
     value
         .get("name")
         .and_then(serde_json::Value::as_str)
@@ -573,7 +586,10 @@ fn folder_name_from_content(
         .ok_or_else(|| {
             ControlError::new(
                 ErrorCode::InvalidParams,
-                format!("{} folder content requires a non-empty name", action.as_str()),
+                format!(
+                    "{} folder content requires a non-empty name",
+                    action.as_str()
+                ),
             )
         })
 }
@@ -585,7 +601,10 @@ fn validate_no_content_file(
     if content_file.is_some() {
         return Err(ControlError::new(
             ErrorCode::UnsupportedAction,
-            format!("{} does not support local file content inputs", action.as_str()),
+            format!(
+                "{} does not support local file content inputs",
+                action.as_str()
+            ),
         ));
     }
     Ok(())
@@ -615,7 +634,10 @@ fn validate_supported_object_type(
     }
 }
 
-fn unsupported_object_type(object_type: ControlDriveObjectType, action: ActionKind) -> ControlError {
+fn unsupported_object_type(
+    object_type: ControlDriveObjectType,
+    action: ActionKind,
+) -> ControlError {
     ControlError::new(
         ErrorCode::UnsupportedAction,
         format!(
@@ -644,7 +666,10 @@ fn drive_object_for_mutation<'a>(
         control_drive_object_type(object).ok_or_else(|| {
             ControlError::new(
                 ErrorCode::UnsupportedAction,
-                format!("{} does not support this Drive object type", action.as_str()),
+                format!(
+                    "{} does not support this Drive object type",
+                    action.as_str()
+                ),
             )
         })?,
         action,
@@ -845,11 +870,9 @@ mod tests {
 
     #[test]
     fn drive_mutations_require_non_empty_ids() {
-        let err = validate_drive_request_id(
-            &DriveObjectId(String::new()),
-            ActionKind::DriveObjectUpdate,
-        )
-        .expect_err("empty Drive object IDs are rejected");
+        let err =
+            validate_drive_request_id(&DriveObjectId(String::new()), ActionKind::DriveObjectUpdate)
+                .expect_err("empty Drive object IDs are rejected");
         assert_eq!(err.code, ErrorCode::InvalidParams);
     }
 

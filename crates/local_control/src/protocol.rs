@@ -7,8 +7,8 @@ pub use crate::catalog::{
     ActionImplementationStatus, ActionKind, ActionMetadata, ActionParameterSpec, ActionResultSpec,
     AuthenticatedUserRequirement, EXCLUDED_EXECUTION_SUBMISSION_ACTION_NAMES,
     EXCLUDED_LOCAL_FILE_MUTATION_ACTION_NAMES, EXCLUDED_STANDALONE_SECRET_AUTH_ACTION_NAMES,
-    ExecutionContextProof, InvocationContext,
-    PROTOCOL_VERSION, PermissionCategory, RiskTier, StateDataCategory, TargetScope,
+    ExecutionContextProof, InvocationContext, PROTOCOL_VERSION, PermissionCategory, RiskTier,
+    StateDataCategory, TargetScope,
 };
 pub use crate::selectors::{
     PaneSelector, PaneTarget, SessionSelector, SessionTarget, TabSelector, TabTarget,
