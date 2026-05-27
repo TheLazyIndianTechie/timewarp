@@ -4927,14 +4927,15 @@ impl TerminalView {
     }
 
     #[cfg(feature = "local_fs")]
-    fn needs_pr_info_for_agent_context(&self) -> bool {
+    fn needs_pr_info_for_agent_context(&self, ctx: &AppContext) -> bool {
         self.current_local_repo_path().is_some()
+            && self.ai_input_model.as_ref(ctx).is_ai_input_enabled()
     }
 
     /// Whether this terminal needs PR info from the git status model.
     #[cfg(feature = "local_fs")]
     fn needs_pr_info(&self, ctx: &AppContext) -> bool {
-        self.needs_pr_info_for_chip_ui(ctx) || self.needs_pr_info_for_agent_context()
+        self.needs_pr_info_for_chip_ui(ctx) || self.needs_pr_info_for_agent_context(ctx)
     }
 
     #[cfg(feature = "local_fs")]
@@ -4967,6 +4968,9 @@ impl TerminalView {
     /// registered for this terminal.
     #[cfg(feature = "local_fs")]
     fn refresh_pr_info_after_gh_or_gt_command(&mut self, ctx: &mut ViewContext<Self>) {
+        if !self.needs_pr_info(ctx) {
+            return;
+        }
         // Ensure we have a subscription to the per-repo status model.
         // `should_subscribe_to_git_status` already returns true while
         // suppression is active so the default chip can recover, so this
@@ -6608,6 +6612,8 @@ impl TerminalView {
         match event {
             BlocklistAIInputEvent::InputTypeChanged { config } => {
                 self.ai_render_context.borrow_mut().is_ai_input_enabled = config.input_type.is_ai();
+                #[cfg(feature = "local_fs")]
+                self.sync_pr_info_consumer_for_current_subscription(ctx);
 
                 // Force re-render all AIBlocks to ensure that selected text is recolored properly
                 self.rerender_rich_content_blocks(ctx);
