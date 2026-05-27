@@ -1335,8 +1335,8 @@ fn format_agent_text<W: Write>(text: &AIAgentText, w: &mut W) -> io::Result<()> 
                 }
 
                 match source {
-                    Some(CodeSource::ProjectRules { path }) => {
-                        writeln!(w, " rules_path={}", path.display())?;
+                    Some(CodeSource::ProjectRules { location }) => {
+                        writeln!(w, " rules_path={}", location.display_path())?;
                     }
                     Some(CodeSource::Link {
                         path,
