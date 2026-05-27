@@ -11,16 +11,16 @@
 //! are not directly tested — they're thin wrappers that funnel responses
 //! through `apply_children_fetch`, which is what we cover here.
 
-use super::*;
-
 use chrono::Utc;
 use warp_core::features::FeatureFlag;
 use warpui::{App, EntityId, SingletonEntity};
 
+use super::*;
 use crate::ai::agent::task::TaskId;
 use crate::ai::agent::AIAgentExchangeId;
 use crate::ai::ambient_agents::task::{AgentConfigSnapshot, AmbientAgentTask};
-use crate::test_util::{add_window_with_terminal, terminal::initialize_app_for_terminal_view};
+use crate::test_util::add_window_with_terminal;
+use crate::test_util::terminal::initialize_app_for_terminal_view;
 
 // ---- Pure-function tests ----------------------------------------------------
 
@@ -131,6 +131,7 @@ fn make_task_with_name(
         created_at: now,
         started_at: Some(now),
         updated_at: now,
+        run_time: Some("PT1S".parse().unwrap()),
         status_message: None,
         source: None,
         session_id: session_id.map(String::from),

@@ -256,7 +256,6 @@ use crate::ai::blocklist::telemetry_banner::{should_collect_ai_ugc_telemetry, Te
 use crate::ai::blocklist::usage::conversation_usage_view::{
     ConversationUsageInfo, ConversationUsageView, TimingInfo,
 };
-use crate::ai::blocklist::PendingAttachment;
 use crate::ai::blocklist::{
     ai_brand_color, block_context_from_terminal_model,
     get_ai_block_overflow_menu_element_position_id, get_attached_blocks_chip_element_position_id,
@@ -266,9 +265,9 @@ use crate::ai::blocklist::{
     ClientIdentifiers, ConversationStatusUpdate, InputConfig, InputType,
     InputTypeAutoDetectionSource, LegacyPassiveSuggestionsEvent, LegacyPassiveSuggestionsModel,
     MaaPassiveSuggestionsEvent, MaaPassiveSuggestionsModel, PassiveSuggestionsModels,
-    PendingQueryState, RequestFileEditsFormatKind, ShellCommandExecutor, ShellCommandExecutorEvent,
-    SlashCommandRequest, StartAgentExecutor, StartAgentExecutorEvent, StartAgentRequest,
-    ATTACH_AS_AGENT_MODE_CONTEXT_TEXT, PRE_REWIND_PREFIX,
+    PendingAttachment, PendingQueryState, RequestFileEditsFormatKind, ShellCommandExecutor,
+    ShellCommandExecutorEvent, SlashCommandRequest, StartAgentExecutor, StartAgentExecutorEvent,
+    StartAgentRequest, ATTACH_AS_AGENT_MODE_CONTEXT_TEXT, PRE_REWIND_PREFIX,
 };
 use crate::ai::conversation_utils;
 use crate::ai::document::ai_document_model::{AIDocumentId, AIDocumentModel, AIDocumentVersion};
@@ -3488,7 +3487,7 @@ impl TerminalView {
             legacy: legacy_passive_suggestions_model,
         };
 
-        let find_model = ctx.add_model(|_| TerminalFindModel::new(model.clone()));
+        let find_model = ctx.add_model(|ctx| TerminalFindModel::new(model.clone(), ctx));
 
         ctx.subscribe_to_model(
             &TerminalSettings::handle(ctx),
@@ -4804,7 +4803,13 @@ impl TerminalView {
     /// the same repository.
     #[cfg(feature = "local_fs")]
     fn clear_git_repo_status_subscription(&mut self, ctx: &mut ViewContext<Self>) {
-        self.git_repo_status = None;
+        if let Some(handle) = self.git_repo_status.take() {
+            let terminal_view_id = self.view_id;
+            handle.update(ctx, |model, ctx| {
+                model.set_pr_info_consumer(terminal_view_id, false, ctx);
+            });
+            ctx.unsubscribe_to_model(&handle);
+        }
         self.deferred_code_review_open = None;
 
         self.current_prompt.update(ctx, |prompt_type, ctx| {
@@ -4834,30 +4839,127 @@ impl TerminalView {
             .and_then(|h| h.as_ref(ctx).metadata())
     }
 
-    /// Returns whether this terminal view should subscribe to git status
-    /// updates. We subscribe when:
-    /// 1. Agent mode is active and its chip list includes `GitDiffStats`, or
+    /// Returns whether this terminal view should subscribe to git status updates.
+    /// We subscribe when:
+    /// 1. Agent mode is active and its chip list includes `GitDiffStats` or `GithubPullRequest`, or
     /// 2. Terminal mode with the Warp prompt enabled and the git stats chip
     ///    configured.
     #[cfg(feature = "local_fs")]
     fn should_subscribe_to_git_status(&self, ctx: &AppContext) -> bool {
-        // Agent view: subscribe only when the configured agent footer includes git stats.
+        let uses_git_status = |chips: Vec<ContextChipKind>| {
+            chips.iter().any(|chip| {
+                matches!(
+                    chip,
+                    ContextChipKind::GitDiffStats | ContextChipKind::GithubPullRequest
+                )
+            })
+        };
+
+        // Agent view: subscribe when the configured agent footer includes
+        // git stats or PR info.
+        if self.agent_view_controller.as_ref(ctx).is_active() {
+            return uses_git_status(
+                SessionSettings::as_ref(ctx)
+                    .agent_footer_chip_selection
+                    .all_chips(),
+            );
+        }
+        // CLI-agent footer: subscribe only while a CLI-agent session is active,
+        // so normal terminal panes do not subscribe just because of CLI footer defaults.
+        if self.has_active_cli_agent_session(ctx)
+            && uses_git_status(
+                SessionSettings::as_ref(ctx)
+                    .cli_agent_footer_chip_selection
+                    .all_chips(),
+            )
+        {
+            return true;
+        }
+
+        // Terminal prompt path: the Warp prompt is active when honor_ps1 is
+        // off, or when UDI overrides PS1. The prompt must include a chip backed
+        // by git status.
+        let is_using_warp_prompt = !*SessionSettings::as_ref(ctx).honor_ps1
+            || InputSettings::as_ref(ctx).is_universal_developer_input_enabled(ctx);
+        if is_using_warp_prompt && Self::should_retry_default_pr_chip_validation(ctx) {
+            return true;
+        }
+        is_using_warp_prompt && uses_git_status(Prompt::as_ref(ctx).chip_kinds())
+    }
+
+    /// Whether the terminal's prompt/footer chips need PR info.
+    #[cfg(feature = "local_fs")]
+    fn needs_pr_info(&self, ctx: &AppContext) -> bool {
         if self.agent_view_controller.as_ref(ctx).is_active() {
             return SessionSettings::as_ref(ctx)
                 .agent_footer_chip_selection
                 .all_chips()
-                .contains(&ContextChipKind::GitDiffStats);
+                .contains(&ContextChipKind::GithubPullRequest);
+        }
+        if self.has_active_cli_agent_session(ctx)
+            && SessionSettings::as_ref(ctx)
+                .cli_agent_footer_chip_selection
+                .all_chips()
+                .contains(&ContextChipKind::GithubPullRequest)
+        {
+            return true;
         }
 
-        // Terminal prompt path: the Warp prompt is active when honor_ps1 is
-        // off, or when UDI overrides PS1. GitDiffStats must also be in the
-        // configured chip list.
         let is_using_warp_prompt = !*SessionSettings::as_ref(ctx).honor_ps1
             || InputSettings::as_ref(ctx).is_universal_developer_input_enabled(ctx);
         is_using_warp_prompt
-            && Prompt::as_ref(ctx)
-                .chip_kinds()
-                .contains(&ContextChipKind::GitDiffStats)
+            && (Self::should_retry_default_pr_chip_validation(ctx)
+                || Prompt::as_ref(ctx)
+                    .chip_kinds()
+                    .contains(&ContextChipKind::GithubPullRequest))
+    }
+
+    #[cfg(feature = "local_fs")]
+    fn should_retry_default_pr_chip_validation(ctx: &AppContext) -> bool {
+        let settings = SessionSettings::as_ref(ctx);
+        FeatureFlag::GithubPrPromptChip.is_enabled()
+            && settings.github_pr_chip_default_validation.is_suppressed()
+            && matches!(
+                *settings.saved_prompt,
+                crate::context_chips::prompt::PromptSelection::Default
+            )
+    }
+
+    /// Refresh the terminal's own `pr_info_consumer` registration on the
+    /// current git status handle. Each consumer manages its own slot; this
+    /// only toggles the terminal's slot.
+    #[cfg(feature = "local_fs")]
+    fn sync_pr_info_consumer_for_current_subscription(&self, ctx: &mut ViewContext<Self>) {
+        let Some(handle) = &self.git_repo_status else {
+            return;
+        };
+        let terminal_view_id = self.view_id;
+        let needs_pr_info = self.needs_pr_info(ctx);
+        handle.update(ctx, |model, ctx| {
+            model.set_pr_info_consumer(terminal_view_id, needs_pr_info, ctx);
+        });
+    }
+
+    /// Triggers a PR info refresh after a `gh`/`gt` command completes.
+    ///
+    /// These commands don't touch `.git/` so the filesystem watcher won't
+    /// catch them; we refresh explicitly while an active PR-info consumer is
+    /// registered for this terminal.
+    #[cfg(feature = "local_fs")]
+    fn refresh_pr_info_after_gh_or_gt_command(&mut self, ctx: &mut ViewContext<Self>) {
+        // Ensure we have a subscription to the per-repo status model.
+        // `should_subscribe_to_git_status` already returns true while
+        // suppression is active so the default chip can recover, so this
+        // is a no-op when already subscribed and creates a fresh
+        // subscription when one is needed.
+        self.update_git_status_subscription(ctx);
+
+        let Some(handle) = self.git_repo_status.clone() else {
+            return;
+        };
+        handle.update(ctx, |model, ctx| {
+            model.refresh_pr_info(ctx);
+        });
     }
 
     /// No-op when the `local_fs` feature is disabled – git status is not
@@ -4872,29 +4974,33 @@ impl TerminalView {
         let should_subscribe = self.should_subscribe_to_git_status(ctx);
         if should_subscribe {
             // Subscribe if we have a repo path but no active subscription.
-            if self.git_repo_status.is_none() {
-                if let Some(repo_path) = self.current_local_repo_path().map(Path::to_path_buf) {
-                    let result = GitStatusUpdateModel::handle(ctx)
-                        .update(ctx, |model, ctx| model.subscribe(&repo_path, ctx));
-                    match result {
-                        Ok(handle) => {
-                            ctx.subscribe_to_model(&handle, |me, _, _, ctx| {
-                                me.handle_git_repo_status_event(ctx);
-                            });
-                            let weak_for_prompt = handle.downgrade();
-                            self.git_repo_status = Some(handle);
-                            self.current_prompt.update(ctx, |prompt_type, ctx| {
-                                if let PromptType::Dynamic { prompt } = prompt_type {
-                                    prompt.update(ctx, |current_prompt, ctx| {
-                                        current_prompt
-                                            .set_git_repo_status(Some(weak_for_prompt), ctx);
-                                    });
-                                }
-                            });
-                        }
-                        Err(err) => {
-                            log::warn!("GitStatusUpdateModel subscribe failed: {err}");
-                        }
+            if self.git_repo_status.is_some() {
+                self.sync_pr_info_consumer_for_current_subscription(ctx);
+            } else if let Some(repo_path) = self.current_local_repo_path().map(Path::to_path_buf) {
+                let result = GitStatusUpdateModel::handle(ctx)
+                    .update(ctx, |model, ctx| model.subscribe(&repo_path, ctx));
+                match result {
+                    Ok(handle) => {
+                        ctx.subscribe_to_model(&handle, |me, _, _, ctx| {
+                            me.handle_git_repo_status_event(ctx);
+                        });
+                        let weak_for_prompt = handle.downgrade();
+                        self.git_repo_status = Some(handle);
+                        self.current_prompt.update(ctx, |prompt_type, ctx| {
+                            if let PromptType::Dynamic { prompt } = prompt_type {
+                                prompt.update(ctx, |current_prompt, ctx| {
+                                    current_prompt.set_git_repo_status(Some(weak_for_prompt), ctx);
+                                });
+                            }
+                        });
+                        // Register the terminal as a `pr_info` consumer if its
+                        // prompt/footer needs PR info; the per-repo model only
+                        // fetches PR info while at least one consumer is
+                        // registered.
+                        self.sync_pr_info_consumer_for_current_subscription(ctx);
+                    }
+                    Err(err) => {
+                        log::warn!("GitStatusUpdateModel subscribe failed: {err}");
                     }
                 }
             }
@@ -5362,9 +5468,6 @@ impl TerminalView {
             | BlocklistAIHistoryEvent::UpdatedConversationStatus {
                 conversation_id, ..
             }
-            | BlocklistAIHistoryEvent::UpdatedConversationMetadata {
-                conversation_id, ..
-            }
             | BlocklistAIHistoryEvent::UpdatedConversationArtifacts {
                 conversation_id, ..
             } => history_model.terminal_view_id_for_conversation(conversation_id),
@@ -5372,6 +5475,9 @@ impl TerminalView {
                 new_conversation_id,
                 ..
             } => history_model.terminal_view_id_for_conversation(new_conversation_id),
+            BlocklistAIHistoryEvent::UpdatedConversationMetadata {
+                conversation_id, ..
+            } => history_model.terminal_view_id_for_conversation(conversation_id),
             BlocklistAIHistoryEvent::StartedNewConversation { .. }
             | BlocklistAIHistoryEvent::CreatedSubtask { .. }
             | BlocklistAIHistoryEvent::UpgradedTask { .. }
@@ -5824,10 +5930,9 @@ impl TerminalView {
                 // The conversation has moved to another terminal view. We are
                 // the previous owner (the per-view filter at the top of this
                 // function uses `previous_terminal_view_id`), so drop any
-                // rendered AI blocks and agent-view entry blocks tagged to
-                // this conversation. Otherwise the user sees a transcript
-                // split across two panes (old exchanges here, new exchanges
-                // in the new owner).
+                // rendered blocks tagged to this conversation. Leave the
+                // agent-view entry in place so the user can click it to
+                // navigate to the current owner pane later.
                 if *previous_terminal_view_id != self.view_id {
                     return;
                 }
@@ -5835,16 +5940,12 @@ impl TerminalView {
                     .rich_content_views
                     .iter()
                     .filter_map(|view| {
-                        let belongs_to_conversation = match view.metadata() {
-                            Some(RichContentMetadata::AIBlock(metadata)) => {
-                                metadata.conversation_id == *conversation_id
-                            }
-                            Some(RichContentMetadata::AgentViewEntry(metadata)) => {
-                                metadata.conversation_id == *conversation_id
-                            }
-                            _ => false,
-                        };
-                        belongs_to_conversation.then_some(view.view_id())
+                        let is_ai_block_for_conversation = matches!(
+                            view.metadata(),
+                            Some(RichContentMetadata::AIBlock(metadata))
+                                if metadata.conversation_id == *conversation_id
+                        );
+                        is_ai_block_for_conversation.then_some(view.view_id())
                     })
                     .collect_vec();
                 for view_id_to_remove in view_ids_to_remove.into_iter() {
@@ -5855,6 +5956,10 @@ impl TerminalView {
                     self.rich_content_views
                         .retain(|view| view.view_id() != view_id_to_remove);
                 }
+                self.model
+                    .lock()
+                    .block_list_mut()
+                    .remove_command_blocks_for_conversation(*conversation_id);
             }
             BlocklistAIHistoryEvent::CreatedSubtask { .. }
             | BlocklistAIHistoryEvent::UpdatedAutoexecuteOverride { .. }
@@ -11045,7 +11150,7 @@ impl TerminalView {
                                             .and_then(|p| p.to_local_path())
                                             != Some(repo_path.as_path())
                                         {
-                                            me.git_repo_status = None;
+                                                me.clear_git_repo_status_subscription(ctx);
                                             me.update_git_status_subscription(ctx);
                                         }
 
@@ -11686,6 +11791,50 @@ impl TerminalView {
                         .is_bootstrapping_precmd_done()
                 {
                     self.refresh_warp_prompt(ctx);
+
+                    // If the completed command was a `gh` or `gt` invocation, eagerly refresh PR
+                    // info since these don't touch .git/ and won't be caught by the filesystem watcher.
+                    #[cfg(feature = "local_fs")]
+                    if (FeatureFlag::GitOperationsInCodeReview.is_enabled()
+                        || FeatureFlag::GithubPrPromptChip.is_enabled())
+                        && match &block_type {
+                            BlockType::User(user_block_completed) => {
+                                let command = user_block_completed.command.as_str();
+                                let top_level = user_block_completed
+                                    .serialized_block
+                                    .session_id
+                                    .and_then(|session_id| {
+                                        self.sessions.as_ref(ctx).get(session_id)
+                                    })
+                                    .and_then(|session| {
+                                        let escape_char = session.shell_family().escape_char();
+                                        let cmd =
+                                            warp_completer::parsers::simple::top_level_command(
+                                                command,
+                                                escape_char,
+                                            )?;
+                                        let cmd = session
+                                            .alias_value(cmd.as_str())
+                                            .and_then(|alias| {
+                                                warp_completer::parsers::simple::top_level_command(
+                                                    alias,
+                                                    escape_char,
+                                                )
+                                            })
+                                            .unwrap_or(cmd);
+                                        Some(cmd)
+                                    })
+                                    .or_else(|| {
+                                        command.split_whitespace().next().map(|cmd| cmd.to_owned())
+                                    });
+
+                                matches!(top_level.as_deref(), Some("gh" | "gt"))
+                            }
+                            _ => false,
+                        }
+                    {
+                        self.refresh_pr_info_after_gh_or_gt_command(ctx);
+                    }
                 }
 
                 if let BlockType::User(block_completed) = block_type {
@@ -12692,6 +12841,15 @@ impl TerminalView {
         {
             self.update_pane_configuration(ctx);
             ctx.notify();
+        }
+        if event.terminal_view_id() == self.view_id
+            && matches!(
+                event,
+                CLIAgentSessionsModelEvent::Started { .. }
+                    | CLIAgentSessionsModelEvent::Ended { .. }
+            )
+        {
+            self.update_git_status_subscription(ctx);
         }
 
         let CLIAgentSessionsModelEvent::StatusChanged {
@@ -15806,14 +15964,24 @@ impl TerminalView {
             let clipboard_content = ctx.clipboard().read();
 
             if is_cli_agent_paste && clipboard_content.has_image_data() {
-                // Windows Claude Code paste is `Alt+V` (ESC + 'v'); macOS/Linux is `Ctrl+V` (SYN).
-                let paste_bytes: Vec<u8> = if cfg!(windows) {
-                    vec![0x1b, b'v']
-                } else {
-                    vec![0x16]
-                };
-                self.write_user_bytes_to_pty(paste_bytes, ctx);
-                return;
+                if !cfg!(windows) {
+                    self.write_user_bytes_to_pty(vec![escape_sequences::C0::SYN], ctx);
+                    return;
+                }
+
+                // On Windows, Claude Code uses Alt+V for native image paste.
+                let is_claude = CLIAgentSessionsModel::as_ref(ctx)
+                    .session(self.view_id)
+                    .is_some_and(|s| s.agent == CLIAgent::Claude);
+                if is_claude {
+                    self.write_user_bytes_to_pty(vec![escape_sequences::C0::ESC, b'v'], ctx);
+                    return;
+                }
+
+                // For all other agents on Windows, fall through to the normal paste path. When
+                // bracketed paste is enabled (true for TUI-based CLI agents), the empty-text paste
+                // sends \x1b[200~\x1b[201~ to the PTY. The agent interprets this as a "paste
+                // happened" signal and reads the Windows clipboard directly for image data.
             }
 
             clipboard_content_with_escaped_paths(clipboard_content, shell_family, false)
@@ -22118,6 +22286,11 @@ impl TerminalView {
                 if !is_rich_input_chip_in_cli_toolbar(ctx) {
                     self.close_cli_agent_rich_input(CLIAgentRichInputCloseReason::Other, ctx);
                 }
+                self.update_git_status_subscription(ctx);
+            }
+            SessionSettingsChangedEvent::AgentToolbarChipSelectionSetting { .. }
+            | SessionSettingsChangedEvent::GithubPrChipDefaultValidation { .. } => {
+                self.update_git_status_subscription(ctx);
             }
             _ => {}
         }
