@@ -134,8 +134,7 @@ impl Entry {
 
         // Remember the gitignore count so we can restore it when we backtrack
         // out of this directory. Without this, sibling directories accumulate
-        // each other's gitignore objects, bloating the vec and wasting regex
-        // work on `strip_prefix` misses.
+        // each other's gitignore objects, wasting work on `strip_prefix` misses.
         let gitignores_len_before = gitignores.len();
 
         let gitignore_path = curr_path.join(".gitignore");
