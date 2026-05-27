@@ -447,6 +447,11 @@ sequenceDiagram
 ```
 ## Testing and validation
 Map tests directly to `PRODUCT.md` behavior.
+- Catalog/parser implementation-status invariant:
+  - `ActionImplementationStatus::Implemented` means the action is complete enough for standalone CLI users in the selected build: it has a parseable `warpctrl ...` command route, generated help/completion/docs coverage, a protocol parameter mapping, and an app-side bridge handler.
+  - Catalog entries that have only an internal app handler, only protocol metadata, or only a planned product command must remain `Stub` until the standalone CLI route and generated surfaces ship.
+  - Tests must enumerate the implemented catalog and prove each implemented action has at least one parseable standalone CLI example that maps to the same `ActionKind`.
+  - Tests must also prove each shipped parser route maps to an allowlisted catalog action and that help/completion generation includes the implemented route. `action list --implemented-only`, `capability list --implemented-only`, discovery metadata, shell completions, generated docs, and app-side bridge support must not drift silently from one another.
 - Security architecture:
   - Protected enablement tests proving outside-Warp control defaults off, disabled outside-Warp context rejects credential issuance, sensitive discovery, and mutating requests with `local_control_disabled`, and current inside-Warp credential requests are rejected with `execution_context_not_allowed`.
   - Tests proving discovery in disabled state exposes no actionable endpoint authority or credential reference.
