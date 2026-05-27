@@ -459,70 +459,97 @@ impl AIExecutionProfile {
 impl AIExecutionProfile {
     pub fn configurable_context_window(&self, app: &AppContext) -> Option<LLMContextWindow> {
         let llm = self.effective_base_model(app);
-        let uses_openai_api_key = is_using_api_key_for_provider(&LLMProvider::OpenAI, app);
-        if has_effective_configurable_context_window(
+        let uses_openai_byok = is_using_api_key_for_provider(&LLMProvider::OpenAI, app);
+        has_effective_configurable_context_window(
             llm,
-            uses_openai_api_key,
+            uses_openai_byok,
             FeatureFlag::GPTConfigurableContextWindow.is_enabled(),
-        ) {
-            Some(llm.context_window.clone())
-        } else {
-            None
-        }
+        )
+        .then(|| llm.context_window.clone())
     }
 
     pub fn context_window_display_value(&self, app: &AppContext) -> Option<u32> {
         let cw = self.configurable_context_window(app)?;
         Some(self.context_window_limit.unwrap_or(cw.default_max))
     }
+    pub(crate) fn context_window_limit_for_request(&self, app: &AppContext) -> Option<u32> {
+        let llm = self.effective_base_model(app);
+        let uses_openai_byok = is_using_api_key_for_provider(&LLMProvider::OpenAI, app);
+        sanitize_context_window_limit_for_request(
+            llm,
+            self.context_window_limit,
+            uses_openai_byok,
+            FeatureFlag::GPTConfigurableContextWindow.is_enabled(),
+        )
+    }
 
     pub fn should_show_long_context_pricing_warning(&self, app: &AppContext) -> bool {
         let llm = self.effective_base_model(app);
-        let uses_openai_api_key = is_using_api_key_for_provider(&LLMProvider::OpenAI, app);
+        let uses_openai_byok = is_using_api_key_for_provider(&LLMProvider::OpenAI, app);
         should_show_long_context_pricing_warning(
             llm,
             Some(
                 self.context_window_limit
                     .unwrap_or(llm.context_window.default_max),
             ),
-            uses_openai_api_key,
+            uses_openai_byok,
             FeatureFlag::GPTConfigurableContextWindow.is_enabled(),
         )
     }
 }
 
-pub(crate) fn has_effective_configurable_context_window(
+pub(crate) fn sanitize_context_window_limit_for_request(
     llm: &LLMInfo,
-    uses_openai_api_key: bool,
+    selected_limit: Option<u32>,
+    uses_openai_byok: bool,
     gpt_configurable_context_window_enabled: bool,
-) -> bool {
-    if !llm.context_window.is_configurable || llm.context_window.max == 0 {
-        return false;
+) -> Option<u32> {
+    if !has_effective_configurable_context_window(
+        llm,
+        uses_openai_byok,
+        gpt_configurable_context_window_enabled,
+    ) {
+        return None;
     }
 
-    if is_expanded_openai_model(llm) {
-        gpt_configurable_context_window_enabled
-            && is_expanded_openai_direct_model(llm)
-            && !uses_openai_api_key
-    } else {
-        true
-    }
+    selected_limit.map(|limit| limit.clamp(llm.context_window.min, llm.context_window.max))
+}
+pub(crate) fn has_effective_configurable_context_window(
+    llm: &LLMInfo,
+    uses_openai_byok: bool,
+    gpt_configurable_context_window_enabled: bool,
+) -> bool {
+    llm.context_window.is_configurable
+        && llm.context_window.max > 0
+        && (!is_expanded_openai_model(llm)
+            || can_use_expanded_openai_context_window(
+                llm,
+                uses_openai_byok,
+                gpt_configurable_context_window_enabled,
+            ))
 }
 
 pub(crate) fn should_show_long_context_pricing_warning(
     llm: &LLMInfo,
     selected_limit: Option<u32>,
-    uses_openai_api_key: bool,
+    uses_openai_byok: bool,
+    gpt_configurable_context_window_enabled: bool,
+) -> bool {
+    is_expanded_openai_model(llm)
+        && can_use_expanded_openai_context_window(
+            llm,
+            uses_openai_byok,
+            gpt_configurable_context_window_enabled,
+        )
+        && selected_limit.is_some_and(|limit| limit > LONG_CONTEXT_WARNING_THRESHOLD)
+}
+fn can_use_expanded_openai_context_window(
+    llm: &LLMInfo,
+    uses_openai_byok: bool,
     gpt_configurable_context_window_enabled: bool,
 ) -> bool {
     gpt_configurable_context_window_enabled
-        && is_expanded_openai_direct_model(llm)
-        && !uses_openai_api_key
-        && selected_limit.is_some_and(|limit| limit > LONG_CONTEXT_WARNING_THRESHOLD)
-}
-
-fn is_expanded_openai_direct_model(llm: &LLMInfo) -> bool {
-    is_expanded_openai_model(llm)
+        && !uses_openai_byok
         && llm
             .host_configs
             .get(&LLMModelHost::DirectApi)
