@@ -205,7 +205,6 @@ use crate::cloud_object::model::view::CloudViewModel;
 use crate::cloud_object::{CloudObject, CloudObjectLookup as _, Space};
 #[cfg(feature = "local_fs")]
 use crate::code::editor_management::CodeSource;
-#[cfg(feature = "local_fs")]
 use crate::code_review::diff_state::DiffMode;
 use crate::completer::SessionContext;
 use crate::context_chips::display::{PromptDisplay, PromptDisplayEvent};
@@ -233,7 +232,6 @@ use crate::pane_group::focus_state::PaneFocusHandle;
 use crate::pane_group::PaneGroupAction;
 #[cfg(feature = "local_fs")]
 use crate::persistence::{database_file_path_for_scope, establish_ro_connection, PersistenceScope};
-#[cfg(feature = "local_fs")]
 use crate::prefix::longest_common_prefix;
 use crate::prompt::editor_modal::OpenSource as PromptEditorOpenSource;
 use crate::resource_center::{
@@ -249,7 +247,6 @@ use crate::server::ids::SyncId;
 use crate::server::server_api::ai::AttachmentFileInfo;
 #[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
 use crate::server::server_api::ai::AttachmentInput;
-#[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
 use crate::server::server_api::ServerApi;
 use crate::server::telemetry::{
     AICommandSearchEntrypoint, AgentModeAutoDetectionFalsePositivePayload,
@@ -316,7 +313,6 @@ use crate::user_config::WarpConfig;
 use crate::util::bindings::{self, keybinding_name_to_normalized_string, CustomAction};
 #[cfg(feature = "local_fs")]
 use crate::util::file::external_editor;
-#[cfg(feature = "local_fs")]
 use crate::util::image::MAX_IMAGE_COUNT_FOR_QUERY;
 use crate::util::truncation::truncate_from_end;
 use crate::view_components::{DismissibleToast, ToastFlavor};
