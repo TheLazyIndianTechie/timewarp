@@ -34,17 +34,13 @@ pub(in crate::terminal::view) enum CloudConversationContinuationError {
     ActiveTaskExecution,
     MissingConversationToken,
     MissingServerConversationMetadata,
-    SourceDoesNotSupportContinuation,
     UnknownHarness,
     UnknownConversationAccess,
 }
 
 impl CloudConversationContinuationError {
     pub(in crate::terminal::view) fn should_fallback_to_tombstone(self) -> bool {
-        !matches!(
-            self,
-            Self::ActiveTaskExecution | Self::SourceDoesNotSupportContinuation
-        )
+        !matches!(self, Self::ActiveTaskExecution)
     }
 }
 
@@ -64,7 +60,7 @@ pub(in crate::terminal::view) fn resolve_cloud_conversation_continuation_ui_stat
         return Err(CloudConversationContinuationError::MissingTask);
     };
     if task.source == Some(AgentSource::GitHubAction) {
-        return Err(CloudConversationContinuationError::SourceDoesNotSupportContinuation);
+        return Ok(CloudConversationContinuationUiState::Tombstone { cta: None });
     }
     if task.has_active_execution() {
         return Err(CloudConversationContinuationError::ActiveTaskExecution);

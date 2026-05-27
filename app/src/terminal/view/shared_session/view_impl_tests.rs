@@ -118,7 +118,7 @@ fn test_on_ambient_agent_execution_ended_enables_followup_input_for_editable_non
             let model = view.model.lock();
             assert_eq!(
                 model.block_list().block_heights().items().len(),
-                initial_block_height_items
+                initial_block_height_items + 1
             );
             assert!(matches!(
                 model.shared_session_status(),
@@ -1113,7 +1113,7 @@ fn test_on_session_share_ended_enables_followup_input_without_tombstone_for_owne
 }
 
 #[test]
-fn test_on_session_share_ended_suppresses_input_for_github_action_ambient_session() {
+fn test_on_session_share_ended_shows_tombstone_for_github_action_ambient_session() {
     let _handoff_flag = FeatureFlag::HandoffCloudCloud.override_enabled(true);
     let _flag = FeatureFlag::CloudModeSetupV2.override_enabled(true);
 
@@ -1147,9 +1147,9 @@ fn test_on_session_share_ended_suppresses_input_for_github_action_ambient_sessio
             let model = view.model.lock();
             assert_eq!(
                 model.block_list().block_heights().items().len(),
-                initial_block_height_items + 1
+                initial_block_height_items + 2
             );
-            assert!(view.conversation_ended_tombstone_view_id.is_none());
+            assert!(view.conversation_ended_tombstone_view_id.is_some());
             assert_eq!(view.pending_cloud_followup_task_id, None);
             assert!(!view.is_input_box_visible(&model, ctx));
             assert_eq!(
@@ -1426,7 +1426,7 @@ fn test_on_ambient_agent_execution_ended_enables_followup_for_owned_task_without
 }
 
 #[test]
-fn test_on_ambient_agent_execution_ended_suppresses_input_for_github_action_ambient_session() {
+fn test_on_ambient_agent_execution_ended_shows_tombstone_for_github_action_ambient_session() {
     let _handoff_flag = FeatureFlag::HandoffCloudCloud.override_enabled(true);
     let _setup_v2_flag = FeatureFlag::CloudModeSetupV2.override_enabled(true);
 
@@ -1462,9 +1462,9 @@ fn test_on_ambient_agent_execution_ended_suppresses_input_for_github_action_ambi
             let model = view.model.lock();
             assert_eq!(
                 model.block_list().block_heights().items().len(),
-                initial_block_height_items
+                initial_block_height_items + 1
             );
-            assert!(view.conversation_ended_tombstone_view_id.is_none());
+            assert!(view.conversation_ended_tombstone_view_id.is_some());
             assert_eq!(view.pending_cloud_followup_task_id, None);
             assert!(!view.is_input_box_visible(&model, ctx));
             assert_eq!(

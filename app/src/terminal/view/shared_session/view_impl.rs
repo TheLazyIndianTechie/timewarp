@@ -908,15 +908,6 @@ impl TerminalView {
             self.insert_conversation_ended_tombstone_with_cta(None, ctx);
             return;
         }
-        {
-            let model = self.model.lock();
-            if self.is_github_action_ambient_agent_session_from_model(&model, ctx) {
-                drop(model);
-                self.remove_conversation_ended_tombstone(ctx);
-                self.pending_cloud_followup_task_id = None;
-                return;
-            }
-        }
         let Some(state) = self.cloud_conversation_continuation_ui_state(ctx) else {
             return;
         };
@@ -1803,15 +1794,6 @@ impl TerminalView {
         &mut self,
         ctx: &mut ViewContext<Self>,
     ) {
-        {
-            let model = self.model.lock();
-            if self.is_github_action_ambient_agent_session_from_model(&model, ctx) {
-                drop(model);
-                self.remove_conversation_ended_tombstone(ctx);
-                self.pending_cloud_followup_task_id = None;
-                return;
-            }
-        }
         if !FeatureFlag::HandoffCloudCloud.is_enabled() {
             self.insert_conversation_ended_tombstone_with_cta(None, ctx);
             return;

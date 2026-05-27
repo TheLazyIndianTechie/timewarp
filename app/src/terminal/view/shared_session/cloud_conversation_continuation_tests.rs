@@ -350,7 +350,7 @@ fn missing_task_returns_error() {
 }
 
 #[test]
-fn github_action_source_returns_error_without_tombstone_fallback() {
+fn github_action_source_shows_tombstone_without_cta() {
     App::test((), |mut app| async move {
         let TestHandles {
             terminal_view_id,
@@ -368,15 +368,10 @@ fn github_action_source_returns_error_without_tombstone_fallback() {
         });
 
         app.update(|ctx| {
-            let error =
-                resolve_cloud_conversation_continuation_ui_state(terminal_view_id, task_id, ctx)
-                    .unwrap_err();
-
             assert_eq!(
-                error,
-                CloudConversationContinuationError::SourceDoesNotSupportContinuation
+                resolve_cloud_conversation_continuation_ui_state(terminal_view_id, task_id, ctx),
+                Ok(CloudConversationContinuationUiState::Tombstone { cta: None })
             );
-            assert!(!error.should_fallback_to_tombstone());
         });
     });
 }
