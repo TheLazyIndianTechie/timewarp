@@ -224,10 +224,9 @@ impl Client {
     }
 
     pub fn patch<U: IntoUrl + Clone>(&self, url: U) -> RequestBuilder<'_> {
-        self.builder(
-            self.wrapped.patch(url.clone()),
-            Self::include_warp_http_headers(url),
-        )
+        let include_warp_headers = Self::include_warp_http_headers(url.clone());
+        let iap_token = self.iap_token_for(url.clone());
+        self.builder(self.wrapped.patch(url), include_warp_headers, iap_token)
     }
 
     pub fn delete<U: IntoUrl + Clone>(&self, url: U) -> RequestBuilder<'_> {

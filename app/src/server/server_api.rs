@@ -56,10 +56,10 @@ use crate::auth::auth_manager::AuthManager;
 use crate::auth::auth_state::AuthState;
 use crate::auth::UserUid;
 use crate::server::graphql::default_request_options;
+use crate::server::iap::{IapManager, IapState};
 use crate::server::server_api::presigned_upload::HttpStatusError;
 use crate::server::telemetry::TelemetryApi;
 use crate::settings::PrivacySettingsSnapshot;
-use crate::server::iap::{IapManager, IapState};
 use crate::{settings_view, ChannelState};
 
 pub const FETCH_CHANNEL_VERSIONS_TIMEOUT: std::time::Duration = Duration::from_secs(60);
@@ -447,8 +447,17 @@ impl ServerApi {
         agent_source: Option<ai::AgentSource>,
         iap_state: Option<Arc<IapState>>,
     ) -> Self {
-        let client = Arc::new(http_client::Client::new());
-        Self::new_with_parts(client, auth_state, event_sender, agent_source)
+        let mut client = http_client::Client::new();
+        if let Some(state) = iap_state.as_ref() {
+            client.set_iap_token_provider(state.clone());
+        }
+        Self::new_with_parts(
+            Arc::new(client),
+            auth_state,
+            event_sender,
+            agent_source,
+            iap_state,
+        )
     }
 
     fn new_with_parts(
@@ -456,6 +465,7 @@ impl ServerApi {
         auth_state: Arc<AuthState>,
         event_sender: async_channel::Sender<ServerApiEvent>,
         agent_source: Option<ai::AgentSource>,
+        iap_state: Option<Arc<IapState>>,
     ) -> Self {
         // We generate a random user ID for evals so we can run evals in parallel.
         #[cfg(feature = "agent_mode_evals")]
@@ -466,13 +476,8 @@ impl ServerApi {
 
         let oauth_client = Self::create_oauth_client();
 
-        let mut client = http_client::Client::new();
-        if let Some(state) = iap_state.as_ref() {
-            client.set_iap_token_provider(state.clone());
-        }
-
         Self {
-            client: Arc::new(client),
+            client,
             auth_state,
             event_sender,
             telemetry_api: TelemetryApi::new(),
@@ -493,7 +498,7 @@ impl ServerApi {
         let auth_state = Arc::new(AuthState::new_for_test());
         let client = Arc::new(http_client::Client::new_for_test());
 
-        Self::new_with_parts(client, auth_state, tx, None)
+        Self::new_with_parts(client, auth_state, tx, None, None)
     }
 
     #[cfg(test)]
@@ -509,6 +514,7 @@ impl ServerApi {
             Arc::new(http_client::Client::new_for_test()),
             auth_state,
             event_sender,
+            None,
             None,
         )
     }
@@ -757,6 +763,7 @@ impl ServerApi {
             }
             GraphQLError::RequestError(_)
             | GraphQLError::StagingAccessBlocked
+            | GraphQLError::IapChallengeBlocked
             | GraphQLError::ResponseError(_) => false,
         }
     }

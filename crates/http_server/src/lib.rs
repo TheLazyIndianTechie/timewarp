@@ -71,7 +71,7 @@ impl HttpServer {
             Channel::Dev => PORT_BASE + 2,
             Channel::Local => PORT_BASE + 3,
             Channel::Integration => PORT_BASE + 4,
-            Channel::OpenWarp => PORT_BASE + 5,
+            Channel::Oss => PORT_BASE + 5,
         }
     }
 }
