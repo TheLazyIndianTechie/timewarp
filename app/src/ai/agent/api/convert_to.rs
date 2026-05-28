@@ -720,6 +720,10 @@ impl TryFrom<AIAgentActionResult> for api::request::input::user_inputs::user_inp
 
 fn convert_context(context: &[AIAgentContext]) -> api::InputContext {
     let mut api_context = api::InputContext::default();
+    let mut git_head = None;
+    let mut git_branch = None;
+    let mut git_repository = None;
+    let mut git_pull_request = None;
     for context in context.iter().cloned() {
         match context {
             AIAgentContext::Block(block) => {
@@ -803,16 +807,14 @@ fn convert_context(context: &[AIAgentContext]) -> api::InputContext {
                 }
             }
             AIAgentContext::Git { head, branch } => {
-                let git_context = api_git_context(&mut api_context);
-                git_context.head = head;
-                git_context.branch = branch.unwrap_or_default();
+                git_head = Some(head);
+                git_branch = branch;
             }
             AIAgentContext::Repository { name, owner } => {
-                api_git_context(&mut api_context).repository =
-                    Some(api::input_context::git::Repository {
-                        name,
-                        owner: owner.unwrap_or_default(),
-                    });
+                git_repository = Some(api::input_context::git::Repository {
+                    name,
+                    owner: owner.unwrap_or_default(),
+                });
             }
             AIAgentContext::PullRequest {
                 number,
@@ -826,12 +828,12 @@ fn convert_context(context: &[AIAgentContext]) -> api::InputContext {
                 let Some(state) = api_pull_request_state(&state, draft) else {
                     continue;
                 };
-                api_git_context(&mut api_context).pull_request =
-                    Some(api::input_context::git::PullRequest {
-                        number,
-                        state: state as i32,
-                        base_branch,
-                    });
+                let pull_request = api::input_context::git::PullRequest {
+                    number,
+                    state: state as i32,
+                    base_branch,
+                };
+                git_pull_request = Some(pull_request);
             }
             AIAgentContext::Skills { skills } => {
                 api_context.updated_skills_context = Some(api::input_context::SkillsContext {
@@ -849,11 +851,27 @@ fn convert_context(context: &[AIAgentContext]) -> api::InputContext {
             }
         }
     }
+    api_context.git =
+        create_api_git_context(git_head, git_branch, git_repository, git_pull_request);
     api_context
 }
 
-fn api_git_context(api_context: &mut api::InputContext) -> &mut api::input_context::Git {
-    api_context.git.get_or_insert_with(Default::default)
+fn create_api_git_context(
+    head: Option<String>,
+    branch: Option<String>,
+    repository: Option<api::input_context::git::Repository>,
+    pull_request: Option<api::input_context::git::PullRequest>,
+) -> Option<api::input_context::Git> {
+    if head.is_none() && branch.is_none() && repository.is_none() && pull_request.is_none() {
+        return None;
+    }
+
+    Some(api::input_context::Git {
+        head: head.unwrap_or_default(),
+        branch: branch.unwrap_or_default(),
+        repository,
+        pull_request,
+    })
 }
 
 /// Maps a GitHub PR state plus draft flag to the proto `State` enum.
@@ -867,8 +885,13 @@ fn api_pull_request_state(
 ) -> Option<api::input_context::git::pull_request::State> {
     use api::input_context::git::pull_request::State;
     match state.to_ascii_uppercase().as_str() {
-        "OPEN" if draft => Some(State::OpenDraft),
-        "OPEN" => Some(State::Open),
+        "OPEN" => {
+            if draft {
+                Some(State::OpenDraft)
+            } else {
+                Some(State::Open)
+            }
+        }
         "CLOSED" => Some(State::Closed),
         "MERGED" => Some(State::Merged),
         _ => None,

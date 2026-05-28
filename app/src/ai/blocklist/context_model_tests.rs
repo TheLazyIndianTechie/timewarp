@@ -17,7 +17,6 @@ use warpui::r#async::executor::Background;
 use warpui::{App, EntityId, ModelHandle};
 
 use super::{BlocklistAIContextModel, PendingAttachment, PendingFile};
-#[cfg(feature = "local_fs")]
 use crate::ai::agent::AIAgentContext;
 use crate::ai::agent::ImageContext;
 use crate::ai::blocklist::agent_view::{AgentViewController, EphemeralMessageModel};
@@ -27,7 +26,6 @@ use crate::terminal::color::{self, Colors};
 use crate::terminal::event_listener::ChannelEventListener;
 use crate::terminal::model::test_utils::block_size;
 use crate::terminal::model::{BlockId, TerminalModel};
-#[cfg(feature = "local_fs")]
 use crate::util::git::PrInfo;
 
 impl BlocklistAIContextModel {
@@ -209,7 +207,6 @@ fn parse_repo_name_and_owner_rejects_invalid_ssh_remote() {
     );
 }
 
-#[cfg(feature = "local_fs")]
 #[test]
 fn pull_request_context_from_pr_info_excludes_url() {
     let pr_info = PrInfo {
@@ -231,7 +228,6 @@ fn pull_request_context_from_pr_info_excludes_url() {
     );
 }
 
-#[cfg(feature = "local_fs")]
 #[test]
 fn pull_request_context_from_pr_info_rejects_numbers_that_do_not_fit_agent_context() {
     let pr_info = PrInfo {
@@ -303,6 +299,7 @@ fn pull_request_context_reads_git_repo_status_model() {
         });
     });
 }
+
 #[test]
 fn has_locking_attachment_is_false_with_only_pending_selected_text() {
     // Selected text alone is *not* a locking attachment: the user could be selecting shell

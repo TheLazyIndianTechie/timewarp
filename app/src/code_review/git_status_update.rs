@@ -1,6 +1,7 @@
 #[cfg(feature = "local_fs")]
 use std::path::{Path, PathBuf};
 
+use crate::util::git::PrInfo;
 #[cfg(feature = "local_fs")]
 use settings::Setting as _;
 #[cfg(feature = "local_fs")]
@@ -13,7 +14,7 @@ use {
     crate::throttle::throttle,
     crate::util::git::{
         detect_current_branch_display, detect_main_branch, get_pr_for_branch, is_gh_auth_error,
-        is_gh_missing_error, PrInfo,
+        is_gh_missing_error,
     },
     async_channel::Sender,
     repo_metadata::{
@@ -160,6 +161,21 @@ pub struct GitRepoStatusModel {
     pr_info_consumers: HashSet<EntityId>,
     /// PR info for the current branch.
     pr_info: Option<PrInfo>,
+}
+
+#[cfg(not(feature = "local_fs"))]
+pub struct GitRepoStatusModel;
+
+#[cfg(not(feature = "local_fs"))]
+impl Entity for GitRepoStatusModel {
+    type Event = ();
+}
+
+#[cfg(not(feature = "local_fs"))]
+impl GitRepoStatusModel {
+    pub fn pr_info(&self) -> Option<&PrInfo> {
+        None
+    }
 }
 
 #[cfg(feature = "local_fs")]

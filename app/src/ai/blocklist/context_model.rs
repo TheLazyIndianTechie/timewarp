@@ -9,9 +9,9 @@ use std::sync::Arc;
 use ai::project_context::model::ProjectContextModel;
 use parking_lot::FairMutex;
 use warp_core::features::FeatureFlag;
-#[cfg(feature = "local_fs")]
-use warpui::WeakModelHandle;
-use warpui::{AppContext, Entity, EntityId, ModelContext, ModelHandle, SingletonEntity};
+use warpui::{
+    AppContext, Entity, EntityId, ModelContext, ModelHandle, SingletonEntity, WeakModelHandle,
+};
 
 use super::agent_view::{AgentViewController, AgentViewEntryOrigin, EnterAgentViewError};
 use super::block::DirectoryContext;
@@ -28,14 +28,12 @@ use crate::ai::block_context::BlockContext;
 use crate::ai::document::ai_document_model::AIDocumentId;
 use crate::ai::llms::{LLMPreferences, LLMPreferencesEvent};
 use crate::ai::outline::RepoOutlines;
-#[cfg(feature = "local_fs")]
 use crate::code_review::git_status_update::GitRepoStatusModel;
 use crate::terminal::event::{BlockCompletedEvent, BlockType};
 use crate::terminal::model::block::{BlockId, BlockMetadata};
 use crate::terminal::model::session::Sessions;
 use crate::terminal::model_events::{ModelEvent, ModelEventDispatcher};
 use crate::terminal::TerminalModel;
-#[cfg(feature = "local_fs")]
 use crate::util::git::PrInfo;
 use crate::workspaces::user_workspaces::UserWorkspaces;
 
@@ -105,7 +103,6 @@ impl PendingQueryState {
 pub struct BlocklistAIContextModel {
     terminal_model: Arc<FairMutex<TerminalModel>>,
     directory_context: DirectoryContext,
-    #[cfg(feature = "local_fs")]
     git_repo_status: Option<WeakModelHandle<GitRepoStatusModel>>,
 
     /// `BlockId`s corresponding to blocks to be included as context with the next AI query.
@@ -290,7 +287,6 @@ impl BlocklistAIContextModel {
         Self {
             terminal_model,
             directory_context: Default::default(),
-            #[cfg(feature = "local_fs")]
             git_repo_status: None,
             pending_context_block_ids: HashSet::new(),
             pending_context_selected_text: None,
@@ -320,7 +316,6 @@ impl BlocklistAIContextModel {
         Self {
             terminal_model,
             directory_context: Default::default(),
-            #[cfg(feature = "local_fs")]
             git_repo_status: None,
             pending_context_block_ids: HashSet::new(),
             pending_context_selected_text: None,
@@ -456,7 +451,6 @@ impl BlocklistAIContextModel {
         if let Some(repo_context) = self.repository_context() {
             context.push(repo_context);
         }
-        #[cfg(feature = "local_fs")]
         if let Some(pull_request_context) = self.pull_request_context(app) {
             context.push(pull_request_context);
         }
@@ -1013,7 +1007,6 @@ impl BlocklistAIContextModel {
         }
     }
 
-    #[cfg(feature = "local_fs")]
     pub fn set_git_repo_status(&mut self, handle: Option<WeakModelHandle<GitRepoStatusModel>>) {
         self.git_repo_status = handle;
     }
@@ -1038,14 +1031,12 @@ impl BlocklistAIContextModel {
         None
     }
 
-    #[cfg(feature = "local_fs")]
     fn pull_request_context(&self, app: &AppContext) -> Option<AIAgentContext> {
         let handle = self.git_repo_status.as_ref()?.upgrade(app)?;
         let pr_info = handle.as_ref(app).pr_info()?;
         Self::pull_request_context_from_pr_info(pr_info)
     }
 
-    #[cfg(feature = "local_fs")]
     fn pull_request_context_from_pr_info(pr_info: &PrInfo) -> Option<AIAgentContext> {
         Some(AIAgentContext::PullRequest {
             number: i32::try_from(pr_info.number).ok()?,
