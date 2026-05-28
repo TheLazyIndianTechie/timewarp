@@ -1,9 +1,9 @@
-//! Unit tests for [`BlocklistAIContextModel::has_locking_attachment`].
+//! Unit tests for [`BlocklistAIContextModel`].
 //!
 //! These tests deliberately bypass the production [`BlocklistAIContextModel::new`] constructor
 //! (which subscribes to several singletons) and instead use [`BlocklistAIContextModel::new_for_test`]
 //! together with [`super::agent_view::AgentViewController::new`]. That keeps the fixture small
-//! enough to focus on the lock logic without standing up `BlocklistAIHistoryModel`,
+//! enough to focus on context logic without standing up `BlocklistAIHistoryModel`,
 //! `LLMPreferences`, `CloudModel`, `UpdateManager`, or `AppExecutionMode`.
 
 use std::sync::Arc;
@@ -26,7 +26,7 @@ use crate::terminal::color::{self, Colors};
 use crate::terminal::event_listener::ChannelEventListener;
 use crate::terminal::model::test_utils::block_size;
 use crate::terminal::model::{BlockId, TerminalModel};
-use crate::util::git::PrInfo;
+use crate::util::git::{PrInfo, RepositoryInfo};
 
 impl BlocklistAIContextModel {
     pub(crate) fn append_pending_attachments_for_test(
@@ -43,6 +43,57 @@ impl BlocklistAIContextModel {
     pub(crate) fn set_pending_selected_text_for_test(&mut self, text: Option<String>) {
         self.pending_context_selected_text = text;
     }
+}
+
+#[cfg(feature = "local_fs")]
+#[test]
+fn repository_context_reads_git_repo_status_model() {
+    App::test((), |mut app| async move {
+        let context_model = build_test_context_model(&mut app);
+        let temp_dir = tempfile::TempDir::new().unwrap();
+        let watcher_handle = app.add_singleton_model(DirectoryWatcher::new_for_testing);
+        let repository = watcher_handle.update(&mut app, |watcher, ctx| {
+            watcher
+                .add_directory(
+                    StandardizedPath::from_local_canonicalized(temp_dir.path()).unwrap(),
+                    ctx,
+                )
+                .unwrap()
+        });
+        let git_status = app.add_model(move |_| GitRepoStatusModel::new_for_test(repository, None));
+
+        git_status.update(&mut app, |model, ctx| {
+            model.set_repository_info_for_test(
+                Some(RepositoryInfo {
+                    name: "warp-internal".to_owned(),
+                    owner: Some("warpdotdev".to_owned()),
+                }),
+                ctx,
+            );
+        });
+
+        context_model.update(&mut app, |model, _| {
+            model.set_git_repo_status(Some(git_status.downgrade()));
+        });
+
+        context_model.read(&app, |model, ctx| {
+            assert_eq!(
+                model.repository_context(ctx),
+                Some(AIAgentContext::Repository {
+                    name: "warp-internal".to_owned(),
+                    owner: Some("warpdotdev".to_owned()),
+                })
+            );
+        });
+
+        context_model.update(&mut app, |model, _| {
+            model.set_git_repo_status(None);
+        });
+
+        context_model.read(&app, |model, ctx| {
+            assert_eq!(model.repository_context(ctx), None);
+        });
+    });
 }
 
 /// Builds a [`BlocklistAIContextModel`] with stub dependencies. None of the dependencies are
@@ -122,88 +173,19 @@ fn has_locking_attachment_is_false_with_only_pending_block_id() {
     });
 }
 
-#[cfg(not(target_family = "wasm"))]
 #[test]
-fn parse_repo_name_and_owner_handles_https_remote() {
-    assert_eq!(
-        super::parse_repo_name_and_owner("https://github.com/warpdotdev/warp-internal.git"),
-        Some(("warp-internal".to_owned(), "warpdotdev".to_owned()))
-    );
-}
+fn repository_context_from_repository_info_converts_to_agent_context() {
+    let repository_info = RepositoryInfo {
+        name: "warp-internal".to_owned(),
+        owner: Some("warpdotdev".to_owned()),
+    };
 
-#[cfg(not(target_family = "wasm"))]
-#[test]
-fn parse_repo_name_and_owner_handles_ssh_remote() {
     assert_eq!(
-        super::parse_repo_name_and_owner("git@github.com:warpdotdev/warp-internal.git"),
-        Some(("warp-internal".to_owned(), "warpdotdev".to_owned()))
-    );
-}
-#[cfg(not(target_family = "wasm"))]
-#[test]
-fn parse_repo_name_and_owner_handles_url_style_ssh_remote() {
-    assert_eq!(
-        super::parse_repo_name_and_owner("ssh://git@github.com/warpdotdev/warp-internal.git"),
-        Some(("warp-internal".to_owned(), "warpdotdev".to_owned()))
-    );
-}
-
-#[cfg(not(target_family = "wasm"))]
-#[test]
-fn parse_repo_name_and_owner_rejects_supported_ownerless_url() {
-    assert_eq!(
-        super::parse_repo_name_and_owner("https://example.com/warp-internal.git"),
-        None
-    );
-}
-
-#[cfg(not(target_family = "wasm"))]
-#[test]
-fn parse_repo_name_and_owner_rejects_extra_path_segments() {
-    assert_eq!(
-        super::parse_repo_name_and_owner("https://github.com/warpdotdev/warp-internal/extra"),
-        None
-    );
-}
-
-#[cfg(not(target_family = "wasm"))]
-#[test]
-fn parse_repo_name_and_owner_strips_query_from_repo_name() {
-    assert_eq!(
-        super::parse_repo_name_and_owner("https://github.com/warpdotdev/warp-internal?ref=main"),
-        Some(("warp-internal".to_owned(), "warpdotdev".to_owned()))
-    );
-}
-
-#[cfg(not(target_family = "wasm"))]
-#[test]
-fn parse_repo_name_and_owner_rejects_unrecognized_ownerless_remote() {
-    assert_eq!(super::parse_repo_name_and_owner("warp-internal.git"), None);
-}
-
-#[cfg(not(target_family = "wasm"))]
-#[test]
-fn parse_repo_name_and_owner_rejects_unrecognized_url_scheme() {
-    assert_eq!(
-        super::parse_repo_name_and_owner("custom://github.com/warpdotdev/warp-internal.git"),
-        None
-    );
-}
-
-#[cfg(not(target_family = "wasm"))]
-#[test]
-fn parse_repo_name_and_owner_rejects_invalid_ssh_remote() {
-    assert_eq!(
-        super::parse_repo_name_and_owner("git@:warpdotdev/warp-internal.git"),
-        None
-    );
-    assert_eq!(
-        super::parse_repo_name_and_owner("git@github.com/warpdotdev/warp-internal.git"),
-        None
-    );
-    assert_eq!(
-        super::parse_repo_name_and_owner("git@github.com:/warpdotdev/warp-internal.git"),
-        None
+        BlocklistAIContextModel::repository_context_from_repository_info(&repository_info),
+        AIAgentContext::Repository {
+            name: "warp-internal".to_owned(),
+            owner: Some("warpdotdev".to_owned()),
+        }
     );
 }
 

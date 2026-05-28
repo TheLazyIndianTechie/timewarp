@@ -34,7 +34,7 @@ use crate::terminal::model::block::{BlockId, BlockMetadata};
 use crate::terminal::model::session::Sessions;
 use crate::terminal::model_events::{ModelEvent, ModelEventDispatcher};
 use crate::terminal::TerminalModel;
-use crate::util::git::PrInfo;
+use crate::util::git::{PrInfo, RepositoryInfo};
 use crate::workspaces::user_workspaces::UserWorkspaces;
 
 /// A non-image file picked via the "attach file" button, stored until query submission.
@@ -448,7 +448,7 @@ impl BlocklistAIContextModel {
         }
 
         // Include repository info from the origin remote URL if available.
-        if let Some(repo_context) = self.repository_context() {
+        if let Some(repo_context) = self.repository_context(app) {
             context.push(repo_context);
         }
         if let Some(pull_request_context) = self.pull_request_context(app) {
@@ -1011,24 +1011,20 @@ impl BlocklistAIContextModel {
         self.git_repo_status = handle;
     }
 
-    /// Builds an `AIAgentContext::Repository` from the current working directory's git remote
-    /// metadata, if available. Only available on non-WASM targets (git2 is not available on WASM).
-    #[cfg(not(target_family = "wasm"))]
-    fn repository_context(&self) -> Option<AIAgentContext> {
-        let pwd = self.current_pwd()?;
-        let repo = git2::Repository::discover(&pwd).ok()?;
-        let remote = repo.find_remote("origin").ok()?;
-        let raw_url = remote.url()?.to_string();
-        let (name, owner) = parse_repo_name_and_owner(&raw_url)?;
-        Some(AIAgentContext::Repository {
-            name,
-            owner: Some(owner),
-        })
+    /// Builds an `AIAgentContext::Repository` from cached git remote metadata, if available.
+    fn repository_context(&self, app: &AppContext) -> Option<AIAgentContext> {
+        let handle = self.git_repo_status.as_ref()?.upgrade(app)?;
+        let repository_info = handle.as_ref(app).repository_info()?;
+        Some(Self::repository_context_from_repository_info(
+            repository_info,
+        ))
     }
 
-    #[cfg(target_family = "wasm")]
-    fn repository_context(&self) -> Option<AIAgentContext> {
-        None
+    fn repository_context_from_repository_info(repository_info: &RepositoryInfo) -> AIAgentContext {
+        AIAgentContext::Repository {
+            name: repository_info.name.clone(),
+            owner: repository_info.owner.clone(),
+        }
     }
 
     fn pull_request_context(&self, app: &AppContext) -> Option<AIAgentContext> {
@@ -1056,70 +1052,6 @@ impl BlocklistAIContextModel {
             });
         }
         self.pending_attachments.clear();
-    }
-}
-
-/// Parses a repository name and optional owner from a git remote URL.
-#[cfg(not(target_family = "wasm"))]
-fn parse_repo_name_and_owner(url: &str) -> Option<(String, String)> {
-    let url = url.trim().trim_end_matches(".git");
-    parse_scp_like_ssh_remote_path(url)
-        .or_else(|| parse_supported_url_remote_path(url))
-        .and_then(parse_repo_name_and_owner_from_path)
-}
-
-/// Parses a SSH-like remote path (e.g. `git@github.com:owner/repo_name.git`)
-#[cfg(not(target_family = "wasm"))]
-fn parse_scp_like_ssh_remote_path(url: &str) -> Option<&str> {
-    let rest = url.strip_prefix("git@")?;
-    let (host, path) = rest.split_once(':')?;
-    if host.is_empty() || host.contains('/') || path.is_empty() || path.starts_with('/') {
-        return None;
-    }
-    Some(path)
-}
-
-/// Parses a supported URL remote path (e.g. `https://github.com/owner/repo_name.git` or `ssh://git@github.com/owner/repo_name.git`).
-#[cfg(not(target_family = "wasm"))]
-fn parse_supported_url_remote_path(url: &str) -> Option<&str> {
-    if !(url.starts_with("https://") || url.starts_with("http://") || url.starts_with("ssh://")) {
-        return None;
-    }
-
-    let (_, rest) = url.split_once("://")?;
-    let (host, path) = rest.split_once('/')?;
-    if host.is_empty() || path.is_empty() {
-        return None;
-    }
-    Some(path)
-}
-
-#[cfg(not(target_family = "wasm"))]
-fn parse_repo_name_and_owner_from_path(path: &str) -> Option<(String, String)> {
-    let path = path.trim_matches('/');
-    if path.is_empty() {
-        return None;
-    }
-
-    let mut segments = path.splitn(3, '/');
-    let first = segments.next()?;
-    let second = segments.next();
-    let extra = segments.next();
-
-    if extra.is_some() {
-        return None;
-    }
-
-    match second {
-        Some(repo) if !first.is_empty() && !repo.is_empty() => {
-            let repo = repo.split(['?', '#']).next().unwrap_or(repo);
-            if repo.is_empty() {
-                return None;
-            }
-            Some((repo.to_string(), first.to_string()))
-        }
-        Some(_) => None,
-        None => None,
     }
 }
 

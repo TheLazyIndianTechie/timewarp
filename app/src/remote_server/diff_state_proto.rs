@@ -17,7 +17,7 @@ use crate::code_review::diff_state::{
     DiffStats, FileDiff, FileDiffAndContent, FileStatusInfo, GitDiffData, GitDiffWithBaseContent,
     GitFileStatus,
 };
-use crate::util::git::{Commit, PrInfo};
+use crate::util::git::Commit;
 
 // ── Proto → Rust (for incoming client messages) ────────────────────
 
@@ -115,22 +115,12 @@ impl From<&proto::Commit> for Commit {
     }
 }
 
-impl From<&proto::PrInfo> for PrInfo {
-    fn from(pr: &proto::PrInfo) -> Self {
-        PrInfo {
-            number: pr.number,
-            url: pr.url.clone(),
-            state: String::new(),
-            draft: false,
-            base_branch: String::new(),
-        }
-    }
-}
-
 impl TryFrom<&proto::DiffMetadata> for DiffMetadata {
     type Error = String;
 
     fn try_from(metadata: &proto::DiffMetadata) -> Result<Self, Self::Error> {
+        // Legacy proto `pr_info` is intentionally ignored. PR info is fetched
+        // independently per repo by GitRepoStatusModel and is not diff state.
         Ok(DiffMetadata {
             main_branch_name: metadata.main_branch_name.clone(),
             current_branch_name: metadata.current_branch_name.clone(),
@@ -147,7 +137,6 @@ impl TryFrom<&proto::DiffMetadata> for DiffMetadata {
             has_head_commit: metadata.has_head_commit,
             unpushed_commits: metadata.unpushed_commits.iter().map(Commit::from).collect(),
             upstream_ref: metadata.upstream_ref.clone(),
-            pr_info: metadata.pr_info.as_ref().map(PrInfo::from),
         })
     }
 }

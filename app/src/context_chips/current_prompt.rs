@@ -21,7 +21,7 @@ use super::context_chip::{
 };
 use super::logging::{ChipCommandLogEntry, PromptChipExecutionPhase, PromptChipLogger};
 use super::prompt::Prompt;
-use super::{chips_to_string, ChipResult, ChipValue, ContextChipKind, GithubPullRequestChipValue};
+use super::{chips_to_string, ChipResult, ChipValue, ContextChipKind};
 #[cfg(feature = "local_fs")]
 use crate::code_review::git_status_update::{GitRepoStatusEvent, GitRepoStatusModel};
 #[cfg(feature = "local_fs")]
@@ -789,14 +789,7 @@ impl CurrentPrompt {
                                 }
                             }
                         }
-                        let chip_value = output.and_then(|output| {
-                            if matches!(chip_kind, ContextChipKind::GithubPullRequest) {
-                                GithubPullRequestChipValue::from_text(&output)
-                                    .map(ChipValue::GithubPullRequest)
-                            } else {
-                                Some(ChipValue::Text(output))
-                            }
-                        });
+                        let chip_value = output.map(ChipValue::Text);
                         me.update_chip_value(&chip_kind, chip_value);
                         me.set_chip_update_status(&chip_kind, status);
                     },
@@ -1470,16 +1463,9 @@ impl CurrentPrompt {
             .as_ref()
             .and_then(|w| w.upgrade(ctx))
             .and_then(|h| {
-                h.as_ref(ctx).pr_info().and_then(|info| {
-                    let number = i32::try_from(info.number).ok()?;
-                    Some(ChipValue::GithubPullRequest(GithubPullRequestChipValue {
-                        url: info.url.clone(),
-                        number,
-                        state: info.state.clone(),
-                        draft: info.draft,
-                        base_branch: info.base_branch.clone(),
-                    }))
-                })
+                h.as_ref(ctx)
+                    .pr_info()
+                    .map(|info| ChipValue::Text(info.url.clone()))
             });
         let current_pr = self
             .latest_chip_value(&ContextChipKind::GithubPullRequest)

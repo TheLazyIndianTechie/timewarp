@@ -1328,7 +1328,6 @@ impl LocalDiffStateModel {
             has_head_commit,
             unpushed_commits,
             upstream_ref,
-            pr_info: None,
         })
     }
 

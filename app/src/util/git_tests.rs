@@ -5,8 +5,9 @@ use command::Stdio;
 use tempfile::TempDir;
 
 use super::{
-    detect_current_branch, detect_current_branch_display, get_pr_for_branch, is_gh_auth_error,
-    is_gh_missing_error, is_no_pr_for_branch_error,
+    detect_current_branch, detect_current_branch_display, get_pr_for_branch, get_repository_info,
+    is_gh_auth_error, is_gh_missing_error, is_no_pr_for_branch_error,
+    repository_info_from_remote_url, RepositoryInfo,
 };
 
 /// Helper: run a git command inside the given repo directory.
@@ -22,6 +23,95 @@ async fn git(repo: &Path, args: &[&str]) -> String {
     String::from_utf8_lossy(&output.stdout).trim().to_owned()
 }
 
+#[test]
+fn repository_info_from_remote_url_handles_https_remote() {
+    assert_eq!(
+        repository_info_from_remote_url("https://github.com/warpdotdev/warp-internal.git"),
+        Some(RepositoryInfo {
+            name: "warp-internal".to_owned(),
+            owner: Some("warpdotdev".to_owned()),
+        })
+    );
+}
+
+#[test]
+fn repository_info_from_remote_url_handles_ssh_remote() {
+    assert_eq!(
+        repository_info_from_remote_url("git@github.com:warpdotdev/warp-internal.git"),
+        Some(RepositoryInfo {
+            name: "warp-internal".to_owned(),
+            owner: Some("warpdotdev".to_owned()),
+        })
+    );
+}
+
+#[test]
+fn repository_info_from_remote_url_handles_url_style_ssh_remote() {
+    assert_eq!(
+        repository_info_from_remote_url("ssh://git@github.com/warpdotdev/warp-internal.git"),
+        Some(RepositoryInfo {
+            name: "warp-internal".to_owned(),
+            owner: Some("warpdotdev".to_owned()),
+        })
+    );
+}
+
+#[test]
+fn repository_info_from_remote_url_rejects_supported_ownerless_url() {
+    assert_eq!(
+        repository_info_from_remote_url("https://example.com/warp-internal.git"),
+        None
+    );
+}
+
+#[test]
+fn repository_info_from_remote_url_rejects_extra_path_segments() {
+    assert_eq!(
+        repository_info_from_remote_url("https://github.com/warpdotdev/warp-internal/extra"),
+        None
+    );
+}
+
+#[test]
+fn repository_info_from_remote_url_strips_query_from_repo_name() {
+    assert_eq!(
+        repository_info_from_remote_url("https://github.com/warpdotdev/warp-internal?ref=main"),
+        Some(RepositoryInfo {
+            name: "warp-internal".to_owned(),
+            owner: Some("warpdotdev".to_owned()),
+        })
+    );
+}
+
+#[test]
+fn repository_info_from_remote_url_rejects_unrecognized_ownerless_remote() {
+    assert_eq!(repository_info_from_remote_url("warp-internal.git"), None);
+}
+
+#[test]
+fn repository_info_from_remote_url_rejects_unrecognized_url_scheme() {
+    assert_eq!(
+        repository_info_from_remote_url("custom://github.com/warpdotdev/warp-internal.git"),
+        None
+    );
+}
+
+#[test]
+fn repository_info_from_remote_url_rejects_invalid_ssh_remote() {
+    assert_eq!(
+        repository_info_from_remote_url("git@:warpdotdev/warp-internal.git"),
+        None
+    );
+    assert_eq!(
+        repository_info_from_remote_url("git@github.com/warpdotdev/warp-internal.git"),
+        None
+    );
+    assert_eq!(
+        repository_info_from_remote_url("git@github.com:/warpdotdev/warp-internal.git"),
+        None
+    );
+}
+
 /// Creates a temp git repo with one commit and returns `(dir_handle, repo_path)`.
 async fn init_repo() -> (TempDir, std::path::PathBuf) {
     let dir = tempfile::tempdir().expect("failed to create temp dir");
@@ -33,6 +123,29 @@ async fn init_repo() -> (TempDir, std::path::PathBuf) {
     git(&path, &["commit", "--allow-empty", "-m", "initial"]).await;
 
     (dir, path)
+}
+
+#[tokio::test]
+async fn get_repository_info_reads_origin_remote() {
+    let (_dir, repo) = init_repo().await;
+    git(
+        &repo,
+        &[
+            "remote",
+            "add",
+            "origin",
+            "https://github.com/warpdotdev/warp-internal.git",
+        ],
+    )
+    .await;
+
+    assert_eq!(
+        get_repository_info(&repo).await.unwrap(),
+        Some(RepositoryInfo {
+            name: "warp-internal".to_owned(),
+            owner: Some("warpdotdev".to_owned()),
+        })
+    );
 }
 
 #[test]

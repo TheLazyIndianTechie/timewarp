@@ -702,14 +702,8 @@ fn test_git_status_pr_info_updates_github_pr_chip_value() {
                 .latest_chip_value(&ContextChipKind::GithubPullRequest);
             assert_eq!(
                 value,
-                Some(&crate::context_chips::ChipValue::GithubPullRequest(
-                    crate::context_chips::GithubPullRequestChipValue {
-                        url: "https://github.com/warp/warp/pull/123".to_string(),
-                        number: 123,
-                        state: "OPEN".to_string(),
-                        draft: true,
-                        base_branch: "main".to_string(),
-                    },
+                Some(&crate::context_chips::ChipValue::Text(
+                    "https://github.com/warp/warp/pull/123".to_string(),
                 )),
             );
         });

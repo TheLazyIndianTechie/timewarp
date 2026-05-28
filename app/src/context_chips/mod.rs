@@ -19,7 +19,7 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use context_chip::PromptGenerator;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 use smol_str::SmolStr;
 use warpui::color::ColorU;
 use warpui::elements::Text;
@@ -44,7 +44,6 @@ use crate::ui_components::icons::Icon;
 pub enum ChipValue {
     Text(String),
     GitDiffStats(display_chip::GitLineChanges),
-    GithubPullRequest(GithubPullRequestChipValue),
 }
 
 impl ChipValue {
@@ -52,7 +51,6 @@ impl ChipValue {
     pub fn as_text(&self) -> Option<&str> {
         match self {
             ChipValue::Text(s) => Some(s),
-            ChipValue::GithubPullRequest(pr) => Some(&pr.url),
             ChipValue::GitDiffStats(_) => None,
         }
     }
@@ -61,14 +59,7 @@ impl ChipValue {
     pub fn as_git_diff_stats(&self) -> Option<&display_chip::GitLineChanges> {
         match self {
             ChipValue::GitDiffStats(g) => Some(g),
-            ChipValue::Text(_) | ChipValue::GithubPullRequest(_) => None,
-        }
-    }
-
-    pub fn as_github_pull_request(&self) -> Option<&GithubPullRequestChipValue> {
-        match self {
-            ChipValue::GithubPullRequest(pr) => Some(pr),
-            ChipValue::Text(_) | ChipValue::GitDiffStats(_) => None,
+            ChipValue::Text(_) => None,
         }
     }
 }
@@ -83,7 +74,6 @@ impl std::fmt::Display for ChipValue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ChipValue::Text(s) => f.write_str(s),
-            ChipValue::GithubPullRequest(pr) => f.write_str(&pr.url),
             ChipValue::GitDiffStats(g) => {
                 write!(
                     f,
@@ -93,75 +83,6 @@ impl std::fmt::Display for ChipValue {
             }
         }
     }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct GithubPullRequestChipValue {
-    #[serde(deserialize_with = "deserialize_github_pr_url")]
-    pub url: String,
-    #[serde(deserialize_with = "deserialize_github_pr_number")]
-    pub number: i32,
-    #[serde(default)]
-    pub state: String,
-    #[serde(default, alias = "isDraft")]
-    pub draft: bool,
-    #[serde(default, alias = "baseRefName")]
-    pub base_branch: String,
-}
-
-impl GithubPullRequestChipValue {
-    pub fn from_text(text: &str) -> Option<Self> {
-        let text = text.trim();
-        if text.is_empty() {
-            return None;
-        }
-
-        serde_json::from_str::<Self>(text)
-            .ok()
-            .or_else(|| Self::from_url(text))
-    }
-
-    pub fn from_url(url: &str) -> Option<Self> {
-        let number = github_pr_number_from_url(url)?;
-        Some(Self {
-            url: url.trim().to_string(),
-            number,
-            state: String::new(),
-            draft: false,
-            base_branch: String::new(),
-        })
-    }
-}
-
-fn deserialize_github_pr_url<'de, D>(deserializer: D) -> Result<String, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let url = String::deserialize(deserializer)?.trim().to_string();
-    if url.is_empty() {
-        return Err(serde::de::Error::custom(
-            "pull request URL must not be empty",
-        ));
-    }
-    Ok(url)
-}
-fn deserialize_github_pr_number<'de, D>(deserializer: D) -> Result<i32, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let value = serde_json::Value::deserialize(deserializer)?;
-    let number = match value {
-        serde_json::Value::String(s) => parse_github_pr_number(&s),
-        serde_json::Value::Number(n) => n
-            .as_i64()
-            .and_then(|number| i32::try_from(number).ok())
-            .filter(|number| *number > 0),
-        value => Err(serde::de::Error::custom(format!(
-            "expected string or number for pull request number, got {value}"
-        )))?,
-    };
-    number.ok_or_else(|| serde::de::Error::custom("pull request number must be positive"))
 }
 
 impl From<String> for ChipValue {
@@ -654,11 +575,6 @@ pub fn git_line_changes_from_chips(chips: &[ChipResult]) -> Option<display_chip:
                         lines_added: 0,
                         lines_removed: 0,
                     }),
-                ChipValue::GithubPullRequest(_) => display_chip::GitLineChanges {
-                    files_changed: 0,
-                    lines_added: 0,
-                    lines_removed: 0,
-                },
             })
         } else {
             None
@@ -795,7 +711,3 @@ pub fn render_text_from_kind(
         _ => (),
     }
 }
-
-#[cfg(test)]
-#[path = "mod_tests.rs"]
-mod tests;
