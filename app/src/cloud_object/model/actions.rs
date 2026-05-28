@@ -6,12 +6,14 @@ pub use cloud_object_client::{
 };
 use warpui::{Entity, ModelContext, SingletonEntity};
 
-use crate::persistence::model::PersistedObjectAction;
-use crate::server::ids::{parse_sqlite_id_to_uid, HashedSqliteId, ObjectUid};
+use crate::server::ids::{HashedSqliteId, ObjectUid};
 
 pub enum ObjectActionsEvent {}
 
-pub fn object_action_from_persisted(other: PersistedObjectAction) -> Result<ObjectAction, ()> {
+#[cfg(not(target_family = "wasm"))]
+pub fn object_action_from_persisted(
+    other: crate::persistence::model::PersistedObjectAction,
+) -> Result<ObjectAction, ()> {
     // Each persisted object action is either a single action or a bundled action.
     // If there's any inconsistencies from the SQL row, we return an error.
     let action_subtype = if let Some(count) = other.count {
@@ -71,7 +73,7 @@ pub fn object_action_from_persisted(other: PersistedObjectAction) -> Result<Obje
 
     // NOTE: This is needed since we only store the sqlite hash, but we need the uid (the second part of the hash)
     // to index into CloudModel and store the object actions in memory.
-    let uid = parse_sqlite_id_to_uid(hashed_object_id.clone())?;
+    let uid = crate::server::ids::parse_sqlite_id_to_uid(hashed_object_id.clone())?;
 
     Ok(ObjectAction {
         uid: uid.to_string(),

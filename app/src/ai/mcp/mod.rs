@@ -1,7 +1,7 @@
+#[cfg(not(target_family = "wasm"))]
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
-use chrono::DateTime;
 #[cfg(not(target_family = "wasm"))]
 use diesel::{QueryDsl, RunQueryDsl, SqliteConnection};
 use strum::IntoEnumIterator;
@@ -53,9 +53,12 @@ cfg_if::cfg_if! {
 pub mod gallery;
 pub use gallery::MCPGalleryManager;
 pub mod templatable;
+#[cfg(not(target_family = "wasm"))]
 pub use cloud_object_models::{
-    CLIServer, CloudMCPServer, CloudMCPServerModel, JSONMCPServer, JSONTransportType, MCPServer,
-    MCPServerState, ServerSentEvents, StaticEnvVar, StaticHeader, TransportType,
+    CLIServer, JSONMCPServer, JSONTransportType, ServerSentEvents, StaticEnvVar, StaticHeader,
+};
+pub use cloud_object_models::{
+    CloudMCPServer, CloudMCPServerModel, MCPServer, MCPServerState, TransportType,
 };
 pub use templatable::{JsonTemplate, TemplatableMCPServer, TemplateVariable};
 pub mod logs;
@@ -64,6 +67,7 @@ pub use templatable_installation::TemplatableMCPServerInstallation;
 #[cfg(not(target_family = "wasm"))]
 pub use templatable_installation::{VariableType, VariableValue};
 pub mod parsing;
+#[cfg(not(target_family = "wasm"))]
 pub use parsing::ParsedTemplatableMCPServerResult;
 #[cfg(not(target_family = "wasm"))]
 pub mod http_client;
@@ -301,13 +305,12 @@ fn find_server_map(
     serde_json::from_value::<HashMap<String, JSONMCPServer>>(config)
 }
 
+#[cfg(not(target_family = "wasm"))]
 pub trait MCPServerExt {
     fn from_user_json(json: &str) -> serde_json::Result<Vec<MCPServer>>;
-    #[allow(dead_code)]
+    #[cfg(test)]
     fn to_user_json(&self) -> String;
     fn to_parsed_templatable_mcp_server_result(&self) -> ParsedTemplatableMCPServerResult;
-
-    #[cfg(not(target_family = "wasm"))]
     fn fill_environment_variables(&mut self, conn: &mut SqliteConnection);
 }
 
@@ -358,6 +361,7 @@ impl MCPServerExt for MCPServer {
 
     /// Includes the environment variable values, should only be shown to users,
     /// not sent to our servers.
+    #[cfg(test)]
     fn to_user_json(&self) -> String {
         let transport_type = match &self.transport_type {
             TransportType::CLIServer(cli_server) => JSONTransportType::CLIServer {
@@ -427,7 +431,7 @@ impl MCPServerExt for MCPServer {
             name: self.name.clone(),
             description: None,
             template: JsonTemplate { json, variables },
-            version: DateTime::now().timestamp(),
+            version: chrono::DateTime::now().timestamp(),
             gallery_data: None,
         };
         let templatable_mcp_server_installation: Option<TemplatableMCPServerInstallation> =
@@ -459,24 +463,6 @@ impl MCPServerExt for MCPServer {
                     log::error!("Could not read MCP server environment variables from sqlite: {error:?}");
                 }
             }
-        }
-    }
-}
-
-#[cfg(target_family = "wasm")]
-impl MCPServerExt for MCPServer {
-    fn from_user_json(_json: &str) -> serde_json::Result<Vec<MCPServer>> {
-        Ok(Vec::new())
-    }
-
-    fn to_user_json(&self) -> String {
-        Default::default()
-    }
-
-    fn to_parsed_templatable_mcp_server_result(&self) -> ParsedTemplatableMCPServerResult {
-        ParsedTemplatableMCPServerResult {
-            templatable_mcp_server: TemplatableMCPServer::default(),
-            templatable_mcp_server_installation: None,
         }
     }
 }

@@ -7,6 +7,7 @@ pub use cloud_object_models::UserProfileWithUID;
 
 pub enum UserProfilesEvent {}
 
+#[cfg(not(target_family = "wasm"))]
 pub fn user_profile_from_persistence(
     user_profile: crate::persistence::model::UserProfile,
 ) -> UserProfileWithUID {
