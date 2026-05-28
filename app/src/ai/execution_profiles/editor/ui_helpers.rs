@@ -20,7 +20,7 @@ use crate::editor::EditorView;
 use crate::settings::AISettings;
 use crate::ui_components::icons::Icon;
 use crate::view_components::{
-    render_warning_box, Dropdown, FilterableDropdown, SubmittableTextInput, WarningBoxConfig,
+    render_warning_box, Dropdown, DropdownItemAction, FilterableDropdown, SubmittableTextInput, WarningBoxConfig,
 };
 use crate::{Appearance, TemplatableMCPServerManager};
 
@@ -129,7 +129,7 @@ pub fn render_section_label(label: &str, appearance: &Appearance) -> Box<dyn Ele
     .finish()
 }
 
-fn render_filterable_dropdown_row<T: Clone + 'static + std::fmt::Debug + Send + Sync>(
+fn render_filterable_dropdown_row<T: DropdownItemAction>(
     appearance: &Appearance,
     label: &str,
     desc: &str,
@@ -208,7 +208,7 @@ fn render_long_context_pricing_warning(appearance: &Appearance) -> Box<dyn Eleme
     )
 }
 
-fn render_permission_row<T: Clone + 'static + std::fmt::Debug + Send + Sync>(
+fn render_permission_row<T: DropdownItemAction>(
     appearance: &Appearance,
     icon: Icon,
     label: &str,

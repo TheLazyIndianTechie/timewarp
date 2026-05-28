@@ -36,13 +36,15 @@ use super::keybindings::KeyBindingModifyingState;
 #[cfg(feature = "local_tty")]
 use super::settings_page::render_sub_sub_header;
 use super::settings_page::{
-    add_setting, build_reset_button, render_body_item, render_body_item_label,
-    render_dropdown_item, render_dropdown_item_label, render_local_only_icon, AdditionalInfo,
-    Category, LocalOnlyIconState, MatchData, PageType, SettingsPageMeta, SettingsPageViewHandle,
-    SettingsWidget, ToggleState, CONTENT_FONT_SIZE, HEADER_PADDING, TOGGLE_BUTTON_RIGHT_PADDING,
+    add_setting, build_reset_button, build_toggle_element, render_body_item,
+    render_body_item_label, render_dropdown_item, render_dropdown_item_label,
+    render_local_only_icon, AdditionalInfo, Category, LocalOnlyIconState, MatchData, PageType,
+    SettingsPageMeta, SettingsPageViewHandle, SettingsWidget, ToggleState, CONTENT_FONT_SIZE,
+    HEADER_PADDING, TOGGLE_BUTTON_RIGHT_PADDING,
 };
 use super::{
-    features, flags, DisplayCount, SettingsAction, SettingsSection, ToggleSettingActionPair,
+    features, flags, render_beta_chip, DisplayCount, SettingsAction, SettingsSection,
+    ToggleSettingActionPair,
 };
 use crate::appearance::Appearance;
 use crate::default_terminal::DefaultTerminal;
@@ -94,8 +96,8 @@ use crate::terminal::session_settings::{
     SessionSettingsChangedEvent, ShouldConfirmCloseSession,
 };
 use crate::terminal::settings::{
-    MaximumGridSize, ShowTerminalZeroStateBlock, TerminalSettings, TerminalSettingsChangedEvent,
-    UseAudibleBell,
+    AsyncFindEnabled, MaximumGridSize, ShowTerminalZeroStateBlock, TerminalSettings,
+    TerminalSettingsChangedEvent, UseAudibleBell,
 };
 use crate::terminal::{BlockListSettings, SnackbarEnabled};
 use crate::undo_close::UndoCloseSettings;
@@ -289,6 +291,15 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
             context,
             flags::AUTOSUGGESTION_KEYBINDING_HINT_FLAG,
         ),
+        ToggleSettingActionPair::new(
+            "autosuggestion ignore button",
+            builder(SettingsAction::FeaturesPageToggle(
+                FeaturesPageAction::ToggleShowAutosuggestionIgnoreButton,
+            )),
+            context,
+            flags::SHOW_AUTOSUGGESTION_IGNORE_BUTTON_FLAG,
+        )
+        .with_enabled(|| FeatureFlag::AllowIgnoringInputSuggestions.is_enabled()),
     ];
 
     if !FeatureFlag::SSHTmuxWrapper.is_enabled() {
@@ -312,6 +323,78 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
         context,
         flags::LINK_TOOLTIP_CONTEXT_FLAG,
     ));
+    toggle_binding_pairs.push(
+        ToggleSettingActionPair::new(
+            "long-running command notifications",
+            builder(SettingsAction::FeaturesPageToggle(
+                FeaturesPageAction::ToggleLongRunningNotifications,
+            )),
+            &(context.to_owned() & id!(flags::NOTIFICATIONS_CONTEXT_FLAG)),
+            flags::LONG_RUNNING_NOTIFICATIONS_FLAG,
+        )
+        .is_supported_on_current_platform(
+            SessionSettings::as_ref(app)
+                .notifications
+                .is_supported_on_current_platform(),
+        ),
+    );
+    toggle_binding_pairs.push(
+        ToggleSettingActionPair::new(
+            "agent task completion notifications",
+            builder(SettingsAction::FeaturesPageToggle(
+                FeaturesPageAction::ToggleAgentTaskCompletedNotifications,
+            )),
+            &(context.to_owned() & id!(flags::NOTIFICATIONS_CONTEXT_FLAG)),
+            flags::AGENT_TASK_COMPLETED_NOTIFICATIONS_FLAG,
+        )
+        .is_supported_on_current_platform(
+            SessionSettings::as_ref(app)
+                .notifications
+                .is_supported_on_current_platform(),
+        ),
+    );
+    toggle_binding_pairs.push(
+        ToggleSettingActionPair::new(
+            "needs-attention notifications",
+            builder(SettingsAction::FeaturesPageToggle(
+                FeaturesPageAction::ToggleNeedsAttentionNotifications,
+            )),
+            &(context.to_owned() & id!(flags::NOTIFICATIONS_CONTEXT_FLAG)),
+            flags::NEEDS_ATTENTION_NOTIFICATIONS_FLAG,
+        )
+        .is_supported_on_current_platform(
+            SessionSettings::as_ref(app)
+                .notifications
+                .is_supported_on_current_platform(),
+        ),
+    );
+    #[cfg(target_os = "macos")]
+    toggle_binding_pairs.push(
+        ToggleSettingActionPair::new(
+            "notification sounds",
+            builder(SettingsAction::FeaturesPageToggle(
+                FeaturesPageAction::ToggleNotificationSound,
+            )),
+            &(context.to_owned() & id!(flags::NOTIFICATIONS_CONTEXT_FLAG)),
+            flags::NOTIFICATION_SOUND_FLAG,
+        )
+        .is_supported_on_current_platform(
+            SessionSettings::as_ref(app)
+                .notifications
+                .is_supported_on_current_platform(),
+        ),
+    );
+    toggle_binding_pairs.push(
+        ToggleSettingActionPair::new(
+            "in-app agent notifications",
+            builder(SettingsAction::FeaturesPageToggle(
+                FeaturesPageAction::ToggleAgentInAppNotifications,
+            )),
+            context,
+            flags::AGENT_IN_APP_NOTIFICATIONS_FLAG,
+        )
+        .with_enabled(|| FeatureFlag::HOANotifications.is_enabled()),
+    );
 
     toggle_binding_pairs.push(
         ToggleSettingActionPair::new(
@@ -325,6 +408,21 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
         .is_supported_on_current_platform(
             GeneralSettings::as_ref(app)
                 .show_warning_before_quitting
+                .is_supported_on_current_platform(),
+        ),
+    );
+    toggle_binding_pairs.push(
+        ToggleSettingActionPair::new(
+            "mouse reporting",
+            builder(SettingsAction::FeaturesPageToggle(
+                FeaturesPageAction::ToggleMouseReporting,
+            )),
+            context,
+            flags::MOUSE_REPORTING_CONTEXT_FLAG,
+        )
+        .is_supported_on_current_platform(
+            AltScreenReporting::as_ref(app)
+                .mouse_reporting_enabled
                 .is_supported_on_current_platform(),
         ),
     );
@@ -465,6 +563,23 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
         context,
         flags::SMART_SELECT_FLAG,
     ));
+    if FeatureFlag::AgentView.is_enabled() && AISettings::as_ref(app).is_any_ai_enabled(app) {
+        toggle_binding_pairs.push(
+            ToggleSettingActionPair::new(
+                "help block in new sessions",
+                builder(SettingsAction::FeaturesPageToggle(
+                    FeaturesPageAction::ToggleShowTerminalZeroStateBlock,
+                )),
+                context,
+                flags::SHOW_TERMINAL_ZERO_STATE_BLOCK_FLAG,
+            )
+            .is_supported_on_current_platform(
+                TerminalSettings::as_ref(app)
+                    .show_terminal_zero_state_block
+                    .is_supported_on_current_platform(),
+            ),
+        );
+    }
 
     toggle_binding_pairs.push(
         ToggleSettingActionPair::new(
@@ -476,6 +591,21 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
             flags::SHOW_TERMINAL_INPUT_MESSAGE_LINE_FLAG,
         )
         .with_enabled(|| FeatureFlag::AgentView.is_enabled()),
+    );
+    toggle_binding_pairs.push(
+        ToggleSettingActionPair::new(
+            "'@' context menu in terminal mode",
+            builder(SettingsAction::FeaturesPageToggle(
+                FeaturesPageAction::ToggleAtContextMenuInTerminalMode,
+            )),
+            context,
+            flags::AT_CONTEXT_MENU_IN_TERMINAL_FLAG,
+        )
+        .is_supported_on_current_platform(
+            InputSettings::as_ref(app)
+                .at_context_menu_in_terminal_mode
+                .is_supported_on_current_platform(),
+        ),
     );
 
     if FeatureFlag::AgentView.is_enabled() && AISettings::as_ref(app).is_any_ai_enabled(app) {
@@ -495,6 +625,38 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
             ),
         );
     }
+    if FeatureFlag::AIContextMenuCode.is_enabled() {
+        toggle_binding_pairs.push(
+            ToggleSettingActionPair::new(
+                "codebase symbols in the '@' context menu",
+                builder(SettingsAction::FeaturesPageToggle(
+                    FeaturesPageAction::ToggleOutlineCodebaseSymbolsForAtContextMenu,
+                )),
+                context,
+                flags::OUTLINE_CODEBASE_SYMBOLS_FOR_AT_CONTEXT_MENU_FLAG,
+            )
+            .is_supported_on_current_platform(
+                InputSettings::as_ref(app)
+                    .outline_codebase_symbols_for_at_context_menu
+                    .is_supported_on_current_platform(),
+            ),
+        );
+    }
+    toggle_binding_pairs.push(
+        ToggleSettingActionPair::new(
+            "global workflows in Command Search",
+            builder(SettingsAction::FeaturesPageToggle(
+                FeaturesPageAction::ToggleGlobalWorkflowsInUniversalSearch,
+            )),
+            context,
+            flags::GLOBAL_WORKFLOWS_IN_COMMAND_SEARCH_FLAG,
+        )
+        .is_supported_on_current_platform(
+            CommandSearchSettings::as_ref(app)
+                .show_global_workflows_in_universal_search
+                .is_supported_on_current_platform(),
+        ),
+    );
 
     if GPUState::as_ref(app).is_low_power_gpu_available() {
         toggle_binding_pairs.push(
@@ -556,9 +718,10 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum FeaturesPageAction {
     ToggleCopyOnSelect,
+    ToggleAsyncFind,
     ToggleNotifications,
     ToggleRestoreSession,
     ToggleAutocompleteSymbols,
@@ -1149,6 +1312,10 @@ impl FeaturesPageAction {
             Self::ToggleAgentInAppNotifications => TelemetryEvent::FeaturesPageAction {
                 action: "ToggleAgentInAppNotifications".to_string(),
                 value: to_string(*AISettings::as_ref(ctx).show_agent_notifications),
+            },
+            Self::ToggleAsyncFind => TelemetryEvent::FeaturesPageAction {
+                action: "ToggleAsyncFind".to_string(),
+                value: to_string(*TerminalSettings::as_ref(ctx).async_find_enabled),
             },
         }
     }
@@ -1905,6 +2072,13 @@ impl TypedActionView for FeaturesPageView {
                     default_terminal.make_warp_default(ctx);
                 });
             }
+            ToggleAsyncFind => {
+                TerminalSettings::handle(ctx).update(ctx, |terminal_settings, ctx| {
+                    report_if_error!(terminal_settings
+                        .async_find_enabled
+                        .toggle_and_save_value(ctx));
+                });
+            }
         }
 
         send_telemetry_from_ctx!(action.telemetry_event(ctx), ctx);
@@ -2508,6 +2682,11 @@ impl FeaturesPageView {
         if DefaultTerminal::can_warp_become_default() {
             general_widgets.push(Box::new(DefaultTerminalWidget::default()));
         }
+
+        // The widget is the opt-in surface for channels where `FeatureFlag::AsyncFind`
+        // is off. Channels with the flag on force the feature on and hide the toggle
+        // entirely; see `TerminalSettings::is_async_find_enabled`.
+        general_widgets.push(Box::new(AsyncFindWidget::default()));
 
         let app_editor_settings = AppEditorSettings::as_ref(ctx);
 
@@ -7254,5 +7433,75 @@ impl SettingsWidget for GraphicsBackendWidget {
             );
         }
         col.finish()
+    }
+}
+
+#[derive(Default)]
+struct AsyncFindWidget {
+    switch_state: SwitchStateHandle,
+}
+
+impl SettingsWidget for AsyncFindWidget {
+    type View = FeaturesPageView;
+
+    fn search_terms(&self) -> &str {
+        "async asynchronous fast find search"
+    }
+
+    fn should_render(&self, _app: &AppContext) -> bool {
+        // Here, the feature flag being enabled means the feature is force-enabled,
+        // so we don't need to render the toggle.
+        !FeatureFlag::AsyncFind.is_enabled()
+    }
+
+    fn render(
+        &self,
+        view: &Self::View,
+        appearance: &Appearance,
+        app: &AppContext,
+    ) -> Box<dyn Element> {
+        let ui_builder = appearance.ui_builder();
+
+        let label = render_body_item_label::<FeaturesPageAction>(
+            "Asynchronous find".into(),
+            None,
+            None,
+            LocalOnlyIconState::for_setting(
+                AsyncFindEnabled::storage_key(),
+                AsyncFindEnabled::sync_to_cloud(),
+                &mut view
+                    .button_mouse_states
+                    .local_only_icon_tooltip_states
+                    .borrow_mut(),
+                app,
+            ),
+            ToggleState::Enabled,
+            appearance,
+        );
+
+        let label_with_chip = Flex::row()
+            .with_cross_axis_alignment(CrossAxisAlignment::Center)
+            .with_child(label)
+            .with_child(render_beta_chip(appearance))
+            .finish();
+
+        let switch = ui_builder
+            .switch(self.switch_state.clone())
+            .check(*TerminalSettings::as_ref(app).async_find_enabled)
+            .build()
+            .on_click(move |ctx, _, _| {
+                ctx.dispatch_typed_action(FeaturesPageAction::ToggleAsyncFind);
+            })
+            .finish();
+
+        build_toggle_element(
+            label_with_chip,
+            switch,
+            appearance,
+            Some(
+                "Use an improved implementation of find to keep the UI responsive while searching for matches on large outputs."
+                    .into(),
+            ),
+        )
     }
 }
