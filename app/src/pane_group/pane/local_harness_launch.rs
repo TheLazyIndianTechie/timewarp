@@ -49,6 +49,39 @@ pub(super) fn validate_local_harness_shell(shell_type: Option<ShellType>) -> Res
     }
 }
 
+const LOCAL_CLAUDE_CHILD_ORCHESTRATION_INSTRUCTIONS: &str = r#"You are a local Claude Code child agent launched by a lead agent in Warp.
+
+Coordinate with the lead agent through the Oz CLI messaging environment:
+- Your run id is in OZ_RUN_ID.
+- The lead agent id is in OZ_PARENT_RUN_ID.
+- The Oz CLI command is in OZ_CLI.
+
+If OZ_CLI, OZ_RUN_ID, or OZ_PARENT_RUN_ID is missing, report that blocker in your final response.
+Do not use Claude Code Agent or SendMessage tools to contact the lead agent; use the Oz CLI commands below.
+Do not ask to inspect help before messaging. The command shapes below are complete.
+
+Send a message to the lead agent at start, when blocked, and when complete:
+"$OZ_CLI" run message send --sender-run-id "$OZ_RUN_ID" --to "$OZ_PARENT_RUN_ID" --subject "<subject>" --body "<body>"
+All four send arguments are required: --sender-run-id "$OZ_RUN_ID", --to "$OZ_PARENT_RUN_ID", --subject, and --body.
+Do not pass "$OZ_PARENT_RUN_ID" as a positional argument to send.
+
+After sending a message, and before ending or standing by, check recent inbox messages:
+"$OZ_CLI" run message list "$OZ_RUN_ID" --limit 25
+
+The plugin may already have read incoming messages while staging them, so do not rely on --unread.
+If recent messages from "$OZ_PARENT_RUN_ID" are present and you have not handled them, read them and use the latest lead-agent mailbox message as task context:
+"$OZ_CLI" run message read "$MESSAGE_ID"
+
+If a surfaced message requires acknowledgement, mark it delivered:
+"$OZ_CLI" run message mark-delivered "$MESSAGE_ID"
+"#;
+
+pub(super) fn local_claude_child_prompt(task_prompt: &str) -> String {
+    format!(
+        "{LOCAL_CLAUDE_CHILD_ORCHESTRATION_INSTRUCTIONS}\nTask:\n{}",
+        task_prompt
+    )
+}
 pub(super) fn build_local_claude_child_command(prompt: &str) -> String {
     let session_id = Uuid::new_v4();
     let quoted_prompt = shell_quote(prompt);
@@ -164,7 +197,7 @@ pub(super) async fn prepare_local_harness_child_launch(
                 }
             }
 
-            build_local_claude_child_command(&prompt)
+            build_local_claude_child_command(&local_claude_child_prompt(&prompt))
         }
         Harness::Codex => {
             let HarnessKind::ThirdParty(third_party_harness) =
