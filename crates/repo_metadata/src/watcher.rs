@@ -2,7 +2,9 @@ use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::future::Future;
 use std::hash::{Hash, Hasher};
-use std::path::{Path, PathBuf};
+#[cfg(feature = "local_fs")]
+use std::path::Path;
+use std::path::PathBuf;
 use std::pin::Pin;
 
 #[cfg(feature = "local_fs")]
