@@ -6725,7 +6725,7 @@ impl Workspace {
 
         self.tabs[tab_index].group_id = Some(group_id);
         self.move_tab_to_index(tab_index, 0, ctx);
-        self.activate_tab_internal(0, ctx);
+        self.set_active_tab_index(0, ctx);
 
         if let Some(prev_group_id) = previous_group_id {
             self.prune_empty_tab_group(prev_group_id, ctx);
