@@ -20,7 +20,8 @@ use crate::editor::EditorView;
 use crate::settings::AISettings;
 use crate::ui_components::icons::Icon;
 use crate::view_components::{
-    render_warning_box, Dropdown, DropdownItemAction, FilterableDropdown, SubmittableTextInput, WarningBoxConfig,
+    render_warning_box, Dropdown, DropdownItemAction, FilterableDropdown, SubmittableTextInput,
+    WarningBoxConfig,
 };
 use crate::{Appearance, TemplatableMCPServerManager};
 
