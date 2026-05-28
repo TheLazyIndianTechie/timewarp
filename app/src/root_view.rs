@@ -3004,6 +3004,9 @@ impl RootView {
                 UserAuthenticationError::Unexpected(err) => {
                     log::error!("Encountered unexpected error when trying to fetch user: {err:#}");
                 }
+                UserAuthenticationError::ApiKeyAuthentication(err) => {
+                    log::error!("API key authentication failed while fetching user: {err:#}");
+                }
                 UserAuthenticationError::InvalidStateParameter => {}
                 UserAuthenticationError::MissingStateParameter => {}
             },

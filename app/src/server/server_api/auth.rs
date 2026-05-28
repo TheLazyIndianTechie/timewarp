@@ -311,7 +311,13 @@ impl AuthClient for ServerApi {
             .fetch_user_properties(auth_token.as_bearer_token())
             .await
             .context("Failed to fetch user response data")
-            .map_err(UserAuthenticationError::Unexpected)?;
+            .map_err(|err| {
+                if matches!(&new_credentials, Credentials::ApiKey { .. }) {
+                    UserAuthenticationError::ApiKeyAuthentication(err)
+                } else {
+                    UserAuthenticationError::Unexpected(err)
+                }
+            })?;
 
         let UserProperties {
             user,
@@ -868,6 +874,10 @@ pub enum UserAuthenticationError {
     /// be deleted per their GDPR/CCPA rights.
     #[error("Firebase returned a user error when fetching an ID token")]
     UserAccountDisabled(FirebaseError),
+    #[error(
+        "API key authentication failed. Provide a valid Warp API key. For the Oz GitHub Action, use an Agent API key created for the named agent that should run the workflow; legacy team keys may not work for new automation."
+    )]
+    ApiKeyAuthentication(#[source] anyhow::Error),
     #[error("Invalid state parameter in auth redirect")]
     InvalidStateParameter,
     #[error("Missing state parameter in auth redirect")]
@@ -891,6 +901,7 @@ impl ErrorExt for UserAuthenticationError {
                 log::info!("ignoring user account disabled error: {err:#}");
                 false
             }
+            UserAuthenticationError::ApiKeyAuthentication(err) => err.is_actionable(),
             UserAuthenticationError::Unexpected(err) => err.is_actionable(),
             UserAuthenticationError::InvalidStateParameter
             | UserAuthenticationError::MissingStateParameter => {

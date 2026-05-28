@@ -1,10 +1,11 @@
 use std::borrow::Cow;
+use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
 use crate::AppId;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Deserialize, Serialize)]
 pub struct ChannelConfig {
     /// The application ID for this channel.
     pub app_id: AppId,
@@ -27,7 +28,22 @@ pub struct ChannelConfig {
     pub mcp_static_config: Option<McpStaticConfig>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+impl fmt::Debug for ChannelConfig {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ChannelConfig")
+            .field("app_id", &self.app_id)
+            .field("logfile_name", &self.logfile_name)
+            .field("server_config", &self.server_config)
+            .field("oz_config", &self.oz_config)
+            .field("telemetry_config", &self.telemetry_config)
+            .field("autoupdate_config", &self.autoupdate_config)
+            .field("crash_reporting_config", &self.crash_reporting_config)
+            .field("mcp_static_config", &self.mcp_static_config)
+            .finish()
+    }
+}
+
+#[derive(Deserialize, Serialize)]
 pub struct WarpServerConfig {
     /// The root URL for the standard server pool.
     pub server_root_url: Cow<'static, str>,
@@ -40,6 +56,19 @@ pub struct WarpServerConfig {
     pub firebase_auth_api_key: Cow<'static, str>,
 }
 
+impl fmt::Debug for WarpServerConfig {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("WarpServerConfig")
+            .field("server_root_url", &self.server_root_url)
+            .field("rtc_server_url", &self.rtc_server_url)
+            .field(
+                "session_sharing_server_url",
+                &self.session_sharing_server_url,
+            )
+            .field("firebase_auth_api_key", &"<redacted>")
+            .finish()
+    }
+}
 impl WarpServerConfig {
     pub fn production() -> Self {
         Self {
@@ -79,7 +108,7 @@ pub struct TelemetryConfig {
     pub rudderstack_config: Option<RudderStackConfig>,
 }
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Default, Deserialize, Serialize)]
 pub struct RudderStackConfig {
     pub write_key: Cow<'static, str>,
     pub root_url: Cow<'static, str>,
@@ -116,12 +145,28 @@ pub struct AutoupdateConfig {
     pub show_autoupdate_menu_items: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Deserialize, Serialize)]
 pub struct CrashReportingConfig {
     /// The URL/DSN for sending error logs and crash reports to Sentry.
     pub sentry_url: Cow<'static, str>,
 }
 
+impl fmt::Debug for RudderStackConfig {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("RudderStackConfig")
+            .field("write_key", &"<redacted>")
+            .field("root_url", &self.root_url)
+            .field("ugc_write_key", &"<redacted>")
+            .finish()
+    }
+}
+impl fmt::Debug for CrashReportingConfig {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("CrashReportingConfig")
+            .field("sentry_url", &"<redacted>")
+            .finish()
+    }
+}
 /// Configuration for statically-bundled MCP OAuth credentials.
 ///
 /// These are credentials for OAuth providers where dynamic client registration
@@ -133,7 +178,7 @@ pub struct McpStaticConfig {
 }
 
 /// A single OAuth provider's credentials for MCP authentication.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct McpOAuthProviderConfig {
     /// The issuer URL of the OAuth provider (e.g. `https://github.com/login/oauth`).
     pub issuer: Cow<'static, str>,
@@ -142,3 +187,17 @@ pub struct McpOAuthProviderConfig {
     /// The OAuth client secret registered for this channel.
     pub client_secret: Cow<'static, str>,
 }
+
+impl fmt::Debug for McpOAuthProviderConfig {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpOAuthProviderConfig")
+            .field("issuer", &self.issuer)
+            .field("client_id", &self.client_id)
+            .field("client_secret", &"<redacted>")
+            .finish()
+    }
+}
+
+#[cfg(test)]
+#[path = "config_tests.rs"]
+mod tests;

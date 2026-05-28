@@ -151,6 +151,7 @@ impl PasteAuthTokenModalView {
                         LoginFailureReason::MissingStateParameter
                     }
                     UserAuthenticationError::DeniedAccessToken(_)
+                    | UserAuthenticationError::ApiKeyAuthentication(_)
                     | UserAuthenticationError::UserAccountDisabled(_)
                     | UserAuthenticationError::Unexpected(_) => {
                         LoginFailureReason::FailedUserAuthentication

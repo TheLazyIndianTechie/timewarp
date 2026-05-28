@@ -497,6 +497,7 @@ impl AuthManager {
                         self.set_needs_reauth(true, ctx);
                     }
                     UserAuthenticationError::UserAccountDisabled(_) => {}
+                    UserAuthenticationError::ApiKeyAuthentication(_) => {}
                     UserAuthenticationError::Unexpected(_) => {}
                     UserAuthenticationError::InvalidStateParameter => {}
                     UserAuthenticationError::MissingStateParameter => {}
