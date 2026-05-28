@@ -97,10 +97,10 @@ fn refresh_working_directories_preserves_non_repo_paths_and_dedupes() {
                 model.refresh_working_directories_for_pane_group(
                     pane_group_id,
                     vec![
-                        (terminal_1, LocalOrRemotePath::Local(dir_1.clone())),
-                        (terminal_2, LocalOrRemotePath::Local(dir_2.clone())),
+                        (terminal_1, LocalOrRemotePath::Local(canonical_1.clone())),
+                        (terminal_2, LocalOrRemotePath::Local(canonical_2.clone())),
                         // Duplicate root should be deduped.
-                        (terminal_3, LocalOrRemotePath::Local(dir_1.clone())),
+                        (terminal_3, LocalOrRemotePath::Local(canonical_1.clone())),
                     ],
                     vec![],
                     Some(terminal_1),
