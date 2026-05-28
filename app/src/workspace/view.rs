@@ -114,7 +114,7 @@ use self::vertical_tabs::{
 #[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
 use super::action::AutoCloudHandoffTrigger;
 use super::action::{
-    InitContent, RestoreConversationLayout, TabContextMenuAnchor,
+    InitContent, NewSessionMenuAnchor, RestoreConversationLayout, TabContextMenuAnchor,
     VerticalTabsPaneContextMenuTarget, WorkspaceAction,
 };
 #[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
@@ -298,6 +298,7 @@ use crate::search::command_palette::view::{
 use crate::search::command_search::searcher::{
     AcceptedHistoryItem, AcceptedWorkflow, CommandSearchItemAction,
 };
+use crate::search::command_search::settings::CommandSearchSettings;
 use crate::search::command_search::view::{CommandSearchEvent, CommandSearchView};
 use crate::search::slash_command_menu::static_commands::commands;
 use crate::search::{self, QueryFilter};
@@ -393,7 +394,9 @@ use crate::terminal::view::ambient_agent::{
 #[cfg(feature = "local_tty")]
 use crate::terminal::view::docker_sandbox::DEFAULT_DOCKER_SANDBOX_BASE_IMAGE;
 use crate::terminal::view::inline_banner::ZeroStatePromptSuggestionType;
-use crate::terminal::view::load_ai_conversation::{RestorationDirState, RestoredAIConversation};
+use crate::terminal::view::load_ai_conversation::{
+    RestorationDirState, RestoreConversationEntryBehavior, RestoredAIConversation,
+};
 use crate::terminal::view::ssh_file_upload::FileUploadId;
 use crate::terminal::view::{
     AgentOnboardingVersion, ConversationRestorationInNewPaneType, LeftPanelTargetView,
@@ -493,6 +496,7 @@ use crate::workspace::view::orchestration_launch_modal::{
 use crate::workspace::view::right_panel::{RightPanelEvent, RightPanelView};
 use crate::workspace::{ForkFromExchange, ForkedConversationDestination};
 use crate::workspaces::user_workspaces::UserWorkspaces;
+use crate::workspaces::workspace::AdminEnablementSetting;
 use crate::{
     autoupdate, report_if_error, send_telemetry_from_ctx, settings, AgentNotificationsModel,
     BlocklistAIHistoryModel, GlobalResourceHandles, TelemetryEvent,
@@ -950,7 +954,10 @@ pub struct Workspace {
     // menu in the "new_session_dropdown_menu"
     // Same applies to "show_new_session_dropdown_menu"
     new_session_dropdown_menu: ViewHandle<Menu<WorkspaceAction>>,
-    show_new_session_dropdown_menu: Option<Vector2F>,
+    /// Anchor used to position the new-session dropdown when it's open. The
+    /// variant determines whether the menu sits below the `+` add-tab button
+    /// or floats at the pointer position (right-click on the panel chrome).
+    show_new_session_dropdown_menu: Option<NewSessionMenuAnchor>,
     changelog_model: ModelHandle<ChangelogModel>,
     palette: ViewHandle<CommandPalette>,
     ctrl_tab_palette: ViewHandle<CommandPalette>,
@@ -1797,7 +1804,12 @@ impl Workspace {
     }
 
     fn build_menus(ctx: &mut ViewContext<Self>) -> WorkspaceMenuHandles {
-        let tab_right_click_menu = ctx.add_typed_action_view(|_| Menu::new());
+        // `prevent_interaction_with_other_elements` so that a click outside
+        // the menu only dismisses it instead of also firing handlers on
+        // whatever element is behind the click (e.g. the vertical tabs
+        // panel's right-click handler that opens the new-session dropdown).
+        let tab_right_click_menu =
+            ctx.add_typed_action_view(|_| Menu::new().prevent_interaction_with_other_elements());
         ctx.subscribe_to_view(&tab_right_click_menu, move |me, _, event, ctx| {
             me.handle_tab_right_click_menu_event(event, ctx);
         });
@@ -1822,6 +1834,7 @@ impl Workspace {
                 Menu::new()
                     .with_safe_triangle()
                     .with_ignore_hover_when_covered()
+                    .prevent_interaction_with_other_elements()
             }
         });
         ctx.subscribe_to_view(&new_session_menu, move |me, _, event, ctx| {
@@ -6169,8 +6182,6 @@ impl Workspace {
 
     /// Builds the unified new-session menu items
     /// tab bar chevron and the vertical tab bar `+` button.
-    ///
-    /// Order: Agent → Terminal (sidecar) → Cloud Agent → [tab configs] → separator → New worktree config (sidecar) → New tab config → separator → Reopen closed session.
     fn unified_new_session_menu_items(
         &self,
         ctx: &mut ViewContext<Self>,
@@ -6344,6 +6355,20 @@ impl Workspace {
             );
         }
 
+        // 7. Separator + New tab group entry. Gated on the Grouped Tabs flag.
+        // TODO(johnturcoo) add group actions.
+        if FeatureFlag::GroupedTabs.is_enabled() {
+            menu_items.push(MenuItem::Separator);
+            menu_items.push(
+                MenuItemFields::new("New tab group")
+                    .with_on_select_action(WorkspaceAction::SelectNewSessionMenuItem(
+                        NewSessionMenuItem::CreateNewTabGroup,
+                    ))
+                    .with_icon(icons::Icon::LayersThree01)
+                    .into_item(),
+            );
+        }
+
         menu_items.push(MenuItem::Separator);
         menu_items.push(
             MenuItemFields::new("Reopen closed session")
@@ -6358,7 +6383,7 @@ impl Workspace {
 
     fn open_tab_configs_menu(
         &mut self,
-        position: Vector2F,
+        anchor: NewSessionMenuAnchor,
         open_source: TabConfigsMenuOpenSource,
         ctx: &mut ViewContext<Self>,
     ) {
@@ -6376,17 +6401,17 @@ impl Workspace {
                 }
             }
         });
-        self.show_new_session_dropdown_menu = Some(position);
+        self.show_new_session_dropdown_menu = Some(anchor);
         ctx.focus(&self.new_session_dropdown_menu);
         ctx.notify();
     }
 
     pub fn open_new_session_dropdown_menu(
         &mut self,
-        position: Vector2F,
+        anchor: NewSessionMenuAnchor,
         ctx: &mut ViewContext<Self>,
     ) {
-        self.open_tab_configs_menu(position, TabConfigsMenuOpenSource::Pointer, ctx);
+        self.open_tab_configs_menu(anchor, TabConfigsMenuOpenSource::Pointer, ctx);
     }
 
     fn toggle_tab_configs_menu(&mut self, ctx: &mut ViewContext<Self>) {
@@ -6403,7 +6428,7 @@ impl Workspace {
                 self.sync_window_button_visibility(ctx);
             }
             self.open_tab_configs_menu(
-                Vector2F::zero(),
+                NewSessionMenuAnchor::AddTabButton(Vector2F::zero()),
                 TabConfigsMenuOpenSource::KeyboardShortcut,
                 ctx,
             );
@@ -6414,12 +6439,16 @@ impl Workspace {
             .element_position_by_id_at_last_frame(self.window_id, NEW_TAB_BUTTON_POSITION_ID)
             .map(|position| position.lower_left())
             .unwrap_or_else(Vector2F::zero);
-        self.open_tab_configs_menu(position, TabConfigsMenuOpenSource::KeyboardShortcut, ctx);
+        self.open_tab_configs_menu(
+            NewSessionMenuAnchor::AddTabButton(position),
+            TabConfigsMenuOpenSource::KeyboardShortcut,
+            ctx,
+        );
     }
 
     pub fn toggle_new_session_dropdown_menu(
         &mut self,
-        position: Vector2F,
+        anchor: NewSessionMenuAnchor,
         ctx: &mut ViewContext<Self>,
     ) {
         if self.show_new_session_dropdown_menu.is_some() {
@@ -6427,7 +6456,7 @@ impl Workspace {
             return;
         }
 
-        self.open_tab_configs_menu(position, TabConfigsMenuOpenSource::Pointer, ctx);
+        self.open_tab_configs_menu(anchor, TabConfigsMenuOpenSource::Pointer, ctx);
     }
 
     fn open_launch_config_from_menu(
@@ -6453,6 +6482,9 @@ impl Workspace {
             }
             #[cfg(not(feature = "local_fs"))]
             NewSessionMenuItem::CreateNewTabConfig => {}
+            NewSessionMenuItem::CreateNewTabGroup => {
+                // TODO(johnturcoo): implement tab group creation.
+            }
         }
     }
 
@@ -11519,6 +11551,26 @@ impl Workspace {
             self.restore_conversation_in_new_tab(conversation_id, ctx);
             return;
         };
+
+        let already_exists_in_active_pane = {
+            let terminal_view_id = terminal_view.as_ref(ctx).view_id();
+            let history_model = BlocklistAIHistoryModel::as_ref(ctx);
+            history_model.conversation(&conversation_id).is_some()
+                && history_model
+                    .all_live_conversations_for_terminal_view(terminal_view_id)
+                    .any(|conversation| conversation.id() == conversation_id)
+        };
+        if already_exists_in_active_pane {
+            terminal_view.update(ctx, |terminal_view, ctx| {
+                terminal_view.enter_agent_view_for_conversation(
+                    None,
+                    AgentViewEntryOrigin::RestoreExistingConversation,
+                    conversation_id,
+                    ctx,
+                );
+            });
+            return;
+        }
         // Check if there's an active long-running command in the active terminal.
         // If not, set the active terminal view to loading since we're going to restore in the active pane.
         // We do these operations together to hold the model lock across them.
@@ -11579,7 +11631,14 @@ impl Workspace {
                 terminal_view.restore_conversation_and_directory_context(
                     conversation,
                     FeatureFlag::AgentView.is_enabled(),
-                    |terminal_view, ctx| {
+                    RestoreConversationEntryBehavior::PreserveAgentViewState,
+                    move |terminal_view, ctx| {
+                        terminal_view.enter_agent_view_for_conversation(
+                            None,
+                            AgentViewEntryOrigin::RestoreExistingConversation,
+                            conversation_id,
+                            ctx,
+                        );
                         terminal_view.redetermine_global_focus(ctx);
                     },
                     ctx,
@@ -11945,6 +12004,7 @@ impl Workspace {
                     terminal_view.restore_conversation_after_view_creation(
                         RestoredAIConversation::new(forked_conversation.clone()),
                         true,
+                        RestoreConversationEntryBehavior::EnterRestoredConversation,
                         ctx,
                     );
                     terminal_view
@@ -13969,6 +14029,7 @@ impl Workspace {
             terminal_view.restore_conversation_after_view_creation(
                 RestoredAIConversation::new(local_fork.clone()),
                 true,
+                RestoreConversationEntryBehavior::PreserveAgentViewState,
                 view_ctx,
             );
         });
@@ -15850,7 +15911,7 @@ impl Workspace {
             terminal_view.input().update(ctx, |input, ctx| {
                 input.clear_buffer_and_reset_undo_stack(ctx);
                 input.set_input_mode_agent(true, ctx);
-                input.ensure_agent_mode_for_ai_features(true, ctx);
+                input.ensure_agent_mode_for_ai_features(true, None, ctx);
                 input.replace_buffer_content(&prompt, ctx);
                 input.focus_input_box(ctx);
             });
@@ -15923,7 +15984,7 @@ impl Workspace {
                 }
 
                 if ensure_agent_mode {
-                    input.ensure_agent_mode_for_ai_features(true, ctx);
+                    input.ensure_agent_mode_for_ai_features(true, None, ctx);
                 }
 
                 if should_submit {
@@ -18886,7 +18947,9 @@ impl Workspace {
                     false,
                 )
                 .on_right_click(move |ctx, _, position| {
-                    ctx.dispatch_typed_action(WorkspaceAction::ToggleNewSessionMenu { position });
+                    ctx.dispatch_typed_action(WorkspaceAction::ToggleNewSessionMenu {
+                        anchor: NewSessionMenuAnchor::AddTabButton(position),
+                    });
                 })
                 .finish();
             return Container::new(
@@ -18955,7 +19018,7 @@ impl Workspace {
                     app.element_position_by_id_at_last_frame(window_id, NEW_TAB_BUTTON_POSITION_ID)
                 {
                     ctx.dispatch_typed_action(WorkspaceAction::ToggleNewSessionMenu {
-                        position: position.lower_left(),
+                        anchor: NewSessionMenuAnchor::AddTabButton(position.lower_left()),
                     });
                 }
             })
@@ -20366,14 +20429,17 @@ impl Workspace {
         let alias_expansion_settings = AliasExpansionSettings::as_ref(app);
         let code_settings = CodeSettings::as_ref(app);
         let input_settings = InputSettings::as_ref(app);
+        let font_settings = FontSettings::as_ref(app);
         let reporting_setings = AltScreenReporting::as_ref(app);
         let general_settings = GeneralSettings::as_ref(app);
         let theme_settings = ThemeSettings::as_ref(app);
         let ssh_settings = SshSettings::as_ref(app);
         let warpify_settings = WarpifySettings::as_ref(app);
         let terminal_settings = TerminalSettings::as_ref(app);
+        let window_settings = WindowSettings::as_ref(app);
         let pane_settings = PaneSettings::as_ref(app);
         let keys_settings = KeysSettings::as_ref(app);
+        let command_search_settings = CommandSearchSettings::as_ref(app);
 
         let is_compact_mode =
             matches!(terminal_settings.spacing_mode.value(), SpacingMode::Compact);
@@ -20418,6 +20484,9 @@ impl Workspace {
             #[allow(deprecated)]
             context.set.insert(flags::LEGACY_SSH_WRAPPER_CONTEXT_FLAG);
         }
+        if *warpify_settings.enable_ssh_warpification.value() {
+            context.set.insert(flags::SSH_WARPIFICATION_CONTEXT_FLAG);
+        }
 
         if *warpify_settings.use_ssh_tmux_wrapper.value() {
             context.set.insert(flags::SSH_TMUX_WRAPPER_CONTEXT_FLAG);
@@ -20436,6 +20505,9 @@ impl Workspace {
         if *reporting_setings.scroll_reporting_enabled.value() {
             context.set.insert(flags::SCROLL_REPORTING_CONTEXT_FLAG);
         }
+        if *reporting_setings.mouse_reporting_enabled.value() {
+            context.set.insert(flags::MOUSE_REPORTING_CONTEXT_FLAG);
+        }
 
         if *reporting_setings.focus_reporting_enabled.value() {
             context.set.insert(flags::FOCUS_REPORTING_CONTEXT_FLAG);
@@ -20450,6 +20522,25 @@ impl Workspace {
             NotificationsMode::Enabled
         ) {
             context.set.insert(flags::NOTIFICATIONS_CONTEXT_FLAG);
+        }
+        if session_settings.notifications.is_long_running_enabled {
+            context.set.insert(flags::LONG_RUNNING_NOTIFICATIONS_FLAG);
+        }
+        if session_settings
+            .notifications
+            .is_agent_task_completed_enabled
+        {
+            context
+                .set
+                .insert(flags::AGENT_TASK_COMPLETED_NOTIFICATIONS_FLAG);
+        }
+        if session_settings.notifications.is_needs_attention_enabled {
+            context
+                .set
+                .insert(flags::NEEDS_ATTENTION_NOTIFICATIONS_FLAG);
+        }
+        if session_settings.notifications.play_notification_sound {
+            context.set.insert(flags::NOTIFICATION_SOUND_FLAG);
         }
 
         if *general_settings.link_tooltip {
@@ -20499,6 +20590,19 @@ impl Workspace {
         if *safe_mode_settings.safe_mode_enabled.value() {
             context.set.insert(flags::SAFE_MODE_FLAG);
         }
+        if !privacy_settings.is_telemetry_force_enabled()
+            && matches!(
+                UserWorkspaces::as_ref(app).get_cloud_conversation_storage_enablement_setting(),
+                AdminEnablementSetting::RespectUserSetting
+            )
+        {
+            context
+                .set
+                .insert(flags::CLOUD_CONVERSATION_STORAGE_EDITABLE_FLAG);
+        }
+        if privacy_settings.is_cloud_conversation_storage_enabled {
+            context.set.insert(flags::CLOUD_CONVERSATION_STORAGE_FLAG);
+        }
 
         if privacy_settings.is_crash_reporting_enabled {
             context.set.insert(flags::CRASH_REPORTING_FLAG);
@@ -20520,6 +20624,31 @@ impl Workspace {
 
         if *pane_settings.should_dim_inactive_panes {
             context.set.insert(flags::DIM_INACTIVE_PANES_FLAG);
+        }
+        if *window_settings.open_windows_at_custom_size {
+            context.set.insert(flags::OPEN_WINDOWS_AT_CUSTOM_SIZE_FLAG);
+        }
+
+        if *window_settings.background_blur_texture {
+            context.set.insert(flags::WINDOW_BLUR_TEXTURE_FLAG);
+        }
+
+        if *window_settings.left_panel_visibility_across_tabs {
+            context
+                .set
+                .insert(flags::LEFT_PANEL_VISIBILITY_ACROSS_TABS_FLAG);
+        }
+
+        if *font_settings.match_ai_font_to_terminal_font {
+            context
+                .set
+                .insert(flags::MATCH_AI_FONT_TO_TERMINAL_FONT_FLAG);
+        }
+
+        if *font_settings.match_notebook_to_monospace_font_size {
+            context
+                .set
+                .insert(flags::MATCH_NOTEBOOK_FONT_SIZE_TO_TERMINAL_FONT_SIZE_FLAG);
         }
 
         if *pane_settings.focus_panes_on_hover {
@@ -20544,8 +20673,36 @@ impl Workspace {
         if *tab_settings.show_code_review_button.value() {
             context.set.insert(flags::SHOW_CODE_REVIEW_BUTTON_FLAG);
         }
+        if *tab_settings.show_code_review_diff_stats.value() {
+            context.set.insert(flags::SHOW_CODE_REVIEW_DIFF_STATS_FLAG);
+        }
+        if *general_settings
+            .auto_open_code_review_pane_on_first_agent_change
+            .value()
+        {
+            context.set.insert(flags::AUTO_OPEN_CODE_REVIEW_PANE_FLAG);
+        }
         if *tab_settings.use_vertical_tabs.value() {
             context.set.insert(flags::USE_VERTICAL_TABS_FLAG);
+        }
+        if *tab_settings.preserve_active_tab_color.value() {
+            context.set.insert(flags::PRESERVE_ACTIVE_TAB_COLOR_FLAG);
+        }
+        if *tab_settings
+            .show_vertical_tab_panel_in_restored_windows
+            .value()
+        {
+            context
+                .set
+                .insert(flags::SHOW_VERTICAL_TAB_PANEL_IN_RESTORED_WINDOWS_FLAG);
+        }
+        if *tab_settings
+            .use_latest_user_prompt_as_conversation_title_in_tab_names
+            .value()
+        {
+            context
+                .set
+                .insert(flags::USE_LATEST_USER_PROMPT_AS_CONVERSATION_TITLE_IN_TAB_NAMES_FLAG);
         }
         if self.should_show_session_config_tab_config_chip() {
             context
@@ -20599,6 +20756,11 @@ impl Workspace {
                 .set
                 .insert(flags::AUTOSUGGESTION_KEYBINDING_HINT_FLAG);
         }
+        if *editor_settings.show_autosuggestion_ignore_button.value() {
+            context
+                .set
+                .insert(flags::SHOW_AUTOSUGGESTION_IGNORE_BUTTON_FLAG);
+        }
 
         #[cfg(target_os = "linux")]
         {
@@ -20614,6 +20776,17 @@ impl Workspace {
         let terminal_settings = TerminalSettings::as_ref(app);
         if *terminal_settings.use_audible_bell {
             context.set.insert(flags::USE_AUDIBLE_BELL_CONTEXT_FLAG);
+        }
+        if *terminal_settings.show_terminal_zero_state_block.value() {
+            context
+                .set
+                .insert(flags::SHOW_TERMINAL_ZERO_STATE_BLOCK_FLAG);
+        }
+        if matches!(
+            terminal_settings.alt_screen_padding.value(),
+            crate::terminal::settings::AltScreenPaddingMode::Custom { .. }
+        ) {
+            context.set.insert(flags::ALT_SCREEN_PADDING_FLAG);
         }
 
         let gpu_settings = GPUSettings::as_ref(app);
@@ -20654,6 +20827,56 @@ impl Workspace {
                 .set
                 .insert(flags::SHOW_OZ_UPDATES_IN_ZERO_STATE_FLAG);
         }
+        if *ai_settings.git_operations_autogen_enabled_internal.value() {
+            context.set.insert(flags::GIT_OPERATIONS_AUTOGEN_FLAG);
+        }
+        if *ai_settings.include_agent_commands_in_history.value() {
+            context
+                .set
+                .insert(flags::INCLUDE_AGENT_COMMANDS_IN_HISTORY_FLAG);
+        }
+        if *ai_settings.feedback_bundled_skill_enabled.value() {
+            context.set.insert(flags::FEEDBACK_BUNDLED_SKILL_FLAG);
+        }
+        if *ai_settings.memory_enabled.value() {
+            context.set.insert(flags::AI_RULES_FLAG);
+        }
+        if *ai_settings.rule_suggestions_enabled_internal.value() {
+            context.set.insert(flags::SUGGESTED_RULES_FLAG);
+        }
+        if *ai_settings.warp_drive_context_enabled.value() {
+            context.set.insert(flags::WARP_DRIVE_CONTEXT_FLAG);
+        }
+        if *ai_settings.file_based_mcp_enabled.value() {
+            context.set.insert(flags::FILE_BASED_MCP_FLAG);
+        }
+        if *ai_settings.can_use_warp_credits_for_fallback.value() {
+            context.set.insert(flags::WARP_CREDIT_FALLBACK_FLAG);
+        }
+        if *session_settings.show_model_selectors_in_prompt.value() {
+            context
+                .set
+                .insert(flags::SHOW_BASE_MODEL_PICKER_IN_PROMPT_FLAG);
+        }
+        if *ai_settings.should_render_cli_agent_footer.value() {
+            context.set.insert(flags::CLI_AGENT_FOOTER_ENABLED);
+        }
+        if *ai_settings.auto_toggle_rich_input.value() {
+            context.set.insert(flags::AUTO_TOGGLE_RICH_INPUT_FLAG);
+        }
+        if *ai_settings.auto_open_rich_input_on_cli_agent_start.value() {
+            context
+                .set
+                .insert(flags::AUTO_OPEN_RICH_INPUT_ON_CLI_AGENT_START_FLAG);
+        }
+        if *ai_settings.auto_dismiss_rich_input_after_submit.value() {
+            context
+                .set
+                .insert(flags::AUTO_DISMISS_RICH_INPUT_AFTER_SUBMIT_FLAG);
+        }
+        if *ai_settings.show_agent_notifications.value() {
+            context.set.insert(flags::AGENT_IN_APP_NOTIFICATIONS_FLAG);
+        }
 
         if *ai_settings
             .should_render_use_agent_footer_for_user_commands
@@ -20684,6 +20907,26 @@ impl Workspace {
 
         if *input_settings.enable_slash_commands_in_terminal.value() {
             context.set.insert(flags::SLASH_COMMANDS_IN_TERMINAL_FLAG);
+        }
+        if *input_settings.at_context_menu_in_terminal_mode.value() {
+            context.set.insert(flags::AT_CONTEXT_MENU_IN_TERMINAL_FLAG);
+        }
+
+        if *input_settings
+            .outline_codebase_symbols_for_at_context_menu
+            .value()
+        {
+            context
+                .set
+                .insert(flags::OUTLINE_CODEBASE_SYMBOLS_FOR_AT_CONTEXT_MENU_FLAG);
+        }
+        if *command_search_settings
+            .show_global_workflows_in_universal_search
+            .value()
+        {
+            context
+                .set
+                .insert(flags::GLOBAL_WORKFLOWS_IN_COMMAND_SEARCH_FLAG);
         }
 
         if ChannelState::enable_debug_features() {
@@ -21125,7 +21368,7 @@ impl TypedActionView for Workspace {
             StartAgentOnboardingTutorial(tutorial) => {
                 self.start_agent_onboarding_tutorial(tutorial.clone(), ctx)
             }
-            OpenNewSessionMenu { position } => self.open_new_session_dropdown_menu(*position, ctx),
+            OpenNewSessionMenu { anchor } => self.open_new_session_dropdown_menu(*anchor, ctx),
             ToggleTabConfigsMenu => self.toggle_tab_configs_menu(ctx),
             ShowSessionConfigModal => self.show_session_config_modal(ctx),
             DismissSessionConfigTabConfigChip => {
@@ -21136,9 +21379,7 @@ impl TypedActionView for Workspace {
             SaveCurrentTabAsNewConfig(tab_index) => {
                 self.save_current_tab_as_new_config(*tab_index, ctx)
             }
-            ToggleNewSessionMenu { position } => {
-                self.toggle_new_session_dropdown_menu(*position, ctx)
-            }
+            ToggleNewSessionMenu { anchor } => self.toggle_new_session_dropdown_menu(*anchor, ctx),
             SelectNewSessionMenuItem(new_session_menu_item) => {
                 self.open_launch_config_from_menu(new_session_menu_item.clone(), ctx)
             }
@@ -22596,24 +22837,6 @@ impl TypedActionView for Workspace {
             } => {
                 self.summarize_active_ai_conversation(prompt.clone(), initial_prompt.clone(), ctx);
             }
-            QueuePromptForConversation { prompt } => {
-                let Some(terminal_view) = self
-                    .active_tab_pane_group()
-                    .as_ref(ctx)
-                    .active_session_view(ctx)
-                else {
-                    return;
-                };
-
-                terminal_view.update(ctx, |terminal, ctx| {
-                    terminal.send_user_query_after_next_conversation_finished(
-                        prompt.clone(),
-                        /* show_close_button */ true,
-                        /* show_send_now_button */ true,
-                        ctx,
-                    );
-                });
-            }
             InsertForkSlashCommand => {
                 self.active_tab_pane_group().update(ctx, |pane_group, ctx| {
                     if let Some(terminal_view) = pane_group.active_session_view(ctx) {
@@ -23642,54 +23865,59 @@ impl View for Workspace {
 
         // Render the new session dropdown menu. This is outside the tab bar visibility
         // gate because it can also be opened from the vertical tabs panel.
-        if self.show_new_session_dropdown_menu.is_some() {
+        if let Some(menu_anchor) = self.show_new_session_dropdown_menu {
             let is_vertical = FeatureFlag::VerticalTabs.is_enabled()
                 && *TabSettings::as_ref(app).use_vertical_tabs
                 && self.vertical_tabs_panel_open;
 
-            if is_vertical {
-                // Anchor the menu below the vertical-tabs + button. The anchor
-                // side mirrors which side the tabs panel itself is on, so the
-                // menu always expands inward and stays inside the window.
-                let tabs_side =
-                    Self::tabs_panel_side(&TabSettings::as_ref(app).header_toolbar_chip_selection);
-                let (anchor, child_anchor) = match tabs_side {
-                    PanelPosition::Left => {
-                        (PositionedElementAnchor::BottomLeft, ChildAnchor::TopLeft)
-                    }
-                    PanelPosition::Right => {
-                        (PositionedElementAnchor::BottomRight, ChildAnchor::TopRight)
-                    }
-                };
-                stack.add_positioned_overlay_child(
-                    ChildView::new(&self.new_session_dropdown_menu).finish(),
-                    OffsetPositioning::offset_from_save_position_element(
-                        vertical_tabs::VERTICAL_TABS_ADD_TAB_POSITION_ID,
-                        vec2f(0., 4.),
-                        PositionedElementOffsetBounds::WindowBySize,
-                        anchor,
-                        child_anchor,
-                    ),
-                );
-            } else {
-                // TODO(CORE-2300): In the new version of the shell selector, this is not a
-                // context menu but a dropdown. Since it is quite wide, we need to reposition
-                // it so it does not render outside the bounds of the window.
-                let new_session_menu_position = self.show_new_session_dropdown_menu.unwrap();
-                let bounds = if FeatureFlag::ShellSelector.is_enabled() {
-                    ParentOffsetBounds::WindowByPosition
-                } else {
-                    ParentOffsetBounds::Unbounded
-                };
-                stack.add_positioned_overlay_child(
-                    ChildView::new(&self.new_session_dropdown_menu).finish(),
-                    OffsetPositioning::offset_from_parent(
-                        new_session_menu_position,
-                        bounds,
-                        ParentAnchor::TopLeft,
-                        ChildAnchor::TopLeft,
-                    ),
-                );
+            match (is_vertical, menu_anchor) {
+                (true, NewSessionMenuAnchor::AddTabButton(_)) => {
+                    // Anchor the menu below the vertical-tabs + button. The anchor
+                    // side mirrors which side the tabs panel itself is on, so the
+                    // menu always expands inward and stays inside the window.
+                    let tabs_side = Self::tabs_panel_side(
+                        &TabSettings::as_ref(app).header_toolbar_chip_selection,
+                    );
+                    let (anchor, child_anchor) = match tabs_side {
+                        PanelPosition::Left => {
+                            (PositionedElementAnchor::BottomLeft, ChildAnchor::TopLeft)
+                        }
+                        PanelPosition::Right => {
+                            (PositionedElementAnchor::BottomRight, ChildAnchor::TopRight)
+                        }
+                    };
+                    stack.add_positioned_overlay_child(
+                        ChildView::new(&self.new_session_dropdown_menu).finish(),
+                        OffsetPositioning::offset_from_save_position_element(
+                            vertical_tabs::VERTICAL_TABS_ADD_TAB_POSITION_ID,
+                            vec2f(0., 4.),
+                            PositionedElementOffsetBounds::WindowBySize,
+                            anchor,
+                            child_anchor,
+                        ),
+                    );
+                }
+                (true, NewSessionMenuAnchor::Pointer(_))
+                | (false, NewSessionMenuAnchor::AddTabButton(_))
+                | (false, NewSessionMenuAnchor::Pointer(_)) => {
+                    // TODO(CORE-2300): In the new version of the shell selector, this is not a
+                    // context menu but a dropdown. Since it is quite wide, we need to reposition
+                    // it so it does not render outside the bounds of the window.
+                    let bounds = if FeatureFlag::ShellSelector.is_enabled() {
+                        ParentOffsetBounds::WindowByPosition
+                    } else {
+                        ParentOffsetBounds::Unbounded
+                    };
+                    stack.add_positioned_overlay_child(
+                        ChildView::new(&self.new_session_dropdown_menu).finish(),
+                        OffsetPositioning::offset_from_parent(
+                            menu_anchor.position(),
+                            bounds,
+                            ParentAnchor::TopLeft,
+                            ChildAnchor::TopLeft,
+                        ),
+                    );
+                }
             }
 
             // Sidecar menu for submenu parents (New worktree config).
