@@ -21,11 +21,12 @@ use warp_editor::content::buffer::{Buffer, BufferEvent, EditOrigin};
 use warp_editor::content::mermaid_diagram::mermaid_asset_source;
 use warp_editor::content::selection_model::BufferSelectionModel;
 use warp_editor::content::text::{
-    BlockType, BufferBlockStyle, CodeBlockType, CODE_BLOCK_DEFAULT_DISPLAY_LANG,
-    CODE_BLOCK_SHELL_DISPLAY_LANG,
+    BlockType, BufferBlockStyle, CODE_BLOCK_DEFAULT_DISPLAY_LANG, CODE_BLOCK_SHELL_DISPLAY_LANG,
+    CodeBlockType,
 };
 use warp_editor::editor::RunnableCommandModel;
 use warp_util::user_input::UserInput;
+use warpui::r#async::SpawnedFutureHandle;
 use warpui::elements::{
     Align, Border, Container, CornerRadius, CrossAxisAlignment, Empty, Flex, MainAxisAlignment,
     MouseStateHandle, ParentElement, Radius, Shrinkable, Text,
@@ -33,7 +34,6 @@ use warpui::elements::{
 use warpui::fonts::Properties;
 use warpui::platform::Cursor;
 use warpui::presenter::ChildView;
-use warpui::r#async::SpawnedFutureHandle;
 use warpui::ui_components::components::{UiComponent, UiComponentStyles};
 use warpui::{
     AppContext, AssetProvider as _, Element, Entity, ModelAsRef, ModelContext, ModelHandle,
@@ -41,10 +41,11 @@ use warpui::{
 };
 
 use super::interaction_state_model::InteractionStateModel;
-use super::keys::{custom_action_to_display, NotebookKeybindings};
+use super::keys::{NotebookKeybindings, custom_action_to_display};
 use super::model::ChildModelHandle;
 use super::view::EditorViewAction;
-use super::{rich_text_styles, NotebookWorkflow};
+use super::{NotebookWorkflow, rich_text_styles};
+use crate::ASSETS;
 use crate::appearance::Appearance;
 use crate::completer::SessionAgnosticContext;
 use crate::drive::workflows::arguments::ArgumentsState;
@@ -55,21 +56,20 @@ use crate::notebooks::file::MarkdownDisplayMode;
 use crate::notebooks::styles::block_footer_action_button;
 use crate::notebooks::telemetry::{ActionEntrypoint, BlockInfo};
 use crate::settings::FontSettings;
-use crate::terminal::input::decorations::{
-    parse_current_commands_and_tokens, ParsedTokenData, ParsedTokensSnapshot,
-};
 use crate::terminal::input::DEBOUNCE_INPUT_DECORATION_PERIOD;
+use crate::terminal::input::decorations::{
+    ParsedTokenData, ParsedTokensSnapshot, parse_current_commands_and_tokens,
+};
 use crate::themes::theme::{AnsiColorIdentifier, AnsiColors};
 use crate::ui_components::buttons::icon_button;
 use crate::ui_components::icons::Icon;
 use crate::util::bindings::CustomAction;
 use crate::util::color::{ContrastingColor, MinimumAllowedContrast};
-use crate::view_components::dropdown::DropdownAction;
 use crate::view_components::Dropdown;
-use crate::workflows::workflow::Workflow;
+use crate::view_components::dropdown::DropdownAction;
 use crate::workflows::WorkflowType;
+use crate::workflows::workflow::Workflow;
 use crate::workspace::WorkspaceAction;
-use crate::ASSETS;
 
 lazy_static! {
     static ref SUPPORTED_LANGUAGES: &'static [&'static str] = &[
@@ -86,6 +86,25 @@ lazy_static! {
         "JSON",
         "PHP",
     ];
+
+    /// Cached syntax highlighting config (SyntaxSet + Theme) shared across all
+    /// NotebookCommand instances. Loading the SyntaxSet deserializes ~10 MB of
+    /// bundled bincode data, so doing it once avoids a major allocation hotspot.
+    static ref SYNTAX_CONFIG: Option<Arc<(SyntaxSet, Theme)>> = {
+        let ps = SyntaxSet::load_defaults_newlines();
+        if let Ok(asset) = ASSETS.get("bundled/syntax_theme/base16.tmTheme") {
+            let mut cursor = std::io::Cursor::new(asset);
+            match ThemeSet::load_from_reader(&mut cursor) {
+                Ok(theme) => Some(Arc::new((ps, theme))),
+                Err(e) => {
+                    log::debug!("Failed to load theme set from asset: {e}");
+                    None
+                }
+            }
+        } else {
+            None
+        }
+    };
 }
 
 #[derive(Default)]
@@ -161,8 +180,6 @@ pub struct NotebookCommand {
     syntax_highlighting_handle: Option<SpawnedFutureHandle>,
     cached_highlight_delta: Option<CachedHighlightColors>,
 
-    syntax_config: Option<(SyntaxSet, Theme)>,
-
     handle: WeakModelHandle<Self>,
 }
 
@@ -221,22 +238,6 @@ impl NotebookCommand {
             dropdown
         });
 
-        let syntax_config = {
-            let ps = SyntaxSet::load_defaults_newlines();
-            if let Ok(asset) = ASSETS.get("bundled/syntax_theme/base16.tmTheme") {
-                let mut cursor = std::io::Cursor::new(asset);
-                match ThemeSet::load_from_reader(&mut cursor) {
-                    Ok(theme) => Some((ps, theme)),
-                    Err(e) => {
-                        log::debug!("Failed to load theme set from asset: {e}");
-                        None
-                    }
-                }
-            } else {
-                None
-            }
-        };
-
         ctx.subscribe_to_model(&content, Self::on_buffer_content_updated);
 
         let (debounce_highlighting_tx, debounce_highlighting_rx) = async_channel::unbounded();
@@ -259,7 +260,6 @@ impl NotebookCommand {
             syntax_highlighting_handle: None,
             cached_highlight_delta: None,
             debounce_highlighting_tx,
-            syntax_config,
             handle: ctx.handle(),
         };
 
@@ -338,12 +338,12 @@ impl NotebookCommand {
             // Skip highlighting for default code.
             CodeBlockType::Code { lang } if lang == "text" => (),
             CodeBlockType::Code { lang } => {
-                let Some((syntax_set, syntax_theme)) = self.syntax_config.clone() else {
+                let Some(config) = SYNTAX_CONFIG.as_ref().map(Arc::clone) else {
                     return;
                 };
 
                 self.syntax_highlighting_handle = Some(ctx.spawn(
-                    parse_code_into_style_ranges(buffer_text, lang, syntax_set, syntax_theme),
+                    parse_code_into_style_ranges(buffer_text, lang, config),
                     |notebook_command, result, ctx| {
                         notebook_command.update_buffer_with_parsed_code_syntax(result, ctx);
                     },
@@ -873,18 +873,18 @@ impl ChildModelHandle for ModelHandle<NotebookCommand> {
 async fn parse_code_into_style_ranges(
     buffer_text: String,
     language: String,
-    syntax_set: SyntaxSet,
-    theme: Theme,
+    config: Arc<(SyntaxSet, Theme)>,
 ) -> Option<CodeHighlightResult> {
+    let (syntax_set, theme) = config.as_ref();
     // Find the syntax corresponding to the input language.
     let syntax = syntax_set.find_syntax_by_name(&language)?;
 
-    let mut h = HighlightLines::new(syntax, &theme);
+    let mut h = HighlightLines::new(syntax, theme);
     let mut runs = Vec::new();
 
     let mut byte_offset = 0;
     for line in LinesWithEndings::from(&buffer_text) {
-        let ranges = h.highlight_line(line, &syntax_set).ok()?;
+        let ranges = h.highlight_line(line, syntax_set).ok()?;
 
         for (text_style, content) in ranges {
             let text_color = text_style.foreground;
